@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "542370713474",
+    "project_id": "ngdtechsupport",
+    "storage_bucket": "ngdtechsupport.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:542370713474:android:9b1de130ee195a97b1899b",
+        "android_client_info": {
+          "package_name": "com.example.ngdtechsupport"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBj7SMSi92N9THWlcBcnHgdydySoBMh5W4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

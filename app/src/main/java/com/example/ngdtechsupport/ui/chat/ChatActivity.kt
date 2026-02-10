@@ -1,4 +1,4 @@
-package com.ngdstudios.techsupport.ui.chat
+package com.example.ngdtechsupport.ui.chat
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

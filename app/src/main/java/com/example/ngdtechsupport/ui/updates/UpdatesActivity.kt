@@ -1,4 +1,4 @@
-package com.ngdstudios.techsupport.ui.updates
+package com.example.ngdtechsupport.ui.updates
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

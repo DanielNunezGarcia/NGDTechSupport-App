@@ -12,13 +12,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NGDTechSupport">
         <activity
+            android:name=".ui.dashboard.DashboardActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.updates.UpdatesActivity"
             android:exported="false" />
         <activity
             android:name=".ui.chat.ChatActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.dashboard.DashboardActivity"
             android:exported="false" />
         <activity
             android:name=".ui.auth.LoginActivity"
