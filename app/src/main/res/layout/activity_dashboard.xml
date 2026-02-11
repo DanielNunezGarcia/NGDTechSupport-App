@@ -18,4 +18,11 @@
         android:layout_height="wrap_content"
         android:text="Updates" />
 
+    <TextView
+        android:id="@+id/tvApps"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cargando..."
+        android:padding="16dp"/>
+
 </LinearLayout>
