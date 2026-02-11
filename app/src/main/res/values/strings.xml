@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">NGD Tech Support</string>
+    <string name="AdAppID">ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX</string>
+    <string name="app_name">TuApp</string>
 </resources>
