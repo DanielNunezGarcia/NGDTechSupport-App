@@ -18,6 +18,12 @@
         android:layout_height="wrap_content"
         android:text="Updates" />
 
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cerrar sesión"/>
+
     <TextView
         android:id="@+id/tvApps"
         android:layout_width="match_parent"
