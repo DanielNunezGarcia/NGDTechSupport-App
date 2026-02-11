@@ -8,6 +8,8 @@ import com.example.ngdtechsupport.data.AppRepository
 import android.widget.Button
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.*
+import android.content.Intent
+import com.example.ngdtechsupport.ui.auth.LoginActivity
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -19,7 +21,7 @@ class DashboardActivity : AppCompatActivity() {
 
         val textView = findViewById<TextView>(R.id.tvApps)
         val uid = FirebaseAuth.getInstance().currentUser?.uid
-        val logoutBtn = findViewById<Button>(R.id.btnLogout)
+        val logoutButton = findViewById<Button>(R.id.btnLogout)
 
         if (uid != null) {
             CoroutineScope(Dispatchers.Main).launch {
@@ -35,9 +37,13 @@ class DashboardActivity : AppCompatActivity() {
             }
         }
 
-        logoutBtn.setOnClickListener {
+        logoutButton.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
-            finish()
+
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+
         }
     }
 }
