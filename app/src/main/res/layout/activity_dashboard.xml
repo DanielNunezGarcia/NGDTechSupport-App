@@ -3,33 +3,64 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp">
+    android:padding="16dp">
 
-    <Button
-        android:id="@+id/btnChat"
+    <!-- Cabecera -->
+    <TextView
+        android:id="@+id/tvTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Chat" />
+        android:text="Panel de Soporte Técnico"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:paddingBottom="16dp" />
 
-    <Button
-        android:id="@+id/btnUpdates"
+    <!-- Botones principales -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Updates" />
+        android:orientation="horizontal"
+        android:weightSum="2"
+        android:paddingBottom="8dp">
+
+        <Button
+            android:id="@+id/btnChat"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Chat" />
+
+        <Button
+            android:id="@+id/btnUpdates"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Updates" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Cerrar sesión"
-        android:layout_marginTop="20dp"/>
+        android:layout_marginBottom="16dp" />
 
+    <!-- Texto que usas ahora mismo para mostrar las apps -->
     <TextView
         android:id="@+id/tvApps"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Cargando..."
-        android:padding="16dp"/>
+        android:padding="8dp"
+        android:textStyle="bold" />
+
+    <!-- RecyclerView preparado para el siguiente paso -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvApps"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="8dp" />
 
 </LinearLayout>
