@@ -13,14 +13,11 @@ import androidx.lifecycle.Observer
 
 import com.example.ngdtechsupport.ui.auth.LoginActivity
 import com.example.ngdtechsupport.R
-import com.example.ngdtechsupport.data.FirebaseAppRepository
 
 import com.google.firebase.auth.FirebaseAuth
 
-
 class DashboardActivity : AppCompatActivity() {
 
-    private val repo = FirebaseAppRepository()
     private val viewModel: DashboardViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
