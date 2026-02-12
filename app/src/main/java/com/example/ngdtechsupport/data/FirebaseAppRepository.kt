@@ -23,4 +23,18 @@ class FirebaseAppRepository : AppRepository {
             emptyList()
         }
     }
+
+    override suspend fun getAllApps(): List<AppModel> {
+        return try {
+            val snapshot = db.collection("apps")
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull {
+                it.toObject(AppModel::class.java)?.copy(id = it.id)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
 }

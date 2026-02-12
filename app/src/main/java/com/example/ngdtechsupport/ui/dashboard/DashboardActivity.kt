@@ -57,6 +57,16 @@ class DashboardActivity : AppCompatActivity() {
             }
         })
 
+        // Añadimos la observación del rol
+        val roleTextView = findViewById<TextView>(R.id.tvRole)
+        viewModel.userRole.observe(this, Observer { role ->
+        // Por ejemplo, mostrar el rol
+            roleTextView.text = "Rol: $role"
+
+        // Aquí podrías mostrar/ocultar botones según el rol
+            // if (role == "admin") { ... }
+        })
+
         // Pedimos al ViewModel que cargue las apps del usuario actual
         viewModel.loadAppsForCurrentUser()
 

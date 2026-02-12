@@ -4,11 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
 import com.example.ngdtechsupport.data.AppRepository
 import com.example.ngdtechsupport.data.FirebaseAppRepository
 import com.example.ngdtechsupport.data.UserRepository
-
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -34,21 +32,25 @@ class DashboardViewModel(
             return
         }
 
-        // 1 - Cargamos el rol en paralelo
-        viewModelScope.launch {
-            val user = userRepository.getUser(uid)
-            user?.role?.let { role ->
-                _userRole.value = role
-            }
-        }
-
-        // 2 - Cargamos las apps
+        // Estado de carga inicial
         _uiState.value = DashboardUiState.Loading
 
+        // Cargamos usuario + apps en una sola corrutina
         viewModelScope.launch {
             try {
-                val apps = appRepository.getAppsForUser(uid)
+                // 1) Obtener el usuario y su rol
+                val user = userRepository.getUser(uid)
+                val role = user?.role ?: "user"
+                _userRole.value = role
 
+                // 2) Según el rol, cargamos todas las apps o solo las del usuario
+                val apps = if (role.equals("ADMIN", ignoreCase = true)) {
+                    appRepository.getAllApps()
+                } else {
+                    appRepository.getAppsForUser(uid)
+                }
+
+                // 3) Actualizar estado de UI
                 _uiState.value = if (apps.isNotEmpty()) {
                     DashboardUiState.Success(apps)
                 } else {
