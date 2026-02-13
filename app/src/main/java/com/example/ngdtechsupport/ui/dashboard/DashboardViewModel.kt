@@ -16,32 +16,36 @@ class DashboardViewModel(
     private val userRepository: UserRepository = UserRepository()
 ) : ViewModel() {
 
-    // Estado de la lista de apps
-    private val _uiState = MutableLiveData<DashboardUiState>()
+    private val auth = FirebaseAuth.getInstance()
+
+    // Estado único con toda la información
+    private val _uiState = MutableLiveData<DashboardUiState>(
+        DashboardUiState(isLoading = false)
+    )
     val uiState: LiveData<DashboardUiState> = _uiState
 
-    // Rol del usuario actual (por ejemplo, "admin" o "user")
-    private val _userRole = MutableLiveData<String>()
-    val userRole: LiveData<String> = _userRole
-
     fun loadAppsForCurrentUser() {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        val uid = auth.currentUser?.uid
 
         if (uid == null) {
-            _uiState.value = DashboardUiState.Error("Usuario no autenticado")
+            _uiState.value = DashboardUiState(
+                isLoading = false,
+                errorMessage = "Usuario no autenticado"
+            )
             return
         }
 
-        // Estado de carga inicial
-        _uiState.value = DashboardUiState.Loading
+        // Estado de carga
+        _uiState.value = DashboardUiState(isLoading = true)
 
         // Cargamos usuario + apps en una sola corrutina
         viewModelScope.launch {
             try {
-                // 1) Obtener el usuario y su rol
+                // 1) Obtener el usuario y su información
                 val user = userRepository.getUser(uid)
                 val role = user?.role ?: "user"
-                _userRole.value = role
+                val userName = user?.name ?: ""
+                val companyName = user?.company ?: ""
 
                 // 2) Según el rol, cargamos todas las apps o solo las del usuario
                 val apps = if (role.equals("ADMIN", ignoreCase = true)) {
@@ -50,14 +54,20 @@ class DashboardViewModel(
                     appRepository.getAppsForUser(uid)
                 }
 
-                // 3) Actualizar estado de UI
-                _uiState.value = if (apps.isNotEmpty()) {
-                    DashboardUiState.Success(apps)
-                } else {
-                    DashboardUiState.Empty
-                }
+                // 3) Actualizar estado de UI con toda la información
+                _uiState.value = DashboardUiState(
+                    isLoading = false,
+                    apps = apps,
+                    userRole = role,
+                    userName = userName,
+                    companyName = companyName,
+                    errorMessage = null
+                )
             } catch (e: Exception) {
-                _uiState.value = DashboardUiState.Error("Error al cargar las aplicaciones")
+                _uiState.value = DashboardUiState(
+                    isLoading = false,
+                    errorMessage = "Error al cargar las aplicaciones: ${e.message}"
+                )
             }
         }
     }
