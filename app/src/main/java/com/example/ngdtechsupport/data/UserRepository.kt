@@ -18,9 +18,16 @@ class UserRepository {
                 .await()
 
             if (adminSnapshot.exists()) {
-                // Si quieres, puedes forzar el rol a "admin" aquí
+                val adminData = adminSnapshot.data
                 val adminUser = adminSnapshot.toObject(UserModel::class.java)
-                adminUser?.copy(role = if (adminUser.role.isBlank()) "admin" else adminUser.role)
+                
+                // Normalizar rol y mapear company a companyId si es necesario
+                adminUser?.copy(
+                    role = normalizeRole(adminData?.get("role")?.toString() ?: adminUser.role),
+                    companyId = adminData?.get("companyId")?.toString() 
+                        ?: adminData?.get("company")?.toString() 
+                        ?: adminUser.companyId.ifEmpty { adminUser.company }
+                )
             } else {
                 // 2. Si no es admin, miramos en "users"
                 val userSnapshot = db.collection("users")
@@ -29,14 +36,43 @@ class UserRepository {
                     .await()
 
                 if (userSnapshot.exists()) {
+                    val userData = userSnapshot.data
                     val user = userSnapshot.toObject(UserModel::class.java)
-                    user?.copy(role = if (user.role.isBlank()) "user" else user.role)
+                    
+                    // Normalizar rol y mapear company a companyId si es necesario
+                    user?.copy(
+                        role = normalizeRole(userData?.get("role")?.toString() ?: user.role),
+                        companyId = userData?.get("companyId")?.toString() 
+                            ?: userData?.get("company")?.toString() 
+                            ?: user.companyId.ifEmpty { user.company }
+                    )
                 } else {
                     null
                 }
             }
         } catch (e: Exception) {
+            // Log del error para debugging (en producción usar Log o un sistema de logging)
+            e.printStackTrace()
+            // Si es un error de permisos, lo relanzamos para que el ViewModel lo maneje
+            if (e.message?.contains("permission") == true || 
+                e.message?.contains("PERMISSION_DENIED") == true) {
+                throw Exception("Error de permisos: Verifica las reglas de seguridad de Firestore. UID: $uid", e)
+            }
             null
+        }
+    }
+
+    /**
+     * Normaliza el rol a mayúsculas para consistencia
+     * "Client" -> "CLIENT", "Admin" -> "ADMIN", etc.
+     */
+    private fun normalizeRole(role: String): String {
+        return when {
+            role.isBlank() -> "CLIENT"
+            role.equals("admin", ignoreCase = true) -> "ADMIN"
+            role.equals("client", ignoreCase = true) -> "CLIENT"
+            role.equals("soporte", ignoreCase = true) -> "SOPORTE"
+            else -> role.uppercase()
         }
     }
 }

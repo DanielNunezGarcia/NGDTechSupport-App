@@ -37,4 +37,35 @@ class FirebaseAppRepository : AppRepository {
             emptyList()
         }
     }
+
+    override suspend fun getBusinessesForCompany(companyId: String): List<AppModel> {
+        return try {
+            val snapshot = db.collection("apps")
+                .whereEqualTo("companyId", companyId)
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull {
+                it.toObject(AppModel::class.java)?.copy(id = it.id)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    override suspend fun getSingleBusiness(companyId: String, businessId: String): List<AppModel> {
+        return try {
+            val snapshot = db.collection("apps")
+                .whereEqualTo("companyId", companyId)
+                .whereEqualTo("businessId", businessId)
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull {
+                it.toObject(AppModel::class.java)?.copy(id = it.id)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
 }
