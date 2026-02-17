@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.ProgressBar
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.model.AppModel
@@ -18,11 +19,21 @@ class AppAdapter(
         private val tvAppName: TextView = itemView.findViewById(R.id.tvAppName)
         private val tvAppStatus: TextView = itemView.findViewById(R.id.tvAppStatus)
         private val tvLastUpdate: TextView = itemView.findViewById(R.id.tvLastUpdate)
+        private val progressBar: ProgressBar = itemView.findViewById(R.id.progressBar)
+        private val tvProgress: TextView = itemView.findViewById(R.id.tvProgress)
+        private val tvVersion: TextView = itemView.findViewById(R.id.tvVersion)
+        private val tvSupportType: TextView = itemView.findViewById(R.id.tvSupportType)
 
         fun bind(app: AppModel) {
             tvAppName.text = app.name
             tvAppStatus.text = app.status
-            tvLastUpdate.text = app.lastUpdate
+            tvLastUpdate.text = "Última actualización: ${app.lastUpdate}"
+
+            progressBar.progress = app.progress
+            tvProgress.text = "${app.progress}%"
+
+            tvVersion.text = "Versión: ${app.version}"
+            tvSupportType.text = "Soporte: ${app.supportType}"
         }
     }
 
