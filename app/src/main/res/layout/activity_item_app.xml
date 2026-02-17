@@ -31,6 +31,13 @@
             android:layout_marginTop="4dp"
             android:text="Estado"/>
 
+        <ImageView
+            android:id="@+id/ivStatusIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="4dp"
+            android:contentDescription="Estado Icono"/>
+
         <!-- Barra de progreso -->
         <ProgressBar
             android:id="@+id/progressBar"

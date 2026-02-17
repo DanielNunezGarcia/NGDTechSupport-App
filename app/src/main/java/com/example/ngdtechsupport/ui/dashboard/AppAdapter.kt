@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.ProgressBar
+import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.core.content.ContextCompat
 import com.example.ngdtechsupport.R
@@ -24,29 +25,32 @@ class AppAdapter(
         private val tvProgress: TextView = itemView.findViewById(R.id.tvProgress)
         private val tvVersion: TextView = itemView.findViewById(R.id.tvVersion)
         private val tvSupportType: TextView = itemView.findViewById(R.id.tvSupportType)
+        private val ivStatusIcon: ImageView = itemView.findViewById(R.id.ivStatusIcon)
 
         fun bind(app: AppModel) {
             tvAppName.text = app.name
             tvAppStatus.text = app.status
             val context = itemView.context
 
-            val colorRes = when (app.status.lowercase()) {
-                "en desarrollo" -> R.color.status_development
-                "en revisión" -> R.color.status_review
-                "en produccion", "en producción" -> R.color.status_production
-                "en mantenimiento" -> R.color.status_maintenance
-                "incidencia" -> R.color.status_issue
-                else -> R.color.status_default
+            val iconRes = when (app.status.lowercase()) {
+                "en desarrollo" -> R.drawable.ic_status_development
+                "en revisión" -> R.drawable.ic_status_review
+                "en produccion", "en producción" -> R.drawable.ic_status_production
+                "en mantenimiento" -> R.drawable.ic_status_maintenance
+                "incidencia" -> R.drawable.ic_status_issue
+                else -> R.drawable.ic_status_development
             }
             progressBar.progressTintList =
-                ContextCompat.getColorStateList(context, colorRes)
+                ContextCompat.getColorStateList(context, iconRes)
 
-            tvAppStatus.setTextColor(ContextCompat.getColor(context, colorRes))
+            tvAppStatus.setTextColor(ContextCompat.getColor(context, iconRes))
             tvLastUpdate.text = "Última actualización: ${app.lastUpdate}"
             progressBar.progress = app.progress
             tvProgress.text = "${app.progress}%"
             tvVersion.text = "Versión: ${app.version}"
             tvSupportType.text = "Soporte: ${app.supportType}"
+            ivStatusIcon.setImageResource(iconRes)
+            ivStatusIcon.setColorFilter(ContextCompat.getColor(context, iconRes))
         }
     }
 
