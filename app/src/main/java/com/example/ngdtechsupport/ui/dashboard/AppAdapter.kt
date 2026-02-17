@@ -38,14 +38,13 @@ class AppAdapter(
                 "incidencia" -> R.color.status_issue
                 else -> R.color.status_default
             }
+            progressBar.progressTintList =
+                ContextCompat.getColorStateList(context, colorRes)
 
             tvAppStatus.setTextColor(ContextCompat.getColor(context, colorRes))
-
             tvLastUpdate.text = "Última actualización: ${app.lastUpdate}"
-
             progressBar.progress = app.progress
             tvProgress.text = "${app.progress}%"
-
             tvVersion.text = "Versión: ${app.version}"
             tvSupportType.text = "Soporte: ${app.supportType}"
         }
