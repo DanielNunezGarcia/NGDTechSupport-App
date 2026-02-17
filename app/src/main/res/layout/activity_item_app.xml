@@ -1,35 +1,77 @@
-<LinearLayout
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="12dp"
-    android:background="@android:color/white"
-    android:layout_marginBottom="8dp">
+    android:layout_margin="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="6dp">
 
-    <TextView
-        android:id="@+id/tvAppName"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Nombre de la app"
-        android:textStyle="bold"
-        android:textSize="16sp" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <TextView
-        android:id="@+id/tvAppStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Estado"
-        android:textSize="14sp"
-        android:paddingTop="4dp" />
+        <!-- Nombre -->
+        <TextView
+            android:id="@+id/tvAppName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:text="Nombre App"/>
 
-    <TextView
-        android:id="@+id/tvLastUpdate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Última actualización"
-        android:textSize="12sp"
-        android:textColor="#666666"
-        android:paddingTop="2dp" />
+        <!-- Estado -->
+        <TextView
+            android:id="@+id/tvAppStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Estado"/>
 
-</LinearLayout>
+        <!-- Barra de progreso -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:layout_marginTop="8dp"
+            android:max="100"
+            android:progress="0"/>
+
+        <!-- Porcentaje -->
+        <TextView
+            android:id="@+id/tvProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="0%"/>
+
+        <!-- Versión -->
+        <TextView
+            android:id="@+id/tvVersion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Versión: 1.0.0"/>
+
+        <!-- Tipo de soporte -->
+        <TextView
+            android:id="@+id/tvSupportType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Soporte: Desarrollo activo"/>
+
+        <!-- Última actualización -->
+        <TextView
+            android:id="@+id/tvLastUpdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Última actualización: 17/02/2026"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -12,6 +12,7 @@ import com.example.ngdtechsupport.model.BusinessModel
 import com.example.ngdtechsupport.model.UserModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import kotlin.math.sin
 
 // ViewModel del Dashboard: contiene la lógica de carga de apps y el rol del usuario
 class DashboardViewModel(
@@ -105,6 +106,9 @@ class DashboardViewModel(
                             name = business.name,
                             clientId = uid,
                             status = business.status,
+                            progress = business.progress,
+                            version = business.version,
+                            supportType = business.supportType,
                             lastUpdate = business.lastUpdate
                         )
                     }
@@ -128,6 +132,9 @@ class DashboardViewModel(
                                 name = singleBusiness.name,
                                 clientId = uid,
                                 status = singleBusiness.status,
+                                progress = singleBusiness.progress,
+                                version = singleBusiness.version,
+                                supportType = singleBusiness.supportType,
                                 lastUpdate = singleBusiness.lastUpdate
                             )
                         )
