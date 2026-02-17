@@ -28,29 +28,36 @@ class AppAdapter(
         private val ivStatusIcon: ImageView = itemView.findViewById(R.id.ivStatusIcon)
 
         fun bind(app: AppModel) {
-            tvAppName.text = app.name
-            tvAppStatus.text = app.status
+
             val context = itemView.context
 
-            val iconRes = when (app.status.lowercase()) {
-                "en desarrollo" -> R.drawable.ic_status_development
-                "en revisión" -> R.drawable.ic_status_review
-                "en produccion", "en producción" -> R.drawable.ic_status_production
-                "en mantenimiento" -> R.drawable.ic_status_maintenance
-                "incidencia" -> R.drawable.ic_status_issue
-                else -> R.drawable.ic_status_development
-            }
-            progressBar.progressTintList =
-                ContextCompat.getColorStateList(context, iconRes)
-
-            tvAppStatus.setTextColor(ContextCompat.getColor(context, iconRes))
+            tvAppName.text = app.name
+            tvAppStatus.text = app.status
             tvLastUpdate.text = "Última actualización: ${app.lastUpdate}"
+
             progressBar.progress = app.progress
             tvProgress.text = "${app.progress}%"
+
             tvVersion.text = "Versión: ${app.version}"
             tvSupportType.text = "Soporte: ${app.supportType}"
-            ivStatusIcon.setImageResource(iconRes)
-            ivStatusIcon.setColorFilter(ContextCompat.getColor(context, iconRes))
+
+            val colorRes = when (app.status.lowercase()) {
+                "en desarrollo" -> R.color.status_development
+                "en revisión" -> R.color.status_review
+                "en produccion", "en producción" -> R.color.status_production
+                "en mantenimiento" -> R.color.status_maintenance
+                "incidencia" -> R.color.status_issue
+                else -> R.color.status_default
+            }
+
+            tvAppStatus.setTextColor(ContextCompat.getColor(context, colorRes))
+
+            progressBar.progressTintList =
+                ContextCompat.getColorStateList(context, colorRes)
+
+            tvAppStatus.background.setTint(
+                ContextCompat.getColor(context, colorRes)
+            )
         }
     }
 
