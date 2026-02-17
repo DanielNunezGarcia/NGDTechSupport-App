@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="ic_launcher_background">#FFFFFFFF</color>
+    <color name="status_development">#FBC02D</color>
+    <color name="status_review">#F57C00</color>
+    <color name="status_production">#388E3C</color>
+    <color name="status_maintenance">#1976D2</color>
+    <color name="status_issue">#D32F2F</color>
+    <color name="status_default">#616161</color>
 </resources>
