@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.ProgressBar
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.content.ContextCompat
 import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.model.AppModel
 
@@ -27,6 +28,19 @@ class AppAdapter(
         fun bind(app: AppModel) {
             tvAppName.text = app.name
             tvAppStatus.text = app.status
+            val context = itemView.context
+
+            val colorRes = when (app.status.lowercase()) {
+                "en desarrollo" -> R.color.status_development
+                "en revisión" -> R.color.status_review
+                "en produccion", "en producción" -> R.color.status_production
+                "en mantenimiento" -> R.color.status_maintenance
+                "incidencia" -> R.color.status_issue
+                else -> R.color.status_default
+            }
+
+            tvAppStatus.setTextColor(ContextCompat.getColor(context, colorRes))
+
             tvLastUpdate.text = "Última actualización: ${app.lastUpdate}"
 
             progressBar.progress = app.progress
