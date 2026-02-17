@@ -104,8 +104,8 @@ class DashboardViewModel(
                             id = business.id,
                             name = business.name,
                             clientId = uid,
-                            status = "",
-                            lastUpdate = ""
+                            status = business.status,
+                            lastUpdate = business.lastUpdate
                         )
                     }
                 } else {
@@ -127,8 +127,8 @@ class DashboardViewModel(
                                 id = singleBusiness.id,
                                 name = singleBusiness.name,
                                 clientId = uid,
-                                status = "",
-                                lastUpdate = ""
+                                status = singleBusiness.status,
+                                lastUpdate = singleBusiness.lastUpdate
                             )
                         )
                     } else {

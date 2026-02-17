@@ -19,7 +19,11 @@ class CompanyRepository {
             snapshot.documents.map {
                 BusinessModel(
                     id = it.id,
-                    name = it.getString("name") ?: ""
+                    name = it.getString("name") ?: "",
+                    status = it.getString("status") ?: "",
+                    progress = it.getLong("progress")?.toInt() ?: 0,
+                    version = it.getString("version") ?: "",
+                    lastUpdate = it.getString("lastUpdate") ?: ""
                 )
             }
         } catch (e: Exception) {

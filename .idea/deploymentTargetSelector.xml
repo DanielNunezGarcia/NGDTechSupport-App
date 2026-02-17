@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="NGDTechSupport">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-02-12T16:28:07.313873600Z">
+        <DropdownSelection timestamp="2026-02-14T09:32:18.737507400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\danie\.android\avd\NGDTechSupport.avd" />
