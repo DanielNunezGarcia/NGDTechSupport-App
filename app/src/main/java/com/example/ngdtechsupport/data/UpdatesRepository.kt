@@ -7,7 +7,7 @@ import kotlinx.coroutines.tasks.await
 
 class UpdatesRepository {
 
-    private val firestore = FirebaseFirestore.getInstance()
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     suspend fun getUpdates(
         companyId: String,
