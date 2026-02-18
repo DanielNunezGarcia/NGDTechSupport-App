@@ -35,8 +35,9 @@ class AppAdapter(
             tvAppStatus.text = app.status
             tvLastUpdate.text = "Última actualización: ${app.lastUpdate}"
 
-            progressBar.progress = app.progress
-            tvProgress.text = "${app.progress}%"
+            val safeProgress = app.progress.coerceIn(0, 100)
+            progressBar.progress = safeProgress
+            tvProgress.text = "$safeProgress%"
 
             tvVersion.text = "Versión: ${app.version}"
             tvSupportType.text = "Soporte: ${app.supportType}"
