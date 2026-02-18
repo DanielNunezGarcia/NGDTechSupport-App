@@ -2,6 +2,7 @@ package com.example.ngdtechsupport.data
 
 import com.example.ngdtechsupport.model.UpdateModel
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
 class UpdatesRepository {
@@ -19,7 +20,7 @@ class UpdatesRepository {
             .collection("businesses")
             .document(businessId)
             .collection("updates")
-            .orderBy("createdAt")
+            .orderBy("createdAt", Query.Direction.DESCENDING)
             .get()
             .await()
 
