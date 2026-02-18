@@ -4,22 +4,49 @@ import com.example.ngdtechsupport.model.UpdateModel
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
-class UpdateRepository {
+class UpdatesRepository {
 
-    private val db = FirebaseFirestore.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
 
-    suspend fun getUpdatesForApp(appId: String): List<UpdateModel> {
-        return try {
-            val snapshot = db.collection("updates")
-                .whereEqualTo("appId", appId)
-                .get()
-                .await()
+    suspend fun getUpdates(
+        companyId: String,
+        businessId: String
+    ): List<UpdateModel> {
 
-            snapshot.documents.mapNotNull {
-                it.toObject(UpdateModel::class.java)?.copy(id = it.id)
-            }
-        } catch (e: Exception) {
-            emptyList()
+        val snapshot = firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("updates")
+            .orderBy("createdAt")
+            .get()
+            .await()
+
+        return snapshot.documents.map { doc ->
+            UpdateModel(
+                id = doc.id,
+                title = doc.getString("title") ?: "",
+                description = doc.getString("description") ?: "",
+                type = doc.getString("type") ?: "",
+                createdAt = doc.getTimestamp("createdAt"),
+                createdBy = doc.getString("createdBy") ?: ""
+            )
         }
+    }
+
+    suspend fun createUpdate(
+        companyId: String,
+        businessId: String,
+        update: UpdateModel
+    ) {
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("updates")
+            .add(update)
+            .await()
     }
 }
