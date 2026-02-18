@@ -99,7 +99,7 @@ class DashboardViewModel(
                 // ADMIN → puede ver todos los negocios de su compañía
                 if (companyId.isNotEmpty()) {
                     // Convertir BusinessModel a AppModel
-                    val businesses = companyRepository.getBusinesses(companyId)
+                    val businesses = companyRepository.getBusinesses(companyId).filter { it.isActive }
                     businesses.map { business ->
                         com.example.ngdtechsupport.model.AppModel(
                             id = business.id,
@@ -123,7 +123,7 @@ class DashboardViewModel(
                     // Intentar obtener el negocio específico desde CompanyRepository
                     val businesses = companyRepository.getBusinesses(companyId)
                     val singleBusiness = businesses.find { it.id == businessId }
-                    
+
                     if (singleBusiness != null) {
                         // Convertir BusinessModel a AppModel
                         listOf(
