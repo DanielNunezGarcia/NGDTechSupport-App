@@ -30,4 +30,17 @@ class CompanyRepository {
             emptyList()
         }
     }
+
+    suspend fun updateBusinessLastUpdate(
+        companyId: String,
+        businessId: String,
+        newDate: String
+    ) {
+        FirebaseFirestore.getInstance()
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .update("lastUpdate", newDate)
+    }
 }
