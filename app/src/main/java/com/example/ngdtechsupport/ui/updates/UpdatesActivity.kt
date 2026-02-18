@@ -1,36 +1,45 @@
 package com.example.ngdtechsupport.ui.updates
 
 import android.os.Bundle
-import android.widget.TextView
+import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.example.ngdtechsupport.R
-import com.example.ngdtechsupport.data.UpdateRepository
-import kotlinx.coroutines.*
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.ngdtechsupport.databinding.ActivityUpdatesBinding
 
 class UpdatesActivity : AppCompatActivity() {
 
-    private val repo = UpdateRepository()
+    private lateinit var binding: ActivityUpdatesBinding
+    private val viewModel: UpdatesViewModel by viewModels()
+
+    private lateinit var adapter: UpdateAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_updates)
 
-        val textView = findViewById<TextView>(R.id.tvUpdates)
+        binding = ActivityUpdatesBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        val appId = intent.getStringExtra("appId")
+        adapter = UpdateAdapter(emptyList())
 
-        if (appId != null) {
-            CoroutineScope(Dispatchers.Main).launch {
-                val updates = repo.getUpdatesForApp(appId)
+        binding.recyclerUpdates.layoutManager = LinearLayoutManager(this)
+        binding.recyclerUpdates.adapter = adapter
 
-                if (updates.isNotEmpty()) {
-                    textView.text = updates.joinToString("\n\n") {
-                        "${it.title}\n${it.description}\n${it.date}"
-                    }
-                } else {
-                    textView.text = "No hay novedades"
-                }
-            }
+        observeViewModel()
+
+        val companyId = intent.getStringExtra("companyId") ?: ""
+        val businessId = intent.getStringExtra("businessId") ?: ""
+
+        viewModel.loadUpdates(companyId, businessId)
+    }
+
+    private fun observeViewModel() {
+        viewModel.uiState.observe(this) { state ->
+
+            binding.progressBar.visibility =
+                if (state.isLoading) View.VISIBLE else View.GONE
+
+            adapter.updateList(state.updates)
         }
     }
 }
