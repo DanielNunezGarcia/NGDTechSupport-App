@@ -36,6 +36,31 @@ class UpdatesRepository {
         }
     }
 
+    suspend fun publishUpdate(
+        companyId: String,
+        businessId: String,
+        update: UpdateModel
+    ) {
+
+        val businessRef = firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+
+        // 1️⃣ Crear update
+        businessRef
+            .collection("updates")
+            .add(update)
+            .await()
+
+        // 2️⃣ Actualizar lastUpdate automáticamente
+        businessRef.update(
+            "lastUpdate",
+            update.createdAt
+        ).await()
+    }
+
     suspend fun createUpdate(
         companyId: String,
         businessId: String,
