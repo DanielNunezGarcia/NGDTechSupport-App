@@ -2,6 +2,7 @@ package com.example.ngdtechsupport.ui.updates
 
 import android.os.Bundle
 import android.widget.Toast
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.ngdtechsupport.data.UpdatesRepository
@@ -56,6 +57,13 @@ class PublishUpdateActivity : AppCompatActivity() {
 
                 finish()
             }
+        }
+
+        binding.btnPublish.setOnClickListener {
+            val intent = Intent(this, PublishUpdateActivity::class.java)
+            intent.putExtra("companyId", companyId)
+            intent.putExtra("businessId", businessId)
+            startActivity(intent)
         }
     }
 }

@@ -30,7 +30,10 @@ class UpdatesActivity : AppCompatActivity() {
         val companyId = intent.getStringExtra("companyId") ?: ""
         val businessId = intent.getStringExtra("businessId") ?: ""
 
-        viewModel.loadUpdates(companyId, businessId)
+        val userRole = intent.getStringExtra("userRole") ?: ""
+        if (userRole == "ADMIN") {
+            binding.btnNewUpdate.visibility = View.VISIBLE
+        }
     }
 
     private fun observeViewModel() {
