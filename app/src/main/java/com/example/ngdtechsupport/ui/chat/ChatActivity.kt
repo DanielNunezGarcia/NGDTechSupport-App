@@ -66,13 +66,18 @@ class ChatActivity : AppCompatActivity() {
 
     private fun setupRecycler() {
         adapter = ChatAdapter(emptyList())
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
+        val layoutManager = LinearLayoutManager(this)
+        layoutManager.stackFromEnd = true
+        recyclerView.layoutManager = layoutManager
     }
 
     private fun observeMessages() {
         viewModel.messages.observe(this) { messages ->
             adapter.updateData(messages)
+
+            if (messages.isNotEmpty()) {
+                recyclerView.scrollToPosition(messages.size - 1)
+            }
         }
     }
 }
