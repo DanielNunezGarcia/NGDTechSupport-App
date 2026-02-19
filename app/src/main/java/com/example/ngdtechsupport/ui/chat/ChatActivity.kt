@@ -1,51 +1,72 @@
 package com.example.ngdtechsupport.ui.chat
 
 import android.os.Bundle
-import android.widget.EditText
-import android.widget.Button
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.ngdtechsupport.R
+import com.example.ngdtechsupport.databinding.ActivityChatBinding
+import com.google.firebase.auth.FirebaseAuth
 
 class ChatActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityChatBinding
     private val viewModel: ChatViewModel by viewModels()
-    private lateinit var recyclerView: RecyclerView
+
     private lateinit var adapter: ChatAdapter
+
     private lateinit var companyId: String
     private lateinit var businessId: String
-    private lateinit var editTextMessage: EditText
-    private lateinit var buttonSend: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_chat)
 
-        recyclerView = findViewById(R.id.recyclerViewChat)
+        binding = ActivityChatBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         companyId = intent.getStringExtra("companyId") ?: ""
         businessId = intent.getStringExtra("businessId") ?: ""
 
         setupRecycler()
         observeMessages()
+        setupSendButton()
 
         viewModel.loadMessages(companyId, businessId)
+    }
 
-        // Enviar mensaje. Botón y texto
-        editTextMessage = findViewById(R.id.editTextMessage)
-        buttonSend = findViewById(R.id.buttonSend)
-        setupSendButton()
+    private fun setupRecycler() {
+
+        val currentUserId = FirebaseAuth.getInstance()
+            .currentUser
+            ?.uid ?: ""
+
+        adapter = ChatAdapter(emptyList(), currentUserId)
+
+        val layoutManager = LinearLayoutManager(this)
+        layoutManager.stackFromEnd = true
+
+        binding.recyclerViewChat.layoutManager = layoutManager
+        binding.recyclerViewChat.adapter = adapter
+    }
+
+    private fun observeMessages() {
+        viewModel.messages.observe(this) { messages ->
+            adapter.updateData(messages)
+
+            if (messages.isNotEmpty()) {
+                binding.recyclerViewChat.scrollToPosition(messages.size - 1)
+            }
+        }
     }
 
     private fun setupSendButton() {
-        buttonSend.setOnClickListener {
-            val text = editTextMessage.text.toString().trim()
+
+        binding.buttonSend.setOnClickListener {
+
+            val text = binding.editTextMessage.text.toString().trim()
+
             if (text.isNotEmpty()) {
 
-                val senderId = com.google.firebase.auth.FirebaseAuth
-                    .getInstance()
+                val senderId = FirebaseAuth.getInstance()
                     .currentUser
                     ?.uid ?: ""
 
@@ -59,24 +80,7 @@ class ChatActivity : AppCompatActivity() {
                     senderRole
                 )
 
-                editTextMessage.text.clear()
-            }
-        }
-    }
-
-    private fun setupRecycler() {
-        adapter = ChatAdapter(emptyList())
-        val layoutManager = LinearLayoutManager(this)
-        layoutManager.stackFromEnd = true
-        recyclerView.layoutManager = layoutManager
-    }
-
-    private fun observeMessages() {
-        viewModel.messages.observe(this) { messages ->
-            adapter.updateData(messages)
-
-            if (messages.isNotEmpty()) {
-                recyclerView.scrollToPosition(messages.size - 1)
+                binding.editTextMessage.text.clear()
             }
         }
     }

@@ -7,7 +7,8 @@ import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.databinding.ItemChatMessageBinding
 
 class ChatAdapter(
-    private var messages: List<ChatMessageModel>
+    private var messages: List<ChatMessageModel>,
+    private val currentUserId: String
 ) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
 
     inner class ChatViewHolder(val binding: ItemChatMessageBinding)
@@ -25,8 +26,29 @@ class ChatAdapter(
     override fun getItemCount(): Int = messages.size
 
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
+
         val message = messages[position]
+
         holder.binding.textViewMessage.text = message.message
+
+        val isMine = message.senderId == currentUserId
+
+        val params = holder.binding.textViewMessage.layoutParams
+                as android.widget.FrameLayout.LayoutParams
+
+        if (isMine) {
+            params.gravity = android.view.Gravity.END
+            holder.binding.textViewMessage.setBackgroundResource(
+                com.example.ngdtechsupport.R.drawable.bg_message_mine
+            )
+        } else {
+            params.gravity = android.view.Gravity.START
+            holder.binding.textViewMessage.setBackgroundResource(
+                com.example.ngdtechsupport.R.drawable.bg_message_other
+            )
+        }
+
+        holder.binding.textViewMessage.layoutParams = params
     }
 
     fun updateData(newMessages: List<ChatMessageModel>) {
