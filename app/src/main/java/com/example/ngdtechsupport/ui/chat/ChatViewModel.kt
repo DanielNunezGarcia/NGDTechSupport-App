@@ -21,4 +21,23 @@ class ChatViewModel : ViewModel() {
             _messages.value = result
         }
     }
+
+    fun sendMessage(
+        companyId: String,
+        businessId: String,
+        message: String,
+        senderId: String,
+        senderRole: String
+    ) {
+        viewModelScope.launch {
+            repository.sendMessage(
+                companyId,
+                businessId,
+                message,
+                senderId,
+                senderRole
+            )
+            loadMessages(companyId, businessId)
+        }
+    }
 }
