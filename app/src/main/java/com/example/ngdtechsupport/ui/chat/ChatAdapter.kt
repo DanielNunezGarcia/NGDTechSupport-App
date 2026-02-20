@@ -49,6 +49,13 @@ class ChatAdapter(
             )
         }
 
+        if (!isMine) {
+            holder.binding.textViewSender.visibility = android.view.View.VISIBLE
+            holder.binding.textViewSender.text = message.senderName
+        } else {
+            holder.binding.textViewSender.visibility = android.view.View.GONE
+        }
+
         holder.binding.layoutBubble.layoutParams = bubbleParams
 
         val timestamp = message.createdAt

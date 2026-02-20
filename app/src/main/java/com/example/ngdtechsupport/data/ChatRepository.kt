@@ -31,6 +31,7 @@ class ChatRepository {
                             message = doc.getString("message") ?: "",
                             senderId = doc.getString("senderId") ?: "",
                             senderRole = doc.getString("senderRole") ?: "",
+                            senderName = doc.getString("senderName") ?: "",
                             createdAt = doc.getTimestamp("createdAt")
                         )
                     }
@@ -40,17 +41,19 @@ class ChatRepository {
             }
     }
 
-    suspend fun sendMessage(
+    fun sendMessage(
         companyId: String,
         businessId: String,
         message: String,
         senderId: String,
-        senderRole: String
+        senderRole: String,
+        senderName: String
     ) {
         val messageData = hashMapOf(
             "message" to message,
             "senderId" to senderId,
             "senderRole" to senderRole,
+            "senderName" to senderName,
             "createdAt" to com.google.firebase.Timestamp.now()
         )
 

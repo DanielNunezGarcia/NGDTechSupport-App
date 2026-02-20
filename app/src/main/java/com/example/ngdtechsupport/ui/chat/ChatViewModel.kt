@@ -26,7 +26,8 @@ class ChatViewModel : ViewModel() {
         businessId: String,
         message: String,
         senderId: String,
-        senderRole: String
+        senderRole: String,
+        senderName: String
     ) {
         viewModelScope.launch {
             repository.sendMessage(
@@ -34,7 +35,8 @@ class ChatViewModel : ViewModel() {
                 businessId,
                 message,
                 senderId,
-                senderRole
+                senderRole,
+                senderName
             )
         }
     }

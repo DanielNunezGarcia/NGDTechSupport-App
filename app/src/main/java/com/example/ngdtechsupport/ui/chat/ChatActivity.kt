@@ -6,22 +6,32 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class ChatActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityChatBinding
     private val viewModel: ChatViewModel by viewModels()
-
     private lateinit var adapter: ChatAdapter
-
     private lateinit var companyId: String
     private lateinit var businessId: String
+    private var currentUserName: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(uid)
+            .get()
+            .addOnSuccessListener { document ->
+                currentUserName = document.getString("name") ?: "Usuario"
+            }
 
         companyId = intent.getStringExtra("companyId") ?: ""
         businessId = intent.getStringExtra("businessId") ?: ""
@@ -77,7 +87,8 @@ class ChatActivity : AppCompatActivity() {
                     businessId,
                     text,
                     senderId,
-                    senderRole
+                    senderRole,
+                    currentUserName
                 )
 
                 binding.editTextMessage.text.clear()
