@@ -97,4 +97,57 @@ class ChatRepository {
             .add(messageData)
             .await()
     }
+
+    fun setTypingStatus(
+        companyId: String,
+        businessId: String,
+        userId: String,
+        userName: String,
+        isTyping: Boolean
+    ) {
+
+        val data = mapOf(
+            "userId" to userId,
+            "userName" to userName,
+            "isTyping" to isTyping
+        )
+
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("chatStatus")
+            .document("typing")
+            .set(data)
+    }
+
+    fun listenTypingStatus(
+        companyId: String,
+        businessId: String,
+        onResult: (String?) -> Unit
+    ) {
+
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("chatStatus")
+            .document("typing")
+            .addSnapshotListener { snapshot, _ ->
+
+                if (snapshot != null && snapshot.exists()) {
+
+                    val isTyping = snapshot.getBoolean("isTyping") ?: false
+                    val userName = snapshot.getString("userName") ?: ""
+
+                    if (isTyping) {
+                        onResult(userName)
+                    } else {
+                        onResult(null)
+                    }
+                }
+            }
+    }
 }

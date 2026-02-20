@@ -1,7 +1,9 @@
 package com.example.ngdtechsupport.ui.chat
 
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
+import androidx.core.widget.addTextChangedListener
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
@@ -41,6 +43,20 @@ class ChatActivity : AppCompatActivity() {
         setupSendButton()
 
         viewModel.listenMessages(companyId, businessId)
+        viewModel.listenTyping(companyId, businessId)
+
+        viewModel.typingUser.observe(this) { userName ->
+
+            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+            if (userName != null && userName != currentUserName) {
+                binding.textViewTyping.visibility = View.VISIBLE
+                binding.textViewTyping.text = "$userName está escribiendo..."
+            } else {
+                binding.textViewTyping.visibility = View.GONE
+            }
+        }
+
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         viewModel.markAsRead(companyId, businessId, currentUserId)
     }
@@ -72,16 +88,25 @@ class ChatActivity : AppCompatActivity() {
 
     private fun setupSendButton() {
 
+        binding.editTextMessage.addTextChangedListener {
+
+            val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
+            if (it.toString().isNotEmpty()) {
+                viewModel.setTyping(companyId, businessId, userId, currentUserName, true)
+            } else {
+                viewModel.setTyping(companyId, businessId, userId, currentUserName, false)
+            }
+        }
+
         binding.buttonSend.setOnClickListener {
 
             val text = binding.editTextMessage.text.toString().trim()
-
             if (text.isNotEmpty()) {
 
                 val senderId = FirebaseAuth.getInstance()
                     .currentUser
                     ?.uid ?: ""
-
                 val senderRole = "Admin" // luego lo haremos dinámico
 
                 viewModel.sendMessage(
@@ -92,6 +117,8 @@ class ChatActivity : AppCompatActivity() {
                     senderRole,
                     currentUserName
                 )
+
+                viewModel.setTyping(companyId, businessId, senderId, currentUserName, false)
 
                 binding.editTextMessage.text.clear()
             }

@@ -11,9 +11,11 @@ import kotlinx.coroutines.launch
 class ChatViewModel : ViewModel() {
 
     private val repository = ChatRepository()
-
     private val _messages = MutableLiveData<List<ChatMessageModel>>()
     val messages: LiveData<List<ChatMessageModel>> = _messages
+
+    private val _typingUser = MutableLiveData<String?>()
+    val typingUser: LiveData<String?> = _typingUser
 
     fun listenMessages(companyId: String, businessId: String) {
         repository.listenForMessages(companyId, businessId) { result ->
@@ -43,5 +45,21 @@ class ChatViewModel : ViewModel() {
 
     fun markAsRead(companyId: String, businessId: String, currentUserId: String) {
         repository.markMessagesAsRead(companyId, businessId, currentUserId)
+    }
+
+    fun setTyping(
+        companyId: String,
+        businessId: String,
+        userId: String,
+        userName: String,
+        isTyping: Boolean
+    ) {
+        repository.setTypingStatus(companyId, businessId, userId, userName, isTyping)
+    }
+
+    fun listenTyping(companyId: String, businessId: String) {
+        repository.listenTypingStatus(companyId, businessId) { userName ->
+            _typingUser.postValue(userName)
+        }
     }
 }
