@@ -30,7 +30,7 @@ class ChatActivity : AppCompatActivity() {
         observeMessages()
         setupSendButton()
 
-        viewModel.loadMessages(companyId, businessId)
+        viewModel.listenMessages(companyId, businessId)
     }
 
     private fun setupRecycler() {

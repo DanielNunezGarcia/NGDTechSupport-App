@@ -15,10 +15,9 @@ class ChatViewModel : ViewModel() {
     private val _messages = MutableLiveData<List<ChatMessageModel>>()
     val messages: LiveData<List<ChatMessageModel>> = _messages
 
-    fun loadMessages(companyId: String, businessId: String) {
-        viewModelScope.launch {
-            val result = repository.getMessages(companyId, businessId)
-            _messages.value = result
+    fun listenMessages(companyId: String, businessId: String) {
+        repository.listenForMessages(companyId, businessId) { result ->
+            _messages.postValue(result)
         }
     }
 
@@ -37,7 +36,6 @@ class ChatViewModel : ViewModel() {
                 senderId,
                 senderRole
             )
-            loadMessages(companyId, businessId)
         }
     }
 }

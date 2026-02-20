@@ -8,30 +8,36 @@ class ChatRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
 
-    suspend fun getMessages(
+    fun listenForMessages(
         companyId: String,
-        businessId: String
-    ): List<ChatMessageModel> {
+        businessId: String,
+        onResult: (List<ChatMessageModel>) -> Unit
+    ) {
 
-        val snapshot = firestore
+        firestore
             .collection("companies")
             .document(companyId)
             .collection("businesses")
             .document(businessId)
             .collection("chat")
             .orderBy("createdAt")
-            .get()
-            .await()
+            .addSnapshotListener { snapshot, _ ->
 
-        return snapshot.documents.map { doc ->
-            ChatMessageModel(
-                id = doc.id,
-                message = doc.getString("message") ?: "",
-                senderId = doc.getString("senderId") ?: "",
-                senderRole = doc.getString("senderRole") ?: "",
-                createdAt = doc.getTimestamp("createdAt")
-            )
-        }
+                if (snapshot != null) {
+
+                    val messages = snapshot.documents.map { doc ->
+                        ChatMessageModel(
+                            id = doc.id,
+                            message = doc.getString("message") ?: "",
+                            senderId = doc.getString("senderId") ?: "",
+                            senderRole = doc.getString("senderRole") ?: "",
+                            createdAt = doc.getTimestamp("createdAt")
+                        )
+                    }
+
+                    onResult(messages)
+                }
+            }
     }
 
     suspend fun sendMessage(
