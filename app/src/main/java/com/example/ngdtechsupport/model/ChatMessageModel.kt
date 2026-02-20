@@ -8,5 +8,7 @@ data class ChatMessageModel(
     val senderId: String = "",
     val senderRole: String = "",
     val senderName: String = "",
+    val isDelivered: Boolean = false,
+    val isRead: Boolean = false,
     val createdAt: Timestamp? = null
 )

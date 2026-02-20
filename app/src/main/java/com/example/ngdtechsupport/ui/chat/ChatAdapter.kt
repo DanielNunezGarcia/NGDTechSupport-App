@@ -64,6 +64,26 @@ class ChatAdapter(
             val format = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
             holder.binding.textViewTime.text = format.format(date)
         }
+
+        if (isMine) {
+
+            holder.binding.textViewStatus.visibility = android.view.View.VISIBLE
+
+            when {
+                message.isRead -> {
+                    holder.binding.textViewStatus.text = "Leído"
+                }
+                message.isDelivered -> {
+                    holder.binding.textViewStatus.text = "Entregado"
+                }
+                else -> {
+                    holder.binding.textViewStatus.text = "Enviado"
+                }
+            }
+
+        } else {
+            holder.binding.textViewStatus.visibility = android.view.View.GONE
+        }
     }
 
     fun updateData(newMessages: List<ChatMessageModel>) {

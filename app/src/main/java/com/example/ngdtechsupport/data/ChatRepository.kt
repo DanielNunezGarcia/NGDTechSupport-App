@@ -32,11 +32,40 @@ class ChatRepository {
                             senderId = doc.getString("senderId") ?: "",
                             senderRole = doc.getString("senderRole") ?: "",
                             senderName = doc.getString("senderName") ?: "",
+                            isDelivered = doc.getBoolean("isDelivered") ?: false,
+                            isRead = doc.getBoolean("isRead") ?: false,
                             createdAt = doc.getTimestamp("createdAt")
                         )
                     }
 
                     onResult(messages)
+                }
+            }
+    }
+
+    fun markMessagesAsRead(
+        companyId: String,
+        businessId: String,
+        currentUserId: String
+    ) {
+
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("chat")
+            .whereNotEqualTo("senderId", currentUserId)
+            .get()
+            .addOnSuccessListener { snapshot ->
+
+                for (doc in snapshot.documents) {
+                    doc.reference.update(
+                        mapOf(
+                            "isDelivered" to true,
+                            "isRead" to true
+                        )
+                    )
                 }
             }
     }
@@ -54,6 +83,8 @@ class ChatRepository {
             "senderId" to senderId,
             "senderRole" to senderRole,
             "senderName" to senderName,
+            "isDelivered" to false,
+            "isRead" to false,
             "createdAt" to com.google.firebase.Timestamp.now()
         )
 

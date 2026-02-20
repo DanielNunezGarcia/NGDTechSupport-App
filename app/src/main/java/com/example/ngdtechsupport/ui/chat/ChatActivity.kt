@@ -41,6 +41,8 @@ class ChatActivity : AppCompatActivity() {
         setupSendButton()
 
         viewModel.listenMessages(companyId, businessId)
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        viewModel.markAsRead(companyId, businessId, currentUserId)
     }
 
     private fun setupRecycler() {

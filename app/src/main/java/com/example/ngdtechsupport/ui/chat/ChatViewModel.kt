@@ -40,4 +40,8 @@ class ChatViewModel : ViewModel() {
             )
         }
     }
+
+    fun markAsRead(companyId: String, businessId: String, currentUserId: String) {
+        repository.markMessagesAsRead(companyId, businessId, currentUserId)
+    }
 }
