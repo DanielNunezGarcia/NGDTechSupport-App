@@ -28,27 +28,35 @@ class ChatAdapter(
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
 
         val message = messages[position]
-
         holder.binding.textViewMessage.text = message.message
 
         val isMine = message.senderId == currentUserId
-
         val params = holder.binding.textViewMessage.layoutParams
                 as android.widget.FrameLayout.LayoutParams
 
+        val bubbleParams = holder.binding.layoutBubble.layoutParams
+                as android.widget.FrameLayout.LayoutParams
+
         if (isMine) {
-            params.gravity = android.view.Gravity.END
+            bubbleParams.gravity = android.view.Gravity.END
             holder.binding.textViewMessage.setBackgroundResource(
                 com.example.ngdtechsupport.R.drawable.bg_message_mine
             )
         } else {
-            params.gravity = android.view.Gravity.START
+            bubbleParams.gravity = android.view.Gravity.START
             holder.binding.textViewMessage.setBackgroundResource(
                 com.example.ngdtechsupport.R.drawable.bg_message_other
             )
         }
 
-        holder.binding.textViewMessage.layoutParams = params
+        holder.binding.layoutBubble.layoutParams = bubbleParams
+
+        val timestamp = message.createdAt
+        if (timestamp != null) {
+            val date = timestamp.toDate()
+            val format = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+            holder.binding.textViewTime.text = format.format(date)
+        }
     }
 
     fun updateData(newMessages: List<ChatMessageModel>) {
