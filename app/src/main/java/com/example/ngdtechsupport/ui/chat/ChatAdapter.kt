@@ -1,114 +1,106 @@
 package com.example.ngdtechsupport.ui.chat
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.example.ngdtechsupport.R
-import com.example.ngdtechsupport.data.model.ChatMessageModel
+import com.example.ngdtechsupport.data.model.*
 import com.example.ngdtechsupport.databinding.ItemChatMessageBinding
+import com.example.ngdtechsupport.databinding.ItemDateSeparatorBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
 class ChatAdapter(
     private val currentUserId: String
-) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private val messages = mutableListOf<ChatMessageModel>()
+    private val items = mutableListOf<ChatItem>()
 
-    inner class ChatViewHolder(val binding: ItemChatMessageBinding)
-        : RecyclerView.ViewHolder(binding.root)
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
-        val binding = ItemChatMessageBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return ChatViewHolder(binding)
+    companion object {
+        private const val TYPE_MESSAGE = 1
+        private const val TYPE_DATE = 2
     }
 
-    override fun getItemCount(): Int = messages.size
+    override fun getItemViewType(position: Int): Int {
+        return when (items[position]) {
+            is ChatItem.MessageItem -> TYPE_MESSAGE
+            is ChatItem.DateSeparator -> TYPE_DATE
+        }
+    }
 
-    override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int)
+            : RecyclerView.ViewHolder {
 
-        val message = messages[position]
-        val isMine = message.senderId == currentUserId
+        return if (viewType == TYPE_MESSAGE) {
 
-        holder.binding.textViewMessage.text = message.message
+            val binding = ItemChatMessageBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+            MessageViewHolder(binding)
 
-        if (!isMine) {
-            holder.binding.textViewSender.visibility = View.VISIBLE
-            holder.binding.textViewSender.text = message.senderName
         } else {
-            holder.binding.textViewSender.visibility = View.GONE
-        }
 
-        val bubbleParams =
-            holder.binding.layoutBubble.layoutParams as android.widget.FrameLayout.LayoutParams
-
-        bubbleParams.gravity =
-            if (isMine) android.view.Gravity.END
-            else android.view.Gravity.START
-
-        holder.binding.layoutBubble.layoutParams = bubbleParams
-
-        holder.binding.layoutBubble.setBackgroundResource(
-            if (isMine) R.drawable.bg_message_mine
-            else R.drawable.bg_message_other
-        )
-
-        holder.binding.textViewTime.text = formatTimestamp(message.timestamp)
-
-        if (isMine) {
-            holder.binding.textViewStatus.visibility = View.VISIBLE
-            holder.binding.textViewStatus.text =
-                if (message.status == "read") "✓✓"
-                else "✓"
-        } else {
-            holder.binding.textViewStatus.visibility = View.GONE
+            val binding = ItemDateSeparatorBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+            DateViewHolder(binding)
         }
     }
 
-    // Formato hora profesional
-    private fun formatTimestamp(timestamp: com.google.firebase.Timestamp?): String {
-        if (timestamp == null) return ""
+    override fun getItemCount() = items.size
 
-        val date = timestamp.toDate()
-        val now = Calendar.getInstance()
-        val msg = Calendar.getInstance().apply { time = date }
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
 
-        val sameDay =
-            now.get(Calendar.YEAR) == msg.get(Calendar.YEAR) &&
-                    now.get(Calendar.DAY_OF_YEAR) == msg.get(Calendar.DAY_OF_YEAR)
+        when (val item = items[position]) {
 
-        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val fullFormat = SimpleDateFormat("dd MMM HH:mm", Locale.getDefault())
+            is ChatItem.MessageItem -> {
+                (holder as MessageViewHolder).bind(item.message)
+            }
 
-        return if (sameDay) timeFormat.format(date)
-        else fullFormat.format(date)
+            is ChatItem.DateSeparator -> {
+                (holder as DateViewHolder).binding.textViewDate.text = item.date
+            }
+        }
     }
 
-    fun submitMessages(newList: List<ChatMessageModel>) {
+    fun submitMessages(messages: List<ChatMessageModel>) {
 
-        val diffCallback = object : DiffUtil.Callback() {
+        val newItems = mutableListOf<ChatItem>()
+        var lastDate: String? = null
 
-            override fun getOldListSize() = messages.size
-            override fun getNewListSize() = newList.size
+        messages.forEach { message ->
 
-            override fun areItemsTheSame(oldPos: Int, newPos: Int) =
-                messages[oldPos].id == newList[newPos].id
+            val dateString = SimpleDateFormat(
+                "dd MMM yyyy",
+                Locale.getDefault()
+            ).format(message.timestamp?.toDate() ?: Date())
 
-            override fun areContentsTheSame(oldPos: Int, newPos: Int) =
-                messages[oldPos] == newList[newPos]
+            if (dateString != lastDate) {
+                newItems.add(ChatItem.DateSeparator(dateString))
+                lastDate = dateString
+            }
+
+            newItems.add(ChatItem.MessageItem(message))
         }
 
-        val diffResult = DiffUtil.calculateDiff(diffCallback)
-
-        messages.clear()
-        messages.addAll(newList)
-
-        diffResult.dispatchUpdatesTo(this)
+        items.clear()
+        items.addAll(newItems)
+        notifyDataSetChanged()
     }
+
+    inner class MessageViewHolder(
+        private val binding: ItemChatMessageBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(message: ChatMessageModel) {
+            binding.textViewMessage.text = message.message
+        }
+    }
+
+    inner class DateViewHolder(
+        val binding: ItemDateSeparatorBinding
+    ) : RecyclerView.ViewHolder(binding.root)
 }
