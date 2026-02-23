@@ -71,4 +71,34 @@ class ChatRepository {
                 }
             }
     }
+
+    fun sendMessage(
+        companyId: String,
+        businessId: String,
+        text: String,
+        senderId: String,
+        replyToId: String?,
+        replyToText: String?
+    ) {
+
+        val messageRef = firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("chat")
+            .document()
+
+        val message = hashMapOf(
+            "id" to messageRef.id,
+            "message" to text,
+            "senderId" to senderId,
+            "timestamp" to com.google.firebase.Timestamp.now(),
+            "status" to "sent",
+            "replyToMessageId" to replyToId,
+            "replyToText" to replyToText
+        )
+
+        messageRef.set(message)
+    }
 }

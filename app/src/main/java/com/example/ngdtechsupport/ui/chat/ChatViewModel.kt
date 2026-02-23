@@ -29,4 +29,23 @@ class ChatViewModel : ViewModel() {
             _messages.postValue(currentList.toList())
         }
     }
+
+    fun sendMessage(
+        companyId: String,
+        businessId: String,
+        text: String,
+        senderId: String,
+        replyToId: String?,
+        replyToText: String?
+    ) {
+
+        repository.sendMessage(
+            companyId,
+            businessId,
+            text,
+            senderId,
+            replyToId,
+            replyToText
+        )
+    }
 }

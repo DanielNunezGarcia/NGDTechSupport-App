@@ -6,6 +6,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
 import com.google.firebase.auth.FirebaseAuth
 
@@ -20,6 +21,7 @@ class ChatActivity : AppCompatActivity() {
     private var currentUserId: String = ""
     private lateinit var companyId: String
     private lateinit var businessId: String
+    private var replyToMessage: ChatMessageModel? = null
 
     private var isUserAtBottom = true
 
@@ -38,89 +40,68 @@ class ChatActivity : AppCompatActivity() {
         observeMessages()
 
         viewModel.loadInitial(companyId, businessId)
-
-        binding.buttonNewMessageIndicator.setOnClickListener {
-            scrollToBottom()
-        }
     }
 
     private fun setupRecycler() {
 
         adapter = ChatAdapter(currentUserId)
+
         layoutManager = LinearLayoutManager(this)
         layoutManager.stackFromEnd = true
 
         binding.recyclerViewChat.layoutManager = layoutManager
         binding.recyclerViewChat.adapter = adapter
 
-        binding.recyclerViewChat.addOnScrollListener(object :
-            RecyclerView.OnScrollListener() {
+        // ------------------------------
+        // 🔥 SWIPE REPLY AQUÍ
+        // ------------------------------
 
-            override fun onScrolled(
+        val swipeCallback = object :
+            ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+
+            override fun onMove(
                 recyclerView: RecyclerView,
-                dx: Int,
-                dy: Int
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ) = false
+
+            override fun onSwiped(
+                viewHolder: RecyclerView.ViewHolder,
+                direction: Int
             ) {
 
-                val firstVisible = layoutManager.findFirstVisibleItemPosition()
-                val lastVisible = layoutManager.findLastVisibleItemPosition()
-                val total = layoutManager.itemCount
+                val position = viewHolder.adapterPosition
 
-                // 🔥 PAGINACIÓN
-                if (firstVisible == 0) {
-                    viewModel.loadMore(companyId, businessId)
+                val messages = viewModel.messages.value
+
+                if (messages != null && position < messages.size) {
+
+                    replyToMessage = messages[position]
+
+                    binding.layoutReplyPreview.visibility = View.VISIBLE
+                    binding.textViewReplyPreview.text =
+                        replyToMessage?.message
                 }
 
-                // 🔥 DETECTAR SI USUARIO ESTÁ ABAJO
-                isUserAtBottom = lastVisible >= total - 2
-
-                if (isUserAtBottom) {
-                    hideNewMessageIndicator()
-                }
+                adapter.notifyItemChanged(position)
             }
-        })
-
-        binding.recyclerViewChat.itemAnimator?.apply {
-            addDuration = 200
-            removeDuration = 200
-            moveDuration = 200
         }
 
-        binding.recyclerViewChat.layoutAnimation =
-            android.view.animation.AnimationUtils.loadLayoutAnimation(
-                this,
-                android.R.anim.slide_in_left
-            )
+        ItemTouchHelper(swipeCallback)
+            .attachToRecyclerView(binding.recyclerViewChat)
     }
 
     private fun observeMessages() {
 
         viewModel.messages.observe(this) { messages ->
 
-            val previousCount = adapter.itemCount
-
             adapter.submitMessages(messages)
 
             if (isUserAtBottom) {
-                scrollToBottom()
-            } else if (messages.size > previousCount) {
-                showNewMessageIndicator()
+                binding.recyclerViewChat.scrollToPosition(
+                    adapter.itemCount - 1
+                )
             }
         }
-    }
-
-    private fun scrollToBottom() {
-        binding.recyclerViewChat.post {
-            binding.recyclerViewChat.scrollToPosition(adapter.itemCount - 1)
-        }
-        hideNewMessageIndicator()
-    }
-
-    private fun showNewMessageIndicator() {
-        binding.buttonNewMessageIndicator.visibility = View.VISIBLE
-    }
-
-    private fun hideNewMessageIndicator() {
-        binding.buttonNewMessageIndicator.visibility = View.GONE
     }
 }
