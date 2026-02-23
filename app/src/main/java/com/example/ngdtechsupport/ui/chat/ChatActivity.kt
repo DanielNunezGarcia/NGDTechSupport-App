@@ -65,17 +65,37 @@ class ChatActivity : AppCompatActivity() {
 
         binding.recyclerViewChat.layoutManager = layoutManager
         binding.recyclerViewChat.adapter = adapter
+
+        binding.recyclerViewChat.addOnScrollListener(object :
+            RecyclerView.OnScrollListener() {
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+
+                if (layoutManager.findFirstVisibleItemPosition() == 0) {
+
+                    viewModel.loadMore(companyId, businessId)
+                }
+            }
+        })
     }
 
     private fun observeMessages() {
 
         viewModel.messages.observe(this) { messages ->
 
-            adapter.updateData(messages)
+            adapter.submitMessages(messages)
 
             if (messages.isNotEmpty()) {
                 binding.recyclerViewChat.scrollToPosition(messages.size - 1)
             }
+
+            viewModel.markAsRead(
+                companyId,
+                businessId,
+                currentUserId
+            )
         }
     }
 

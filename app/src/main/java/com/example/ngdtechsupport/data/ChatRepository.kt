@@ -8,25 +8,31 @@ import com.google.firebase.firestore.Query
 class ChatRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
+    private var lastVisible: com.google.firebase.firestore.DocumentSnapshot? = null
 
-    fun listenForMessages(
+    fun loadInitialMessages(
         companyId: String,
         businessId: String,
         onResult: (List<ChatMessageModel>) -> Unit
     ) {
 
-        firestore
-            .collection("companies")
+        firestore.collection("companies")
             .document(companyId)
             .collection("businesses")
             .document(businessId)
             .collection("chat")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshot, _ ->
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(30)
+            .get()
+            .addOnSuccessListener { snapshot ->
 
-                if (snapshot != null) {
-                    val messages =
-                        snapshot.toObjects(ChatMessageModel::class.java)
+                if (!snapshot.isEmpty) {
+
+                    lastVisible = snapshot.documents.last()
+
+                    val messages = snapshot.toObjects(ChatMessageModel::class.java)
+                        .reversed()
+
                     onResult(messages)
                 }
             }
