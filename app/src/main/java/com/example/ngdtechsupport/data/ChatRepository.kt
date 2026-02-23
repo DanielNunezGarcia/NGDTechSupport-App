@@ -1,8 +1,9 @@
 package com.example.ngdtechsupport.data.repository
 
 import com.example.ngdtechsupport.data.model.ChatMessageModel
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
+import com.google.firebase.firestore.Query
 
 class ChatRepository {
 
@@ -20,27 +21,43 @@ class ChatRepository {
             .collection("businesses")
             .document(businessId)
             .collection("chat")
-            .orderBy("createdAt")
+            .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, _ ->
 
                 if (snapshot != null) {
-
-                    val messages = snapshot.documents.map { doc ->
-                        ChatMessageModel(
-                            id = doc.id,
-                            message = doc.getString("message") ?: "",
-                            senderId = doc.getString("senderId") ?: "",
-                            senderRole = doc.getString("senderRole") ?: "",
-                            senderName = doc.getString("senderName") ?: "",
-                            isDelivered = doc.getBoolean("isDelivered") ?: false,
-                            isRead = doc.getBoolean("isRead") ?: false,
-                            createdAt = doc.getTimestamp("createdAt")
-                        )
-                    }
-
+                    val messages =
+                        snapshot.toObjects(ChatMessageModel::class.java)
                     onResult(messages)
                 }
             }
+    }
+
+    fun sendMessage(
+        companyId: String,
+        businessId: String,
+        text: String,
+        senderId: String,
+        senderName: String
+    ) {
+
+        val messageRef = firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("chat")
+            .document()
+
+        val message = hashMapOf(
+            "id" to messageRef.id,
+            "message" to text,
+            "senderId" to senderId,
+            "senderName" to senderName,
+            "timestamp" to Timestamp.now(),
+            "status" to "sent"
+        )
+
+        messageRef.set(message)
     }
 
     fun markMessagesAsRead(
@@ -59,43 +76,10 @@ class ChatRepository {
             .get()
             .addOnSuccessListener { snapshot ->
 
-                for (doc in snapshot.documents) {
-                    doc.reference.update(
-                        mapOf(
-                            "isDelivered" to true,
-                            "isRead" to true
-                        )
-                    )
+                snapshot.documents.forEach { doc ->
+                    doc.reference.update("status", "read")
                 }
             }
-    }
-
-    fun sendMessage(
-        companyId: String,
-        businessId: String,
-        message: String,
-        senderId: String,
-        senderRole: String,
-        senderName: String
-    ) {
-        val messageData = hashMapOf(
-            "message" to message,
-            "senderId" to senderId,
-            "senderRole" to senderRole,
-            "senderName" to senderName,
-            "isDelivered" to false,
-            "isRead" to false,
-            "createdAt" to com.google.firebase.Timestamp.now()
-        )
-
-        firestore
-            .collection("companies")
-            .document(companyId)
-            .collection("businesses")
-            .document(businessId)
-            .collection("chat")
-            .add(messageData)
-            //.await()
     }
 
     fun setTypingStatus(
@@ -142,11 +126,8 @@ class ChatRepository {
                     val isTyping = snapshot.getBoolean("isTyping") ?: false
                     val userName = snapshot.getString("userName") ?: ""
 
-                    if (isTyping) {
-                        onResult(userName)
-                    } else {
-                        onResult(null)
-                    }
+                    if (isTyping) onResult(userName)
+                    else onResult(null)
                 }
             }
     }

@@ -3,13 +3,17 @@ package com.example.ngdtechsupport.ui.chat
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.databinding.ItemChatMessageBinding
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class ChatAdapter(
-    private var messages: List<ChatMessageModel>,
     private val currentUserId: String
 ) : RecyclerView.Adapter<ChatAdapter.ChatViewHolder>() {
+
+    private var messages: List<ChatMessageModel> = emptyList()
 
     inner class ChatViewHolder(val binding: ItemChatMessageBinding)
         : RecyclerView.ViewHolder(binding.root)
@@ -28,59 +32,42 @@ class ChatAdapter(
     override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
 
         val message = messages[position]
+        val isMine = message.senderId == currentUserId
+
         holder.binding.textViewMessage.text = message.message
 
-        val isMine = message.senderId == currentUserId
-        val params = holder.binding.textViewMessage.layoutParams
-                as android.widget.FrameLayout.LayoutParams
-
-        val bubbleParams = holder.binding.layoutBubble.layoutParams
-                as android.widget.FrameLayout.LayoutParams
-
-        if (isMine) {
-            bubbleParams.gravity = android.view.Gravity.END
-            holder.binding.textViewMessage.setBackgroundResource(
-                com.example.ngdtechsupport.R.drawable.bg_message_mine
-            )
-        } else {
-            bubbleParams.gravity = android.view.Gravity.START
-            holder.binding.textViewMessage.setBackgroundResource(
-                com.example.ngdtechsupport.R.drawable.bg_message_other
-            )
-        }
-
         if (!isMine) {
-            holder.binding.textViewSender.visibility = android.view.View.VISIBLE
             holder.binding.textViewSender.text = message.senderName
+            holder.binding.textViewSender.visibility = android.view.View.VISIBLE
         } else {
             holder.binding.textViewSender.visibility = android.view.View.GONE
         }
 
+        val bubbleParams =
+            holder.binding.layoutBubble.layoutParams
+                    as android.widget.FrameLayout.LayoutParams
+
+        bubbleParams.gravity =
+            if (isMine) android.view.Gravity.END
+            else android.view.Gravity.START
+
         holder.binding.layoutBubble.layoutParams = bubbleParams
 
-        val timestamp = message.createdAt
-        if (timestamp != null) {
-            val date = timestamp.toDate()
-            val format = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-            holder.binding.textViewTime.text = format.format(date)
+        holder.binding.layoutBubble.setBackgroundResource(
+            if (isMine) R.drawable.bg_message_mine
+            else R.drawable.bg_message_other
+        )
+
+        message.timestamp?.let {
+            val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+            holder.binding.textViewTime.text = format.format(it.toDate())
         }
 
         if (isMine) {
-
             holder.binding.textViewStatus.visibility = android.view.View.VISIBLE
-
-            when {
-                message.isRead -> {
-                    holder.binding.textViewStatus.text = "Leído"
-                }
-                message.isDelivered -> {
-                    holder.binding.textViewStatus.text = "Entregado"
-                }
-                else -> {
-                    holder.binding.textViewStatus.text = "Enviado"
-                }
-            }
-
+            holder.binding.textViewStatus.text =
+                if (message.status == "read") "Leído"
+                else "Enviado"
         } else {
             holder.binding.textViewStatus.visibility = android.view.View.GONE
         }

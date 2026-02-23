@@ -3,14 +3,13 @@ package com.example.ngdtechsupport.ui.chat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.data.repository.ChatRepository
-import kotlinx.coroutines.launch
 
 class ChatViewModel : ViewModel() {
 
     private val repository = ChatRepository()
+
     private val _messages = MutableLiveData<List<ChatMessageModel>>()
     val messages: LiveData<List<ChatMessageModel>> = _messages
 
@@ -18,32 +17,32 @@ class ChatViewModel : ViewModel() {
     val typingUser: LiveData<String?> = _typingUser
 
     fun listenMessages(companyId: String, businessId: String) {
-        repository.listenForMessages(companyId, businessId) { result ->
-            _messages.postValue(result)
+        repository.listenForMessages(companyId, businessId) {
+            _messages.postValue(it)
         }
     }
 
     fun sendMessage(
         companyId: String,
         businessId: String,
-        message: String,
+        text: String,
         senderId: String,
-        senderRole: String,
         senderName: String
     ) {
-        viewModelScope.launch {
-            repository.sendMessage(
-                companyId,
-                businessId,
-                message,
-                senderId,
-                senderRole,
-                senderName
-            )
-        }
+        repository.sendMessage(
+            companyId,
+            businessId,
+            text,
+            senderId,
+            senderName
+        )
     }
 
-    fun markAsRead(companyId: String, businessId: String, currentUserId: String) {
+    fun markAsRead(
+        companyId: String,
+        businessId: String,
+        currentUserId: String
+    ) {
         repository.markMessagesAsRead(companyId, businessId, currentUserId)
     }
 
@@ -58,8 +57,8 @@ class ChatViewModel : ViewModel() {
     }
 
     fun listenTyping(companyId: String, businessId: String) {
-        repository.listenTypingStatus(companyId, businessId) { userName ->
-            _typingUser.postValue(userName)
+        repository.listenTypingStatus(companyId, businessId) {
+            _typingUser.postValue(it)
         }
     }
 }
