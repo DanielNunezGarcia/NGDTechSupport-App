@@ -41,7 +41,7 @@ class ChatActivity : AppCompatActivity() {
         observeTyping()
         setupSendButton()
 
-        viewModel.listenMessages(companyId, businessId)
+        viewModel.loadInitial(companyId, businessId)
         viewModel.listenTyping(companyId, businessId)
         viewModel.markAsRead(companyId, businessId, currentUserId)
     }
@@ -67,14 +67,18 @@ class ChatActivity : AppCompatActivity() {
         binding.recyclerViewChat.adapter = adapter
 
         binding.recyclerViewChat.addOnScrollListener(object :
-            RecyclerView.OnScrollListener() {
+            androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
 
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            override fun onScrolled(
+                recyclerView: androidx.recyclerview.widget.RecyclerView,
+                dx: Int,
+                dy: Int
+            ) {
 
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val firstVisible =
+                    layoutManager.findFirstVisibleItemPosition()
 
-                if (layoutManager.findFirstVisibleItemPosition() == 0) {
-
+                if (firstVisible == 0) {
                     viewModel.loadMore(companyId, businessId)
                 }
             }
@@ -90,12 +94,6 @@ class ChatActivity : AppCompatActivity() {
             if (messages.isNotEmpty()) {
                 binding.recyclerViewChat.scrollToPosition(messages.size - 1)
             }
-
-            viewModel.markAsRead(
-                companyId,
-                businessId,
-                currentUserId
-            )
         }
     }
 

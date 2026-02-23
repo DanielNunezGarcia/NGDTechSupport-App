@@ -13,52 +13,20 @@ class ChatViewModel : ViewModel() {
     private val _messages = MutableLiveData<List<ChatMessageModel>>()
     val messages: LiveData<List<ChatMessageModel>> = _messages
 
-    private val _typingUser = MutableLiveData<String?>()
-    val typingUser: LiveData<String?> = _typingUser
+    private val currentList = mutableListOf<ChatMessageModel>()
 
-    fun listenMessages(companyId: String, businessId: String) {
-        repository.listenForMessages(companyId, businessId) {
-            _messages.postValue(it)
+    fun loadInitial(companyId: String, businessId: String) {
+        repository.loadInitialMessages(companyId, businessId) { list ->
+            currentList.clear()
+            currentList.addAll(list)
+            _messages.postValue(currentList.toList())
         }
     }
 
-    fun sendMessage(
-        companyId: String,
-        businessId: String,
-        text: String,
-        senderId: String,
-        senderName: String
-    ) {
-        repository.sendMessage(
-            companyId,
-            businessId,
-            text,
-            senderId,
-            senderName
-        )
-    }
-
-    fun markAsRead(
-        companyId: String,
-        businessId: String,
-        currentUserId: String
-    ) {
-        repository.markMessagesAsRead(companyId, businessId, currentUserId)
-    }
-
-    fun setTyping(
-        companyId: String,
-        businessId: String,
-        userId: String,
-        userName: String,
-        isTyping: Boolean
-    ) {
-        repository.setTypingStatus(companyId, businessId, userId, userName, isTyping)
-    }
-
-    fun listenTyping(companyId: String, businessId: String) {
-        repository.listenTypingStatus(companyId, businessId) {
-            _typingUser.postValue(it)
+    fun loadMore(companyId: String, businessId: String) {
+        repository.loadMoreMessages(companyId, businessId) { list ->
+            currentList.addAll(0, list)
+            _messages.postValue(currentList.toList())
         }
     }
 }
