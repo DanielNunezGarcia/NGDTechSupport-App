@@ -57,6 +57,15 @@ class ChatActivity : AppCompatActivity() {
             }
         }
 
+        binding.recyclerViewChat.itemAnimator?.apply {
+            addDuration = 200
+            removeDuration = 200
+            moveDuration = 200
+            changeDuration = 200
+        }
+
+        binding.recyclerViewChat.itemAnimator?.changeDuration = 0
+
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         viewModel.markAsRead(companyId, businessId, currentUserId)
     }
@@ -67,7 +76,8 @@ class ChatActivity : AppCompatActivity() {
             .currentUser
             ?.uid ?: ""
 
-        adapter = ChatAdapter(emptyList(), currentUserId)
+        adapter = ChatAdapter()
+        binding.recyclerViewChat.adapter = adapter
 
         val layoutManager = LinearLayoutManager(this)
         layoutManager.stackFromEnd = true
@@ -78,7 +88,8 @@ class ChatActivity : AppCompatActivity() {
 
     private fun observeMessages() {
         viewModel.messages.observe(this) { messages ->
-            adapter.updateData(messages)
+            adapter.submitList(messages)
+            binding.recyclerViewChat.scrollToPosition(messages.size - 1)
 
             if (messages.isNotEmpty()) {
                 binding.recyclerViewChat.scrollToPosition(messages.size - 1)

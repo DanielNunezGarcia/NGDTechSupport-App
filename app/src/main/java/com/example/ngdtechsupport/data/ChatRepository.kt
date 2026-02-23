@@ -95,7 +95,7 @@ class ChatRepository {
             .document(businessId)
             .collection("chat")
             .add(messageData)
-            .await()
+            //.await()
     }
 
     fun setTypingStatus(
