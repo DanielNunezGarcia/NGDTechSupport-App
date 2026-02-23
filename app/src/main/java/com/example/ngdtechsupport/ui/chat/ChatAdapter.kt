@@ -1,9 +1,11 @@
 package com.example.ngdtechsupport.ui.chat
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.ngdtechsupport.data.model.*
+import com.example.ngdtechsupport.data.model.ChatItem
+import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.databinding.ItemChatMessageBinding
 import com.example.ngdtechsupport.databinding.ItemDateSeparatorBinding
 import java.text.SimpleDateFormat
@@ -37,7 +39,7 @@ class ChatAdapter(
                 parent,
                 false
             )
-            MessageViewHolder(binding)
+            MessageVH(binding)
 
         } else {
 
@@ -46,7 +48,7 @@ class ChatAdapter(
                 parent,
                 false
             )
-            DateViewHolder(binding)
+            DateVH(binding)
         }
     }
 
@@ -56,19 +58,29 @@ class ChatAdapter(
 
         when (val item = items[position]) {
 
-            is ChatItem.MessageItem -> {
-                (holder as MessageViewHolder).bind(item.message)
-            }
+            is ChatItem.MessageItem ->
+                (holder as MessageVH).bind(item.message)
 
-            is ChatItem.DateSeparator -> {
-                (holder as DateViewHolder).binding.textViewDate.text = item.date
-            }
+            is ChatItem.DateSeparator ->
+                (holder as DateVH).binding.textViewDate.text = item.date
         }
     }
 
     fun submitMessages(messages: List<ChatMessageModel>) {
 
-        val newItems = mutableListOf<ChatItem>()
+        val newList = buildListWithSeparators(messages)
+
+        items.clear()
+        items.addAll(newList)
+
+        notifyDataSetChanged()
+    }
+
+    private fun buildListWithSeparators(
+        messages: List<ChatMessageModel>
+    ): List<ChatItem> {
+
+        val list = mutableListOf<ChatItem>()
         var lastDate: String? = null
 
         messages.forEach { message ->
@@ -79,28 +91,43 @@ class ChatAdapter(
             ).format(message.timestamp?.toDate() ?: Date())
 
             if (dateString != lastDate) {
-                newItems.add(ChatItem.DateSeparator(dateString))
+                list.add(ChatItem.DateSeparator(dateString))
                 lastDate = dateString
             }
 
-            newItems.add(ChatItem.MessageItem(message))
+            list.add(ChatItem.MessageItem(message))
         }
 
-        items.clear()
-        items.addAll(newItems)
-        notifyDataSetChanged()
+        return list
     }
 
-    inner class MessageViewHolder(
+    // =============================
+    // VIEW HOLDER MENSAJE
+    // =============================
+    inner class MessageVH(
         private val binding: ItemChatMessageBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(message: ChatMessageModel) {
+
             binding.textViewMessage.text = message.message
+
+            // 🔥 MENSAJE DESTACADO (LONG PRESS)
+            binding.root.setOnLongClickListener {
+
+                binding.root.setBackgroundColor(
+                    Color.parseColor("#FFE082")
+                )
+
+                true
+            }
         }
     }
 
-    inner class DateViewHolder(
+    // =============================
+    // VIEW HOLDER FECHA
+    // =============================
+    inner class DateVH(
         val binding: ItemDateSeparatorBinding
     ) : RecyclerView.ViewHolder(binding.root)
 }

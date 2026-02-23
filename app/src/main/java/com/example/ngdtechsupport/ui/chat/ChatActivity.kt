@@ -38,15 +38,12 @@ class ChatActivity : AppCompatActivity() {
         observeMessages()
 
         viewModel.loadInitial(companyId, businessId)
-
-        binding.buttonNewMessageIndicator.setOnClickListener {
-            scrollToBottom()
-        }
     }
 
     private fun setupRecycler() {
 
         adapter = ChatAdapter(currentUserId)
+
         layoutManager = LinearLayoutManager(this)
         layoutManager.stackFromEnd = true
 
@@ -62,65 +59,34 @@ class ChatActivity : AppCompatActivity() {
                 dy: Int
             ) {
 
-                val firstVisible = layoutManager.findFirstVisibleItemPosition()
-                val lastVisible = layoutManager.findLastVisibleItemPosition()
+                val firstVisible =
+                    layoutManager.findFirstVisibleItemPosition()
+
+                val lastVisible =
+                    layoutManager.findLastVisibleItemPosition()
+
                 val total = layoutManager.itemCount
 
-                // 🔥 PAGINACIÓN
                 if (firstVisible == 0) {
                     viewModel.loadMore(companyId, businessId)
                 }
 
-                // 🔥 DETECTAR SI USUARIO ESTÁ ABAJO
                 isUserAtBottom = lastVisible >= total - 2
-
-                if (isUserAtBottom) {
-                    hideNewMessageIndicator()
-                }
             }
         })
-
-        binding.recyclerViewChat.itemAnimator?.apply {
-            addDuration = 200
-            removeDuration = 200
-            moveDuration = 200
-        }
-
-        binding.recyclerViewChat.layoutAnimation =
-            android.view.animation.AnimationUtils.loadLayoutAnimation(
-                this,
-                android.R.anim.slide_in_left
-            )
     }
 
     private fun observeMessages() {
 
         viewModel.messages.observe(this) { messages ->
 
-            val previousCount = adapter.itemCount
-
             adapter.submitMessages(messages)
 
             if (isUserAtBottom) {
-                scrollToBottom()
-            } else if (messages.size > previousCount) {
-                showNewMessageIndicator()
+                binding.recyclerViewChat.scrollToPosition(
+                    adapter.itemCount - 1
+                )
             }
         }
-    }
-
-    private fun scrollToBottom() {
-        binding.recyclerViewChat.post {
-            binding.recyclerViewChat.scrollToPosition(adapter.itemCount - 1)
-        }
-        hideNewMessageIndicator()
-    }
-
-    private fun showNewMessageIndicator() {
-        binding.buttonNewMessageIndicator.visibility = View.VISIBLE
-    }
-
-    private fun hideNewMessageIndicator() {
-        binding.buttonNewMessageIndicator.visibility = View.GONE
     }
 }
