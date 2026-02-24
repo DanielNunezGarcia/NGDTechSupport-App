@@ -24,14 +24,16 @@ class ChannelActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupRecycler()
+        attachSwipe()
 
         viewModel.channels.observe(this) { channels ->
             adapter.submitList(channels)
         }
 
-        viewModel.loadChannels(companyId, businessId)
-
-        attachSwipe()
+        viewModel.loadChannels(companyId, businessId, currentUserId)
+        viewModel.totalUnread.observe(this) { total ->
+            supportActionBar?.title = "Canales ($total)"
+        }
     }
 
     private fun setupRecycler() {

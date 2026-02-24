@@ -13,9 +13,18 @@ class ChannelViewModel : ViewModel() {
     private val _channels = MutableLiveData<List<ChannelModel>>()
     val channels: LiveData<List<ChannelModel>> = _channels
 
-    fun loadChannels(companyId: String, businessId: String) {
-        repository.listenChannels(companyId, businessId) {
-            _channels.postValue(it)
+    private val _totalUnread = MutableLiveData<Int>()
+    val totalUnread: LiveData<Int> = _totalUnread
+
+    fun loadChannels(companyId: String, businessId: String, userId: String) {
+        repository.listenChannels(companyId, businessId) { channels ->
+            _channels.postValue(channels)
+
+            val total = channels.sumOf {
+                it.unreadCount[userId]?.toInt() ?: 0
+            }
+
+            _totalUnread.postValue(total)
         }
     }
 }
