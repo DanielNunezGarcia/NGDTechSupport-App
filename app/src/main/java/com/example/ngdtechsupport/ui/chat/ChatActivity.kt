@@ -38,8 +38,8 @@ class ChatActivity : AppCompatActivity() {
 
         setupRecycler()
         observeMessages()
-
         viewModel.loadInitial(companyId, businessId)
+        setupSendButton()
     }
 
     private fun setupRecycler() {
@@ -101,6 +101,31 @@ class ChatActivity : AppCompatActivity() {
                 binding.recyclerViewChat.scrollToPosition(
                     adapter.itemCount - 1
                 )
+            }
+        }
+    }
+
+    private fun setupSendButton() {
+
+        binding.buttonSend.setOnClickListener {
+
+            val text = binding.editTextMessage.text.toString().trim()
+
+            if (text.isNotEmpty()) {
+
+                viewModel.sendMessage(
+                    companyId,
+                    businessId,
+                    text,
+                    currentUserId,
+                    replyToMessage?.id,
+                    replyToMessage?.message
+                )
+
+                binding.editTextMessage.setText("")
+
+                replyToMessage = null
+                binding.layoutReplyPreview.visibility = View.GONE
             }
         }
     }

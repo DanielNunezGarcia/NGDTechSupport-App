@@ -110,15 +110,24 @@ class ChatAdapter(
 
         fun bind(message: ChatMessageModel) {
 
+            // Texto principal
             binding.textViewMessage.text = message.message
 
-            // 🔥 MENSAJE DESTACADO (LONG PRESS)
+            // 🔥 Mostrar reply si existe
+            if (!message.replyToText.isNullOrEmpty()) {
+
+                binding.textViewReply.visibility = View.VISIBLE
+                binding.textViewReply.text = "↪ ${message.replyToText}"
+
+            } else {
+                binding.textViewReply.visibility = View.GONE
+            }
+
+            // Long press destacar
             binding.root.setOnLongClickListener {
-
                 binding.root.setBackgroundColor(
-                    Color.parseColor("#FFE082")
+                    android.graphics.Color.parseColor("#FFE082")
                 )
-
                 true
             }
         }
