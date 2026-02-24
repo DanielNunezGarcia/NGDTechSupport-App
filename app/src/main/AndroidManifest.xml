@@ -13,6 +13,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NGDTechSupport">
         <activity
+            android:name=".ui.channel.ChannelActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.updates.PublishUpdateActivity"
             android:exported="false" />
         <activity
