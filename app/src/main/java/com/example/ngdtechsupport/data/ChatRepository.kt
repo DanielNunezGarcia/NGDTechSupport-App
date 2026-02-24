@@ -146,4 +146,19 @@ class ChatRepository {
             .document(channelId)
             .update("unreadCount.$userId", 0)
     }
+
+    fun setChannelPinned(
+        companyId: String,
+        businessId: String,
+        channelId: String,
+        pinned: Boolean
+    ) {
+        firestore.collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("channels")
+            .document(channelId)
+            .update("pinned", pinned)
+    }
 }
