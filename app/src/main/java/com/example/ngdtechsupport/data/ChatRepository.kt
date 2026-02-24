@@ -1,5 +1,6 @@
 package com.example.ngdtechsupport.data.repository
 
+import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
