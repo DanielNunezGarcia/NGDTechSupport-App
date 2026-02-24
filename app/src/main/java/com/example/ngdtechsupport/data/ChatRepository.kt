@@ -121,7 +121,7 @@ class ChatRepository {
             .collection("businesses")
             .document(businessId)
             .collection("channels")
-            .orderBy("createdAt")
+            .orderBy("lastMessageTimestamp", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, _ ->
 
                 if (snapshot != null) {
