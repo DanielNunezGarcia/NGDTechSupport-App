@@ -96,18 +96,11 @@ class ChatRepository {
             "senderId" to senderId,
             "timestamp" to com.google.firebase.Timestamp.now(),
             "status" to "sent",
-            "replyToMessageId" to replyToId,
+            "replyToId" to replyToId,
             "replyToText" to replyToText
         )
 
         messageRef.set(message)
-        firestore.collection("companies")
-            .document(companyId)
-            .collection("businesses")
-            .document(businessId)
-            .collection("channels")
-            .document(channelId)
-            .update("lastMessageTimestamp", com.google.firebase.Timestamp.now())
     }
 
     fun listenChannels(

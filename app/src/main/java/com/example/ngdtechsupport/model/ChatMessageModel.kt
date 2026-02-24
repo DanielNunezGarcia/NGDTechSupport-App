@@ -10,5 +10,6 @@ data class ChatMessageModel(
     val timestamp: Timestamp? = null,
     val status: String = "sent",
     val replyToMessageId: String? = null,
-    val replyToText: String? = null
+    val replyToText: String? = null,
+    val replyTo: String? = null
 )

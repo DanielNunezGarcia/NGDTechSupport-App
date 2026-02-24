@@ -2,10 +2,10 @@ package com.example.ngdtechsupport.ui.chat
 
 import android.os.Bundle
 import android.view.View
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.data.repository.ChatRepository
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -13,15 +13,15 @@ import com.google.firebase.auth.FirebaseAuth
 class ChatActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityChatBinding
-    private val viewModel: ChatViewModel by viewModels()
-
     private lateinit var adapter: ChatAdapter
     private lateinit var layoutManager: LinearLayoutManager
+    private val repository = ChatRepository()
 
     private var currentUserId: String = ""
     private lateinit var companyId: String
     private lateinit var businessId: String
 
+    private var replyMessage: ChatMessageModel? = null
     private var isUserAtBottom = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,27 +36,16 @@ class ChatActivity : AppCompatActivity() {
         businessId = intent.getStringExtra("businessId") ?: ""
 
         setupRecycler()
-        observeMessages()
-
-        viewModel.loadInitial(companyId, businessId)
-
-        binding.buttonNewMessageIndicator.setOnClickListener {
-            scrollToBottom()
-        }
-
-        val channelId = intent.getStringExtra("channelId") ?: return
-        val repository = ChatRepository()
-        repository.markChannelAsRead(
-            companyId,
-            businessId,
-            channelId,
-            currentUserId
-        )
+        setupSendButton()
     }
 
     private fun setupRecycler() {
 
-        adapter = ChatAdapter(currentUserId)
+        adapter = ChatAdapter(currentUserId) { message ->
+            replyMessage = message
+            showReplyPreview(message)
+        }
+
         layoutManager = LinearLayoutManager(this)
         layoutManager.stackFromEnd = true
 
@@ -71,17 +60,9 @@ class ChatActivity : AppCompatActivity() {
                 dx: Int,
                 dy: Int
             ) {
-
-                val firstVisible = layoutManager.findFirstVisibleItemPosition()
                 val lastVisible = layoutManager.findLastVisibleItemPosition()
                 val total = layoutManager.itemCount
 
-                // 🔥 PAGINACIÓN
-                if (firstVisible == 0) {
-                    viewModel.loadMore(companyId, businessId)
-                }
-
-                // 🔥 DETECTAR SI USUARIO ESTÁ ABAJO
                 isUserAtBottom = lastVisible >= total - 2
 
                 if (isUserAtBottom) {
@@ -90,64 +71,37 @@ class ChatActivity : AppCompatActivity() {
             }
         })
 
-        binding.recyclerViewChat.itemAnimator?.apply {
-            addDuration = 200
-            removeDuration = 200
-            moveDuration = 200
+        binding.fabNewMessage.setOnClickListener {
+            scrollToBottom()
         }
+    }
 
-        binding.recyclerViewChat.layoutAnimation =
-            android.view.animation.AnimationUtils.loadLayoutAnimation(
-                this,
-                android.R.anim.slide_in_left
+    private fun setupSendButton() {
+
+        binding.buttonSend.setOnClickListener {
+
+            val text = binding.editTextMessage.text.toString()
+            if (text.isBlank()) return@setOnClickListener
+
+            repository.sendMessage(
+                companyId = companyId,
+                businessId = businessId,
+                text = text,
+                senderId = currentUserId,
+                replyToId = replyMessage?.id,
+                replyToText = replyMessage?.message
             )
 
-        binding.recyclerViewChat.addOnScrollListener(
-            object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
-
-                override fun onScrolled(
-                    recyclerView: androidx.recyclerview.widget.RecyclerView,
-                    dx: Int,
-                    dy: Int
-                ) {
-
-                    val layoutManager =
-                        recyclerView.layoutManager as LinearLayoutManager
-
-                    val lastVisible =
-                        layoutManager.findLastCompletelyVisibleItemPosition()
-
-                    if (lastVisible < adapter.itemCount - 1) {
-                        binding.fabNewMessage.visibility = android.view.View.VISIBLE
-                    } else {
-                        binding.fabNewMessage.visibility = android.view.View.GONE
-                    }
-                }
-            }
-        )
-
-        binding.fabNewMessage.setOnClickListener {
-            binding.recyclerViewChat.scrollToPosition(adapter.itemCount - 1)
+            binding.editTextMessage.text.clear()
+            replyMessage = null
+            binding.layoutReplyPreview.visibility = View.GONE
         }
     }
 
-    private fun observeMessages() {
-
-        viewModel.messages.observe(this) { messages ->
-
-            val previousCount = adapter.itemCount
-
-            adapter.submitMessages(messages)
-
-            if (isUserAtBottom) {
-                scrollToBottom()
-            } else if (messages.size > previousCount) {
-                showNewMessageIndicator()
-            }
-        }
+    private fun showReplyPreview(message: ChatMessageModel) {
+        binding.layoutReplyPreview.visibility = View.VISIBLE
+        binding.textReplyingTo.text = "Respondiendo a: ${message.message}"
     }
-
-
 
     private fun scrollToBottom() {
         binding.recyclerViewChat.post {
@@ -156,11 +110,7 @@ class ChatActivity : AppCompatActivity() {
         hideNewMessageIndicator()
     }
 
-    private fun showNewMessageIndicator() {
-        binding.buttonNewMessageIndicator.visibility = View.VISIBLE
-    }
-
     private fun hideNewMessageIndicator() {
-        binding.buttonNewMessageIndicator.visibility = View.GONE
+        binding.fabNewMessage.visibility = View.GONE
     }
 }

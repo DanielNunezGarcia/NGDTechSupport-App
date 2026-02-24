@@ -36,7 +36,8 @@ class ChatViewModel : ViewModel() {
         text: String,
         senderId: String,
         replyToId: String?,
-        replyToText: String?
+        replyToText: String?,
+        replyTo: String? = null
     ) {
 
         repository.sendMessage(

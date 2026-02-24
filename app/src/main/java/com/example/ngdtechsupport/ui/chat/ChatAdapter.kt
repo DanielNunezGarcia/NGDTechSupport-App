@@ -10,7 +10,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class ChatAdapter(
-    private val currentUserId: String
+    private val currentUserId: String,
+    private val onLongClick: (ChatMessageModel) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val items = mutableListOf<ChatItem>()
@@ -96,7 +97,21 @@ class ChatAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(message: ChatMessageModel) {
+
             binding.textViewMessage.text = message.message
+
+            // 🔥 Mostrar preview de respuesta dentro de la burbuja
+            if (!message.replyToText.isNullOrEmpty()) {
+                binding.textViewReplyPreview.visibility = android.view.View.VISIBLE
+                binding.textViewReplyPreview.text = message.replyToText
+            } else {
+                binding.textViewReplyPreview.visibility = android.view.View.GONE
+            }
+
+            binding.root.setOnLongClickListener {
+                onLongClick(message)
+                true
+            }
         }
     }
 

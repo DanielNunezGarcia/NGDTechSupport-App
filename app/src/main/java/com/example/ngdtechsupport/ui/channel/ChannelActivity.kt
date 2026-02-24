@@ -24,16 +24,20 @@ class ChannelActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupRecycler()
-        attachSwipe()
 
         viewModel.channels.observe(this) { channels ->
-            adapter.submitList(channels)
+            adapter.submitList(channels) {
+                binding.recyclerChannels.scheduleLayoutAnimation()
+            }
         }
 
-        viewModel.loadChannels(companyId, businessId, currentUserId)
         viewModel.totalUnread.observe(this) { total ->
             supportActionBar?.title = "Canales ($total)"
         }
+
+        viewModel.loadChannels(companyId, businessId, currentUserId)
+
+        attachSwipe()
     }
 
     private fun setupRecycler() {
@@ -54,10 +58,6 @@ class ChannelActivity : AppCompatActivity() {
                 this,
                 android.R.anim.slide_in_left
             )
-
-        adapter.submitList(channels) {
-            binding.recyclerChannels.scheduleLayoutAnimation()
-        }
     }
 
     private fun attachSwipe() {
