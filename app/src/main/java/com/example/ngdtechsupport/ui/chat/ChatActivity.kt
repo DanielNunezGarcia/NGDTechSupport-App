@@ -101,6 +101,34 @@ class ChatActivity : AppCompatActivity() {
                 this,
                 android.R.anim.slide_in_left
             )
+
+        binding.recyclerViewChat.addOnScrollListener(
+            object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+
+                override fun onScrolled(
+                    recyclerView: androidx.recyclerview.widget.RecyclerView,
+                    dx: Int,
+                    dy: Int
+                ) {
+
+                    val layoutManager =
+                        recyclerView.layoutManager as LinearLayoutManager
+
+                    val lastVisible =
+                        layoutManager.findLastCompletelyVisibleItemPosition()
+
+                    if (lastVisible < adapter.itemCount - 1) {
+                        binding.fabNewMessage.visibility = android.view.View.VISIBLE
+                    } else {
+                        binding.fabNewMessage.visibility = android.view.View.GONE
+                    }
+                }
+            }
+        )
+
+        binding.fabNewMessage.setOnClickListener {
+            binding.recyclerViewChat.scrollToPosition(adapter.itemCount - 1)
+        }
     }
 
     private fun observeMessages() {
