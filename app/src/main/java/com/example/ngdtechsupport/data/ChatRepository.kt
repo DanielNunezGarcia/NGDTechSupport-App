@@ -123,4 +123,19 @@ class ChatRepository {
                 }
             }
     }
+
+    fun markChannelAsRead(
+        companyId: String,
+        businessId: String,
+        channelId: String,
+        userId: String
+    ) {
+        firestore.collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("channels")
+            .document(channelId)
+            .update("unreadCount.$userId", 0)
+    }
 }
