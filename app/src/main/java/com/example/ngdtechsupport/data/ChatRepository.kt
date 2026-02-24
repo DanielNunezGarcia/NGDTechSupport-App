@@ -101,4 +101,25 @@ class ChatRepository {
 
         messageRef.set(message)
     }
+
+    fun listenChannels(
+        companyId: String,
+        businessId: String,
+        onResult: (List<ChannelModel>) -> Unit
+    ) {
+
+        firestore.collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("channels")
+            .orderBy("createdAt")
+            .addSnapshotListener { snapshot, _ ->
+
+                if (snapshot != null) {
+                    val channels = snapshot.toObjects(ChannelModel::class.java)
+                    onResult(channels)
+                }
+            }
+    }
 }
