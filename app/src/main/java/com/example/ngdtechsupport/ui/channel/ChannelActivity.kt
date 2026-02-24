@@ -45,6 +45,19 @@ class ChannelActivity : AppCompatActivity() {
             LinearLayoutManager(this)
 
         binding.recyclerChannels.adapter = adapter
+
+        binding.recyclerChannels.itemAnimator =
+            androidx.recyclerview.widget.DefaultItemAnimator()
+
+        binding.recyclerChannels.layoutAnimation =
+            android.view.animation.AnimationUtils.loadLayoutAnimation(
+                this,
+                android.R.anim.slide_in_left
+            )
+
+        adapter.submitList(channels) {
+            binding.recyclerChannels.scheduleLayoutAnimation()
+        }
     }
 
     private fun attachSwipe() {
