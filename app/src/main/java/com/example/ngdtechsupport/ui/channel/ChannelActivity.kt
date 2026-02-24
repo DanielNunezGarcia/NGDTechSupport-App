@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.ngdtechsupport.data.repository.ChatRepository
 import com.example.ngdtechsupport.databinding.ActivityChannelBinding
 
 class ChannelActivity : AppCompatActivity() {
@@ -29,6 +30,8 @@ class ChannelActivity : AppCompatActivity() {
         }
 
         viewModel.loadChannels(companyId, businessId)
+
+        attachSwipe()
     }
 
     private fun setupRecycler() {
@@ -40,5 +43,41 @@ class ChannelActivity : AppCompatActivity() {
             LinearLayoutManager(this)
 
         binding.recyclerChannels.adapter = adapter
+    }
+
+    private fun attachSwipe() {
+
+        val itemTouchHelper = androidx.recyclerview.widget.ItemTouchHelper(
+            object : androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(
+                0,
+                androidx.recyclerview.widget.ItemTouchHelper.LEFT or
+                        androidx.recyclerview.widget.ItemTouchHelper.RIGHT
+            ) {
+
+                override fun onMove(
+                    recyclerView: androidx.recyclerview.widget.RecyclerView,
+                    viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                    target: androidx.recyclerview.widget.RecyclerView.ViewHolder
+                ) = false
+
+                override fun onSwiped(
+                    viewHolder: androidx.recyclerview.widget.RecyclerView.ViewHolder,
+                    direction: Int
+                ) {
+
+                    val channel = adapter.currentList[viewHolder.adapterPosition]
+
+                    val repository = ChatRepository()
+
+                    if (direction == androidx.recyclerview.widget.ItemTouchHelper.RIGHT) {
+                        repository.setChannelPinned(companyId, businessId, channel.id, true)
+                    } else {
+                        repository.setChannelPinned(companyId, businessId, channel.id, false)
+                    }
+                }
+            }
+        )
+
+        itemTouchHelper.attachToRecyclerView(binding.recyclerChannels)
     }
 }
