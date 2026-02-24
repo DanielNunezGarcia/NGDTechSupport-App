@@ -6,6 +6,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ngdtechsupport.data.repository.ChatRepository
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
 import com.google.firebase.auth.FirebaseAuth
 
@@ -42,6 +43,15 @@ class ChatActivity : AppCompatActivity() {
         binding.buttonNewMessageIndicator.setOnClickListener {
             scrollToBottom()
         }
+
+        val channelId = intent.getStringExtra("channelId") ?: return
+        val repository = ChatRepository()
+        repository.markChannelAsRead(
+            companyId,
+            businessId,
+            channelId,
+            currentUserId
+        )
     }
 
     private fun setupRecycler() {
@@ -108,6 +118,8 @@ class ChatActivity : AppCompatActivity() {
             }
         }
     }
+
+
 
     private fun scrollToBottom() {
         binding.recyclerViewChat.post {
