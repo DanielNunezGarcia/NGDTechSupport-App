@@ -1,47 +1,46 @@
-package com.example.ngdtechsupport.ui.chat
+package com.example.ngdtechsupport.ui.dashboard
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.ngdtechsupport.data.model.ChatMessageModel
-import com.example.ngdtechsupport.databinding.ItemChatMessageBinding
+import com.example.ngdtechsupport.R
+import android.view.View
+import android.widget.TextView
+import com.example.ngdtechsupport.model.AppModel
 
-class ChatAdapter :
-    ListAdapter<ChatMessageModel, ChatAdapter.ChatViewHolder>(DiffCallback()) {
+class AppAdapter(
+    private var apps: List<AppModel>
+) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
-    inner class ChatViewHolder(val binding: ItemChatMessageBinding)
-        : RecyclerView.ViewHolder(binding.root)
+    inner class AppViewHolder(itemView: View) :
+        RecyclerView.ViewHolder(itemView) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatViewHolder {
-        val binding = ItemChatMessageBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
-        return ChatViewHolder(binding)
+        val nameText: TextView =
+            itemView.findViewById(R.id.tvAppName)
     }
 
-    override fun onBindViewHolder(holder: ChatViewHolder, position: Int) {
-        val message = getItem(position)
-        holder.binding.textViewMessage.text = message.message
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): AppViewHolder {
+
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.activity_dashboard, parent, false)
+
+        return AppViewHolder(view)
     }
 
-    class DiffCallback : DiffUtil.ItemCallback<ChatMessageModel>() {
+    override fun getItemCount(): Int = apps.size
 
-        override fun areItemsTheSame(
-            oldItem: ChatMessageModel,
-            newItem: ChatMessageModel
-        ): Boolean {
-            return oldItem.id == newItem.id
-        }
+    override fun onBindViewHolder(
+        holder: AppViewHolder,
+        position: Int
+    ) {
+        holder.nameText.text = apps[position].name
+    }
 
-        override fun areContentsTheSame(
-            oldItem: ChatMessageModel,
-            newItem: ChatMessageModel
-        ): Boolean {
-            return oldItem == newItem
-        }
+    fun updateApps(newApps: List<AppModel>) {
+        apps = newApps
+        notifyDataSetChanged()
     }
 }

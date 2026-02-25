@@ -20,20 +20,11 @@
             android:visibility="gone"/>
 
         <TextView
-            android:id="@+id/textReplyPreview"
+            android:id="@+id/textViewReplyPreview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
             android:textColor="@android:color/darker_gray"
-            android:visibility="gone"/>
-
-        <TextView
-            android:id="@+id/textViewReply"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:textSize="12sp"
-            android:textColor="#555555"
             android:visibility="gone"/>
 
         <TextView
@@ -43,6 +34,15 @@
             android:padding="12dp"
             android:textColor="@android:color/white"
             android:textSize="16sp"/>
+
+        <TextView
+            android:id="@+id/textViewReply"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:textColor="#555555"
+            android:visibility="gone"/>
 
         <TextView
             android:id="@+id/textViewTime"

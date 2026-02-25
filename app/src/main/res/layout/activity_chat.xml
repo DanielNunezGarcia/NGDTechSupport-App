@@ -5,6 +5,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- 🔥 RECYCLER VIEW) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewChat"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/layoutSend"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- 🔥 FAB NUEVOS MENSAJES -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabNewMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:srcCompat="@android:drawable/arrow_down_float"
+        app:layout_constraintBottom_toTopOf="@+id/layoutSend"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp"/>
+
+    <!-- 🔥 ZONA DE ENVÍO -->
     <LinearLayout
         android:id="@+id/layoutSend"
         android:layout_width="0dp"
@@ -15,6 +37,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- PREVIEW RESPUESTA -->
         <LinearLayout
             android:id="@+id/layoutReplyPreview"
             android:layout_width="match_parent"
@@ -32,6 +55,7 @@
                 android:text="Respondiendo"/>
         </LinearLayout>
 
+        <!-- INPUT + BOTÓN -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

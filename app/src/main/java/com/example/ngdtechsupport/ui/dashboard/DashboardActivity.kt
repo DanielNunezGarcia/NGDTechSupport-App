@@ -10,11 +10,14 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.activity.viewModels
 import com.example.ngdtechsupport.ui.auth.LoginActivity
 import com.example.ngdtechsupport.R
+import com.example.ngdtechsupport.ui.dashboard.AppAdapter
+import com.example.ngdtechsupport.model.AppModel
 import com.google.firebase.auth.FirebaseAuth
 
 class DashboardActivity : AppCompatActivity() {
 
     private val viewModel: DashboardViewModel by viewModels()
+    private lateinit var adapter: AppAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +33,7 @@ class DashboardActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         // Creamos el adapter con una lista vacía
-        val adapter = AppAdapter(emptyList())
+        adapter = AppAdapter(emptyList())
         recyclerView.adapter = adapter
 
         // Observamos el estado del ViewModel (TODO en uno)
