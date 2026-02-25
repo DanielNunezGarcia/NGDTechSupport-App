@@ -19,13 +19,28 @@
             android:textColor="#CCCCCC"
             android:visibility="gone"/>
 
-        <TextView
-            android:id="@+id/textViewReplyPreview"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/layoutReplyPreview"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:textColor="@android:color/darker_gray"
-            android:visibility="gone"/>
+            android:orientation="vertical"
+            android:background="#E3F2FD"
+            android:padding="6dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/textViewReplyUser"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:id="@+id/textViewReplyPreview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"/>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/textViewMessage"

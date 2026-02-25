@@ -1,6 +1,7 @@
 package com.example.ngdtechsupport.ui.chat
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ngdtechsupport.data.model.*
@@ -67,6 +68,14 @@ class ChatAdapter(
         }
     }
 
+    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
+        holder.itemView.alpha = 0f
+        holder.itemView.animate()
+            .alpha(1f)
+            .setDuration(200)
+            .start()
+    }
+
     fun submitMessages(messages: List<ChatMessageModel>) {
 
         val newItems = mutableListOf<ChatItem>()
@@ -104,6 +113,7 @@ class ChatAdapter(
             if (!message.replyToText.isNullOrEmpty()) {
                 binding.textViewReplyPreview.visibility = android.view.View.VISIBLE
                 binding.textViewReplyPreview.text = message.replyToText
+                binding.textViewReplyUser.text = message.replyToUserName ?: ""
             } else {
                 binding.textViewReplyPreview.visibility = android.view.View.GONE
             }

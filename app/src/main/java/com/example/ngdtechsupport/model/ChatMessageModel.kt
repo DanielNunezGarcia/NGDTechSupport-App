@@ -11,5 +11,6 @@ data class ChatMessageModel(
     val status: String = "sent",
     val replyToMessageId: String? = null,
     val replyToText: String? = null,
+    val replyToUserName: String? = null,
     val replyTo: String? = null
 )

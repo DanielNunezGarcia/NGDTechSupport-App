@@ -7,5 +7,6 @@ data class ChannelModel(
     val name: String = "",
     val createdAt: Timestamp? = null,
     val members: List<String> = emptyList(),
-    val unreadCount: Map<String, Long> = emptyMap()
+    val unreadCount: Map<String, Long> = emptyMap(),
+    val isArchived: Boolean = false
 )
