@@ -15,6 +15,7 @@ class ChatViewModel : ViewModel() {
 
     private val chatRepository = ChatRepository()
     private val channelRepository = ChannelRepository()
+    private val repository = ChannelRepository()
 
     private val _messages = MutableLiveData<List<ChatMessageModel>>()
     val messages: LiveData<List<ChatMessageModel>> = _messages
@@ -79,7 +80,7 @@ class ChatViewModel : ViewModel() {
         memberUid: String
     ) {
         viewModelScope.launch {
-            channelRepository.createPrivateChannel(
+            repository.createPrivateChannel(
                 companyId,
                 channelId,
                 adminUid,

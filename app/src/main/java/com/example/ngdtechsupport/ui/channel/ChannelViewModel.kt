@@ -39,4 +39,20 @@ class ChannelViewModel : ViewModel() {
             repository.archiveChannel(companyId, channelId, archived)
         }
     }
+
+    fun createPrivateChannel(
+        companyId: String,
+        channelId: String,
+        adminUid: String,
+        memberUid: String
+    ) {
+        viewModelScope.launch {
+            repository.createPrivateChannel(
+                companyId,
+                channelId,
+                adminUid,
+                memberUid
+            )
+        }
+    }
 }
