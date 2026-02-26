@@ -1,30 +1,51 @@
-package com.example.ngdtechsupport.ui.channel
+package com.tuapp.ui.channel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.ngdtechsupport.data.model.ChannelModel
-import com.example.ngdtechsupport.data.repository.ChatRepository
+import com.tuapp.data.repository.ChannelRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class ChannelViewModel : ViewModel() {
 
-    private val repository = ChatRepository()
+    private val repository = ChannelRepository()
 
-    private val _channels = MutableLiveData<List<ChannelModel>>()
-    val channels: LiveData<List<ChannelModel>> = _channels
+    private val _channels = MutableStateFlow<List<ChannelModel>>(emptyList())
+    val channels: StateFlow<List<ChannelModel>> = _channels
 
-    private val _totalUnread = MutableLiveData<Int>()
-    val totalUnread: LiveData<Int> = _totalUnread
+    fun loadChannels(companyId: String) {
+        viewModelScope.launch {
+            _channels.value = repository.getChannels(companyId)
+        }
 
-    fun loadChannels(companyId: String, businessId: String, userId: String) {
-        repository.listenChannels(companyId, businessId) { channels ->
-            _channels.postValue(channels)
-
-            val total = channels.sumOf {
-                it.unreadCount[userId]?.toInt() ?: 0
+        fun createPrivateChannel(
+            companyId: String,
+            channelId: String,
+            adminUid: String,
+            memberUid: String
+        ) {
+            viewModelScope.launch {
+                repository.createPrivateChannel(
+                    companyId,
+                    channelId,
+                    adminUid,
+                    memberUid
+                )
             }
+        }
+    }
 
-            _totalUnread.postValue(total)
+    fun visibleChannels(currentUserId: String): List<ChannelModel> {
+        return _channels.value.filter { channel ->
+            channel.members.containsKey(currentUserId)
+        }
+    }
+
+    fun archiveChannel(companyId: String, channelId: String, archived: Boolean) {
+        viewModelScope.launch {
+            repository.archiveChannel(companyId, channelId, archived)
         }
     }
 }

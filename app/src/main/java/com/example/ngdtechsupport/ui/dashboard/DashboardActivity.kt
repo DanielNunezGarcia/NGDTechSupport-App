@@ -8,16 +8,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.activity.viewModels
+import androidx.lifecycle.ViewModelProvider
 import com.example.ngdtechsupport.ui.auth.LoginActivity
 import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.ui.dashboard.AppAdapter
 import com.example.ngdtechsupport.model.AppModel
 import com.google.firebase.auth.FirebaseAuth
+import com.tuapp.ui.channel.ChannelViewModel
 
 class DashboardActivity : AppCompatActivity() {
 
     private val viewModel: DashboardViewModel by viewModels()
     private lateinit var adapter: AppAdapter
+    private lateinit var channelViewModel: ChannelViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +31,18 @@ class DashboardActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.rvApps)
         val roleTextView = findViewById<TextView>(R.id.tvRole)
         val userInfoTextView = findViewById<TextView>(R.id.tvUserInfo)
+
+        channelViewModel = ViewModelProvider(this)[ChannelViewModel::class.java]
+        binding.btnCreatePrivateChannel.setOnClickListener {
+
+            channelViewModel.createPrivateChannel(
+                companyId = "NGDStudios",
+                channelId = "private_admin_client",
+                adminUid = "adminUid01",
+                memberUid = "clientUid02"
+            )
+
+        }
 
         // Configuramos el RecyclerView con un LinearLayoutManager
         recyclerView.layoutManager = LinearLayoutManager(this)
