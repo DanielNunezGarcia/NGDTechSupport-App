@@ -40,7 +40,6 @@ class DashboardActivity : AppCompatActivity() {
                 adminUid = "adminUid01",
                 memberUid = "clientUid02"
             )
-
         }
 
         // Configuramos el RecyclerView con un LinearLayoutManager

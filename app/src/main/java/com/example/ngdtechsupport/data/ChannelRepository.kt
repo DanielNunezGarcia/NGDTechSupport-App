@@ -8,20 +8,22 @@ class ChannelRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
 
-    suspend fun getChannels(companyId: String): List<ChannelModel> {
-        return try {
-            val snapshot = firestore
-                .collection("companies")
-                .document(companyId)
-                .collection("channels")
-                .get()
-                .await()
+    fun listenChannels(
+        companyId: String,
+        onResult: (List<ChannelModel>) -> Unit
+    ) {
+        firestore.collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .addSnapshotListener { snapshot, _ ->
 
-            snapshot.toObjects(ChannelModel::class.java)
-
-        } catch (e: Exception) {
-            emptyList()
-        }
+                if (snapshot != null) {
+                    val list = snapshot.documents.mapNotNull {
+                        it.toObject(ChannelModel::class.java)
+                    }
+                    onResult(list)
+                }
+            }
     }
 
     suspend fun createPrivateChannel(
@@ -43,13 +45,6 @@ class ChannelRepository {
                 memberUid to 0
             )
         )
-
-        firestore.collection("companies")
-            .document(companyId)
-            .collection("channels")
-            .document(channelId)
-            .set(channelData)
-            .await()
     }
 
     suspend fun archiveChannel(
@@ -62,6 +57,5 @@ class ChannelRepository {
             .collection("channels")
             .document(channelId)
             .update("isArchived", archived)
-            .await()
     }
 }

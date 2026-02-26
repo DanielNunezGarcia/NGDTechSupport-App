@@ -1,49 +1,40 @@
 package com.example.ngdtechsupport.ui.channel
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.repository.ChannelRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ChannelViewModel : ViewModel() {
 
     private val repository = ChannelRepository()
 
-    private val _channels = MutableStateFlow<List<ChannelModel>>(emptyList())
-    val channels: StateFlow<List<ChannelModel>> = _channels
+    private val _channels = MutableLiveData<List<ChannelModel>>()
+    val channels: LiveData<List<ChannelModel>> = _channels
+
+    val visibleChannels = MediatorLiveData<List<ChannelModel>>()
+
+    init {
+        visibleChannels.addSource(_channels) { list ->
+            visibleChannels.value = list.filter { !it.isArchived }
+        }
+    }
 
     fun loadChannels(companyId: String) {
-        viewModelScope.launch {
-            _channels.value = repository.getChannels(companyId)
+        repository.listenChannels(companyId) { list ->
+            _channels.postValue(list)
         }
     }
 
-    fun createPrivateChannel(
+    fun archiveChannel(
         companyId: String,
         channelId: String,
-        adminUid: String,
-        memberUid: String
+        archived: Boolean
     ) {
-        viewModelScope.launch {
-            repository.createPrivateChannel(
-                companyId,
-                channelId,
-                adminUid,
-                memberUid
-            )
-        }
-    }
-
-    fun visibleChannels(currentUserId: String): List<ChannelModel> {
-        return _channels.value.filter { channel ->
-            channel.members.containsKey(currentUserId)
-        }
-    }
-
-    fun archiveChannel(companyId: String, channelId: String, archived: Boolean) {
         viewModelScope.launch {
             repository.archiveChannel(companyId, channelId, archived)
         }
