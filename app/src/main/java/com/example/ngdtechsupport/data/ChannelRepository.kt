@@ -1,4 +1,4 @@
-package com.tuapp.data.repository
+package com.example.ngdtechsupport.data.repository
 
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.google.firebase.firestore.FirebaseFirestore

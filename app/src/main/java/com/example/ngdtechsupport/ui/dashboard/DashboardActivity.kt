@@ -9,12 +9,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.activity.viewModels
 import androidx.lifecycle.ViewModelProvider
+import com.example.ngdtechsupport.ui.channel.ChannelViewModel
 import com.example.ngdtechsupport.ui.auth.LoginActivity
 import com.example.ngdtechsupport.R
-import com.example.ngdtechsupport.ui.dashboard.AppAdapter
-import com.example.ngdtechsupport.model.AppModel
+import com.example.ngdtechsupport.ui.channel.ChannelViewModel.ChannelViewModel
 import com.google.firebase.auth.FirebaseAuth
-import com.tuapp.ui.channel.ChannelViewModel
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -32,12 +31,12 @@ class DashboardActivity : AppCompatActivity() {
         val roleTextView = findViewById<TextView>(R.id.tvRole)
         val userInfoTextView = findViewById<TextView>(R.id.tvUserInfo)
 
-        channelViewModel = ViewModelProvider(this)[ChannelViewModel::class.java]
-        binding.btnCreatePrivateChannel.setOnClickListener {
+        val btnCreatePrivateChannel = findViewById<Button>(R.id.btnCreatePrivateChannel)
+        btnCreatePrivateChannel.setOnClickListener {
 
             channelViewModel.createPrivateChannel(
                 companyId = "NGDStudios",
-                channelId = "private_admin_client",
+                channelId = "private_${System.currentTimeMillis()}",
                 adminUid = "adminUid01",
                 memberUid = "clientUid02"
             )

@@ -1,9 +1,9 @@
-package com.tuapp.ui.channel
+package com.example.ngdtechsupport.ui.channel.ChannelViewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ngdtechsupport.data.model.ChannelModel
-import com.tuapp.data.repository.ChannelRepository
+import com.example.ngdtechsupport.data.repository.ChannelRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
