@@ -1,4 +1,4 @@
-package com.example.ngdtechsupport.ui.channel.ChannelViewModel
+package com.example.ngdtechsupport.ui.channel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,21 +19,21 @@ class ChannelViewModel : ViewModel() {
         viewModelScope.launch {
             _channels.value = repository.getChannels(companyId)
         }
+    }
 
-        fun createPrivateChannel(
-            companyId: String,
-            channelId: String,
-            adminUid: String,
-            memberUid: String
-        ) {
-            viewModelScope.launch {
-                repository.createPrivateChannel(
-                    companyId,
-                    channelId,
-                    adminUid,
-                    memberUid
-                )
-            }
+    fun createPrivateChannel(
+        companyId: String,
+        channelId: String,
+        adminUid: String,
+        memberUid: String
+    ) {
+        viewModelScope.launch {
+            repository.createPrivateChannel(
+                companyId,
+                channelId,
+                adminUid,
+                memberUid
+            )
         }
     }
 

@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.ngdtechsupport.ui.channel.ChannelViewModel
 import com.example.ngdtechsupport.ui.auth.LoginActivity
 import com.example.ngdtechsupport.R
-import com.example.ngdtechsupport.ui.channel.ChannelViewModel.ChannelViewModel
+
 import com.google.firebase.auth.FirebaseAuth
 
 class DashboardActivity : AppCompatActivity() {
