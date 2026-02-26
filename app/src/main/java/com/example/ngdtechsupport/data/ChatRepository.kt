@@ -4,7 +4,9 @@ import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.tasks.await
 
 class ChatRepository {
 
@@ -153,5 +155,30 @@ class ChatRepository {
             .collection("channels")
             .document(channelId)
             .update("pinned", pinned)
+    }
+
+    private suspend fun incrementUnread(
+        companyId: String,
+        channelId: String,
+        senderId: String
+    ) {
+        val channelRef = firestore.collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+
+        val channel = channelRef.get().await()
+        val members = channel.get("members") as Map<String, *>
+
+        val updates = mutableMapOf<String, Any>()
+
+        for (uid in members.keys) {
+            if (uid != senderId) {
+                updates["unreadCount.$uid"] =
+                    FieldValue.increment(1)
+            }
+        }
+
+        channelRef.update(updates)
     }
 }

@@ -3,14 +3,18 @@ package com.example.ngdtechsupport.ui.chat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import com.example.ngdtechsupport.data.model.ChatMessageModel
-import com.example.ngdtechsupport.data.repository.ChannelRepository
 import com.example.ngdtechsupport.data.repository.ChatRepository
-import com.example.ngdtechsupport.ui.channel.ChannelViewModel
+import com.google.firebase.firestore.FirebaseFirestore
+import com.example.ngdtechsupport.data.model.ChannelModel
+import com.example.ngdtechsupport.data.repository.ChannelRepository
 
 class ChatViewModel : ViewModel() {
 
-    private val repository = ChatRepository()
+    private val chatRepository = ChatRepository()
+    private val channelRepository = ChannelRepository()
 
     private val _messages = MutableLiveData<List<ChatMessageModel>>()
     val messages: LiveData<List<ChatMessageModel>> = _messages
@@ -18,7 +22,7 @@ class ChatViewModel : ViewModel() {
     private val currentList = mutableListOf<ChatMessageModel>()
 
     fun loadInitial(companyId: String, businessId: String) {
-        repository.loadInitialMessages(companyId, businessId) { list ->
+        chatRepository.loadInitialMessages(companyId, businessId) { list ->
             currentList.clear()
             currentList.addAll(list)
             _messages.postValue(currentList.toList())
@@ -26,7 +30,7 @@ class ChatViewModel : ViewModel() {
     }
 
     fun loadMore(companyId: String, businessId: String) {
-        repository.loadMoreMessages(companyId, businessId) { list ->
+        chatRepository.loadMoreMessages(companyId, businessId) { list ->
             currentList.addAll(0, list)
             _messages.postValue(currentList.toList())
         }
@@ -42,7 +46,7 @@ class ChatViewModel : ViewModel() {
         replyTo: String? = null
     ) {
 
-        repository.sendMessage(
+        chatRepository.sendMessage(
             companyId,
             businessId,
             text,
@@ -52,6 +56,22 @@ class ChatViewModel : ViewModel() {
         )
     }
 
+    fun setChannelMuted(
+        companyId: String,
+        channelId: String,
+        userId: String,
+        muted: Boolean
+    ) {
+        viewModelScope.launch {
+            channelRepository.setChannelMuted(
+                companyId,
+                channelId,
+                userId,
+                muted
+            )
+        }
+    }
+
     fun createPrivateChannel(
         companyId: String,
         channelId: String,
@@ -59,12 +79,27 @@ class ChatViewModel : ViewModel() {
         memberUid: String
     ) {
         viewModelScope.launch {
-            repository.createPrivateChannel(
+            channelRepository.createPrivateChannel(
                 companyId,
                 channelId,
                 adminUid,
                 memberUid
             )
+        }
+    }
+
+    fun resetUnread(
+        companyId: String,
+        channelId: String,
+        userId: String
+    ) {
+        viewModelScope.launch {
+            FirebaseFirestore.getInstance()
+                .collection("companies")
+                .document(companyId)
+                .collection("channels")
+                .document(channelId)
+                .update("unreadCount.$userId", 0)
         }
     }
 }

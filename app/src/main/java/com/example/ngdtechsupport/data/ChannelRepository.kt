@@ -2,6 +2,7 @@ package com.example.ngdtechsupport.data.repository
 
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.tasks.await
 
 class ChannelRepository {
@@ -32,19 +33,27 @@ class ChannelRepository {
         adminUid: String,
         memberUid: String
     ) {
+
         val channelData = hashMapOf(
-            "id" to channelId,
-            "name" to "Private Chat",
-            "createdAt" to System.currentTimeMillis(),
+            "name" to "Private Channel",
+            "createdAt" to Timestamp.now(),
+            "isArchived" to false,
             "members" to mapOf(
                 adminUid to mapOf("role" to "admin"),
                 memberUid to mapOf("role" to "member")
             ),
+            "mutedUsers" to emptyMap<String, Boolean>(),
             "unreadCount" to mapOf(
                 adminUid to 0,
                 memberUid to 0
             )
         )
+
+        firestore.collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .set(channelData)
     }
 
     suspend fun archiveChannel(
@@ -57,5 +66,18 @@ class ChannelRepository {
             .collection("channels")
             .document(channelId)
             .update("isArchived", archived)
+    }
+
+    suspend fun setChannelMuted(
+        companyId: String,
+        channelId: String,
+        userId: String,
+        muted: Boolean
+    ) {
+        firestore.collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .update("mutedUsers.$userId", muted)
     }
 }

@@ -37,7 +37,7 @@ class DashboardActivity : AppCompatActivity() {
 
             channelViewModel.createPrivateChannel(
                 companyId = "NGDStudios",
-                channelId = "private_${System.currentTimeMillis()}",
+                channelId = "private_admin_client",
                 adminUid = "adminUid01",
                 memberUid = "clientUid02"
             )
