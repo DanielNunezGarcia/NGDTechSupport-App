@@ -4,7 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.ngdtechsupport.data.model.ChatMessageModel
+import com.example.ngdtechsupport.data.repository.ChannelRepository
 import com.example.ngdtechsupport.data.repository.ChatRepository
+import com.example.ngdtechsupport.ui.channel.ChannelViewModel
 
 class ChatViewModel : ViewModel() {
 
@@ -48,5 +50,21 @@ class ChatViewModel : ViewModel() {
             replyToId,
             replyToText
         )
+    }
+
+    fun createPrivateChannel(
+        companyId: String,
+        channelId: String,
+        adminUid: String,
+        memberUid: String
+    ) {
+        viewModelScope.launch {
+            repository.createPrivateChannel(
+                companyId,
+                channelId,
+                adminUid,
+                memberUid
+            )
+        }
     }
 }

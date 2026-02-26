@@ -31,6 +31,7 @@ class DashboardActivity : AppCompatActivity() {
         val roleTextView = findViewById<TextView>(R.id.tvRole)
         val userInfoTextView = findViewById<TextView>(R.id.tvUserInfo)
 
+        channelViewModel = ViewModelProvider(this)[ChannelViewModel::class.java]
         val btnCreatePrivateChannel = findViewById<Button>(R.id.btnCreatePrivateChannel)
         btnCreatePrivateChannel.setOnClickListener {
 
