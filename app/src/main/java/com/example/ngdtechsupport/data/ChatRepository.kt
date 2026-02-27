@@ -75,7 +75,7 @@ class ChatRepository {
             }
     }
 
-    fun sendMessage(
+    suspend fun sendMessage(
         companyId: String,
         businessId: String,
         text: String,
@@ -102,9 +102,8 @@ class ChatRepository {
             "replyToText" to replyToText
         )
 
-        messageRef.set(message)
-            .incrementUnread(companyId, businessId, senderId)
-
+        messageRef.set(message).await()
+        incrementUnread(companyId, businessId, senderId)
     }
 
     fun listenChannels(
@@ -170,8 +169,10 @@ class ChatRepository {
             .collection("businesses")
             .document(businessId)
 
-        val channel = channelRef.get().await()
-        val members = channel.get("members") as Map<String, *>
+        val channelSnapshot = channelRef.get().await()
+
+        val members = channelSnapshot.get("members") as? Map<String, *>
+            ?: return
 
         val updates = mutableMapOf<String, Any>()
 
@@ -182,6 +183,8 @@ class ChatRepository {
             }
         }
 
-        channelRef.update(updates)
+        if (updates.isNotEmpty()) {
+            channelRef.update(updates).await()
+        }
     }
 }

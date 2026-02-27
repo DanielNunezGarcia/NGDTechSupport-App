@@ -8,7 +8,7 @@ import kotlinx.coroutines.launch
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.data.repository.ChatRepository
 import com.google.firebase.firestore.FirebaseFirestore
-import com.example.ngdtechsupport.data.model.ChannelModel
+import com.google.firebase.auth.FirebaseAuth
 import com.example.ngdtechsupport.data.repository.ChannelRepository
 
 class ChatViewModel : ViewModel() {
@@ -20,16 +20,20 @@ class ChatViewModel : ViewModel() {
     private val _messages = MutableLiveData<List<ChatMessageModel>>()
     val messages: LiveData<List<ChatMessageModel>> = _messages
 
+    private val currentUserId: String?
+        get() = FirebaseAuth.getInstance().currentUser?.uid
+
     private val currentList = mutableListOf<ChatMessageModel>()
 
     fun loadInitial(companyId: String, businessId: String) {
+
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
         chatRepository.loadInitialMessages(companyId, businessId) { list ->
-            currentList.clear()
-            currentList.addAll(list)
-            _messages.postValue(currentList.toList())
+            _messages.postValue(list)
         }
 
-        resetUnread(companyId, businessId, currentUserId)
+        resetUnread(companyId, businessId, uid)
     }
 
     fun loadMore(companyId: String, businessId: String) {
@@ -45,18 +49,18 @@ class ChatViewModel : ViewModel() {
         text: String,
         senderId: String,
         replyToId: String?,
-        replyToText: String?,
-        replyTo: String? = null
+        replyToText: String?
     ) {
-
-        chatRepository.sendMessage(
-            companyId,
-            businessId,
-            text,
-            senderId,
-            replyToId,
-            replyToText
-        )
+        viewModelScope.launch {
+            chatRepository.sendMessage(
+                companyId,
+                businessId,
+                text,
+                senderId,
+                replyToId,
+                replyToText
+            )
+        }
     }
 
     fun setChannelMuted(

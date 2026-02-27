@@ -9,11 +9,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.activity.viewModels
 import androidx.lifecycle.ViewModelProvider
+
 import com.example.ngdtechsupport.ui.channel.ChannelViewModel
 import com.example.ngdtechsupport.ui.auth.LoginActivity
 import com.example.ngdtechsupport.R
 
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -30,6 +33,9 @@ class DashboardActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.rvApps)
         val roleTextView = findViewById<TextView>(R.id.tvRole)
         val userInfoTextView = findViewById<TextView>(R.id.tvUserInfo)
+
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid == null) return
 
         channelViewModel = ViewModelProvider(this)[ChannelViewModel::class.java]
         val btnCreatePrivateChannel = findViewById<Button>(R.id.btnCreatePrivateChannel)
@@ -88,6 +94,26 @@ class DashboardActivity : AppCompatActivity() {
             val intent = Intent(this, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
+        }
+
+        // Obtener FCM Token
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+
+            if (!task.isSuccessful) {
+                return@addOnCompleteListener
+            }
+
+            val token = task.result
+            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@addOnCompleteListener
+
+            val firestore = FirebaseFirestore.getInstance()
+
+            firestore.collection("users")
+                .document(uid)
+                .set(
+                    mapOf("fcmToken" to token),
+                    com.google.firebase.firestore.SetOptions.merge()
+                )
         }
     }
 }

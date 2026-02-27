@@ -2,12 +2,14 @@ package com.example.ngdtechsupport.ui.chat
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.data.repository.ChatRepository
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
+import com.example.ngdtechsupport.ui.channel.ChannelViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 class ChatActivity : AppCompatActivity() {
@@ -15,11 +17,10 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var binding: ActivityChatBinding
     private lateinit var adapter: ChatAdapter
     private lateinit var layoutManager: LinearLayoutManager
-    private val repository = ChatRepository()
-
     private var currentUserId: String = ""
     private lateinit var companyId: String
     private lateinit var businessId: String
+    private val chatViewModel: ChatViewModel by viewModels()
 
     private var replyMessage: ChatMessageModel? = null
     private var isUserAtBottom = true
@@ -83,7 +84,7 @@ class ChatActivity : AppCompatActivity() {
             val text = binding.editTextMessage.text.toString()
             if (text.isBlank()) return@setOnClickListener
 
-            repository.sendMessage(
+            chatViewModel.sendMessage(
                 companyId = companyId,
                 businessId = businessId,
                 text = text,

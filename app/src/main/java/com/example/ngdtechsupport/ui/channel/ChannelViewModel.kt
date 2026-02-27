@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ngdtechsupport.data.model.ChannelModel
+import com.example.ngdtechsupport.domain.usecase.CreatePrivateChannelUseCase
 import com.example.ngdtechsupport.data.repository.ChannelRepository
 import kotlinx.coroutines.launch
 
@@ -23,6 +24,9 @@ class ChannelViewModel : ViewModel() {
             visibleChannels.value = list.filter { !it.isArchived }
         }
     }
+
+    private val createPrivateChannelUseCase =
+        CreatePrivateChannelUseCase(repository)
 
     fun loadChannels(companyId: String) {
         repository.listenChannels(companyId) { list ->
@@ -47,7 +51,7 @@ class ChannelViewModel : ViewModel() {
         memberUid: String
     ) {
         viewModelScope.launch {
-            repository.createPrivateChannel(
+            createPrivateChannelUseCase(
                 companyId,
                 channelId,
                 adminUid,
