@@ -28,6 +28,8 @@ class ChatViewModel : ViewModel() {
             currentList.addAll(list)
             _messages.postValue(currentList.toList())
         }
+
+        resetUnread(companyId, businessId, currentUserId)
     }
 
     fun loadMore(companyId: String, businessId: String) {

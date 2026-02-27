@@ -103,6 +103,8 @@ class ChatRepository {
         )
 
         messageRef.set(message)
+            .incrementUnread(companyId, businessId, senderId)
+
     }
 
     fun listenChannels(
@@ -159,13 +161,14 @@ class ChatRepository {
 
     private suspend fun incrementUnread(
         companyId: String,
-        channelId: String,
+        businessId: String,
         senderId: String
     ) {
-        val channelRef = firestore.collection("companies")
+        val channelRef = firestore
+            .collection("companies")
             .document(companyId)
-            .collection("channels")
-            .document(channelId)
+            .collection("businesses")
+            .document(businessId)
 
         val channel = channelRef.get().await()
         val members = channel.get("members") as Map<String, *>
