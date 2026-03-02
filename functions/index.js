@@ -3,7 +3,7 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-exports.incrementUnreadOnMessageCreate =
+exports.onMessageCreate =
 functions.firestore
 .document("companies/{companyId}/businesses/{businessId}/chat/{messageId}")
 .onCreate(async (snap, context) => {
@@ -12,6 +12,7 @@ functions.firestore
 
     const messageData = snap.data();
     const senderId = messageData.senderId;
+    const messageText = messageData.message;
 
     const channelRef = admin.firestore()
         .collection("companies")
@@ -20,17 +21,60 @@ functions.firestore
         .doc(businessId);
 
     const channelDoc = await channelRef.get();
+    const channelData = channelDoc.data();
 
-    const members = channelDoc.data().members || {};
+    const members = channelData.members || {};
+    const mutedUsers = channelData.mutedUsers || {};
 
-    const updates = {};
+    const unreadUpdates = {};
+    const tokens = [];
 
     for (const uid in members) {
+
         if (uid !== senderId) {
-            updates[`unreadCount.${uid}`] =
+
+            unreadUpdates[`unreadCount.${uid}`] =
                 admin.firestore.FieldValue.increment(1);
+
+            const isMuted = mutedUsers[uid] === true;
+
+            if (!isMuted) {
+                const userDoc = await admin.firestore()
+                    .collection("users")
+                    .doc(uid)
+                    .get();
+
+                const userData = userDoc.data();
+
+                if (userData && userData.fcmToken) {
+                    tokens.push(userData.fcmToken);
+                }
+            }
         }
     }
 
-    return channelRef.update(updates);
+    // Actualizar unread
+    await channelRef.update(unreadUpdates);
+
+    // Enviar notificaciones si hay tokens
+    if (tokens.length > 0) {
+
+        const payload = {
+            notification: {
+                title: "Nuevo mensaje",
+                body: messageText
+            },
+            data: {
+                companyId: companyId,
+                businessId: businessId
+            }
+        };
+
+        await admin.messaging().sendEachForMulticast({
+            tokens: tokens,
+            ...payload
+        });
+    }
+
+    return null;
 });
