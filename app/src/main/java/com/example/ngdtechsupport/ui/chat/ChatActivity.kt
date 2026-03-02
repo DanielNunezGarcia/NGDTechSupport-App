@@ -7,9 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ngdtechsupport.data.model.ChatMessageModel
-import com.example.ngdtechsupport.data.repository.ChatRepository
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
-import com.example.ngdtechsupport.ui.channel.ChannelViewModel
 import com.google.firebase.auth.FirebaseAuth
 
 class ChatActivity : AppCompatActivity() {

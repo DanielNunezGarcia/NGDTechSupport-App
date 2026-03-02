@@ -3,7 +3,6 @@ package com.example.ngdtechsupport.data.repository
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.Timestamp
-import kotlinx.coroutines.tasks.await
 
 class ChannelRepository {
 
