@@ -103,7 +103,7 @@ class ChatRepository {
         )
 
         messageRef.set(message).await()
-        incrementUnread(companyId, businessId, senderId)
+        //incrementUnread(companyId, businessId, senderId)
     }
 
     fun listenChannels(
