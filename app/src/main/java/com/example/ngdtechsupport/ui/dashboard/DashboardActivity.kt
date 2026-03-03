@@ -41,6 +41,7 @@ class DashboardActivity : AppCompatActivity() {
             return
         }
 
+        // Función del botón para crear Canal Privado
         channelViewModel = ViewModelProvider(this)[ChannelViewModel::class.java]
         val btnCreatePrivateChannel = findViewById<Button>(R.id.btnCreatePrivateChannel)
         btnCreatePrivateChannel.setOnClickListener {
@@ -57,7 +58,15 @@ class DashboardActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         // Creamos el adapter con una lista vacía
-        adapter = AppAdapter(emptyList())
+        adapter = AppAdapter(emptyList()) { app ->
+
+            val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
+
+            intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
+            intent.putExtra("businessId", app.id)
+
+            startActivity(intent)
+        }
         recyclerView.adapter = adapter
 
         // Observamos el estado del ViewModel (TODO en uno)

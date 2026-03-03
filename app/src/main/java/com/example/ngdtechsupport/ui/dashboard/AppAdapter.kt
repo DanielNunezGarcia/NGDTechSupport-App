@@ -11,7 +11,8 @@ import android.widget.TextView
 import com.example.ngdtechsupport.model.AppModel
 
 class AppAdapter(
-    private var apps: List<AppModel>
+    private var apps: List<AppModel>,
+    private val onAppClick: (AppModel) -> Unit
 ) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
     inner class AppViewHolder(itemView: View) :
@@ -79,7 +80,12 @@ class AppAdapter(
         holder: AppViewHolder,
         position: Int
     ) {
-        holder.bind(apps[position])
+        val app = apps[position]
+        holder.bind(app)
+
+        holder.itemView.setOnClickListener {
+            onAppClick(app)
+        }
     }
 
     fun updateApps(newApps: List<AppModel>) {
