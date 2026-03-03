@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isSameCompany(companyId) {
+      return getUserData().companyId == companyId;
+    }
+
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    match /companies/{companyId} {
+      allow read: if isAuthenticated() && isSameCompany(companyId);
+
+      match /businesses/{businessId} {
+        allow read: if isAuthenticated() && isSameCompany(companyId);
+        allow write: if isAuthenticated() && getUserData().role == "ADMIN";
+      }
+
+      match /businesses/{businessId}/{subcollection=**} {
+        allow read, write: if isAuthenticated() && isSameCompany(companyId);
+      }
+
+      match /channels/{channelId} {
+        allow read, write: if isAuthenticated() && isSameCompany(companyId);
+      }
+    }
+  }
+}

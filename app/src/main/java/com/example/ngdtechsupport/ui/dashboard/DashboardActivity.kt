@@ -35,7 +35,11 @@ class DashboardActivity : AppCompatActivity() {
         val userInfoTextView = findViewById<TextView>(R.id.tvUserInfo)
 
         val uid = FirebaseAuth.getInstance().currentUser?.uid
-        if (uid == null) return
+        if (uid == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
 
         channelViewModel = ViewModelProvider(this)[ChannelViewModel::class.java]
         val btnCreatePrivateChannel = findViewById<Button>(R.id.btnCreatePrivateChannel)

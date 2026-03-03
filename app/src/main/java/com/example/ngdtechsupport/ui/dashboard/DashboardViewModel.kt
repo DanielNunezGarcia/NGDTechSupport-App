@@ -114,6 +114,7 @@ class DashboardViewModel(
                     }
                 } else {
                     // Fallback: todas las apps si no tiene companyId
+                    //getBusinessesForCompany(companyId)
                     appRepository.getAllApps()
                 }
             }

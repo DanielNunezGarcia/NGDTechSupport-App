@@ -10,34 +10,13 @@ class FirebaseAppRepository : AppRepository {
     private val db = FirebaseFirestore.getInstance()
 
     override suspend fun getAppsForUser(userId: String): List<AppModel> {
-        return try {
-            val snapshot = db.collection("apps")
-                .whereEqualTo("clientId", userId)
-                .get()
-                .await()
-
-            snapshot.documents.mapNotNull {
-                it.toObject(AppModel::class.java)?.copy(id = it.id)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
-        }
+        // Ya no usamos apps
+        return emptyList()
     }
 
     override suspend fun getAllApps(): List<AppModel> {
-        return try {
-            val snapshot = db.collection("apps")
-                .get()
-                .await()
-
-            snapshot.documents.mapNotNull {
-                it.toObject(AppModel::class.java)?.copy(id = it.id)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            throw e
-        }
+        // Ya no usamos apps
+        return emptyList()
     }
 
     override suspend fun getBusinessesForCompany(companyId: String): List<AppModel> {
@@ -81,6 +60,7 @@ class FirebaseAppRepository : AppRepository {
                     )
                 )
             } else emptyList()
+
         } catch (e: Exception) {
             e.printStackTrace()
             throw e
