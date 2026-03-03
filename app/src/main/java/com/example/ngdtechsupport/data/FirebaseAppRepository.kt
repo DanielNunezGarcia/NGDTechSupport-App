@@ -20,7 +20,8 @@ class FirebaseAppRepository : AppRepository {
                 it.toObject(AppModel::class.java)?.copy(id = it.id)
             }
         } catch (e: Exception) {
-            emptyList()
+            e.printStackTrace()
+            throw e
         }
     }
 
@@ -34,38 +35,55 @@ class FirebaseAppRepository : AppRepository {
                 it.toObject(AppModel::class.java)?.copy(id = it.id)
             }
         } catch (e: Exception) {
-            emptyList()
+            e.printStackTrace()
+            throw e
         }
     }
 
     override suspend fun getBusinessesForCompany(companyId: String): List<AppModel> {
         return try {
-            val snapshot = db.collection("apps")
-                .whereEqualTo("companyId", companyId)
+            val snapshot = db.collection("companies")
+                .document(companyId)
+                .collection("businesses")
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull {
-                it.toObject(AppModel::class.java)?.copy(id = it.id)
+            snapshot.documents.mapNotNull { doc ->
+                AppModel(
+                    id = doc.id,
+                    name = doc.getString("name") ?: "",
+                    status = doc.getString("status") ?: "",
+                    lastUpdate = doc.getString("lastUpdate") ?: ""
+                )
             }
         } catch (e: Exception) {
-            emptyList()
+            e.printStackTrace()
+            throw e
         }
     }
 
     override suspend fun getSingleBusiness(companyId: String, businessId: String): List<AppModel> {
         return try {
-            val snapshot = db.collection("apps")
-                .whereEqualTo("companyId", companyId)
-                .whereEqualTo("businessId", businessId)
+            val doc = db.collection("companies")
+                .document(companyId)
+                .collection("businesses")
+                .document(businessId)
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull {
-                it.toObject(AppModel::class.java)?.copy(id = it.id)
-            }
+            if (doc.exists()) {
+                listOf(
+                    AppModel(
+                        id = doc.id,
+                        name = doc.getString("name") ?: "",
+                        status = doc.getString("status") ?: "",
+                        lastUpdate = doc.getString("lastUpdate") ?: ""
+                    )
+                )
+            } else emptyList()
         } catch (e: Exception) {
-            emptyList()
+            e.printStackTrace()
+            throw e
         }
     }
 }
