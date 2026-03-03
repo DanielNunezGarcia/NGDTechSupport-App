@@ -8,11 +8,9 @@ import com.example.ngdtechsupport.data.AppRepository
 import com.example.ngdtechsupport.data.FirebaseAppRepository
 import com.example.ngdtechsupport.data.UserRepository
 import com.example.ngdtechsupport.data.CompanyRepository
-import com.example.ngdtechsupport.model.BusinessModel
 import com.example.ngdtechsupport.model.UserModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
-import kotlin.math.sin
 
 // ViewModel del Dashboard: contiene la lógica de carga de apps y el rol del usuario
 class DashboardViewModel(

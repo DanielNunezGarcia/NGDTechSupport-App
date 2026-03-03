@@ -102,8 +102,41 @@ class ChatRepository {
             "replyToText" to replyToText
         )
 
+        // 1️⃣ Guardar mensaje
         messageRef.set(message).await()
-        //incrementUnread(companyId, businessId, senderId)
+
+        // 2️⃣ Incrementar unreadCount
+        incrementUnread(companyId, businessId, senderId)
+    }
+
+    private suspend fun incrementUnread(
+        companyId: String,
+        businessId: String,
+        senderId: String
+    ) {
+
+        val chatStatusRef = firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("chatStatus")
+
+        val snapshot = chatStatusRef.get().await()
+
+        for (document in snapshot.documents) {
+
+            val userId = document.id
+
+            // No incrementar al que envía el mensaje
+            if (userId != senderId) {
+
+                chatStatusRef.document(userId).update(
+                    "unreadCount",
+                    com.google.firebase.firestore.FieldValue.increment(1)
+                ).await()
+            }
+        }
     }
 
     fun listenChannels(
@@ -156,35 +189,5 @@ class ChatRepository {
             .collection("channels")
             .document(channelId)
             .update("pinned", pinned)
-    }
-
-    private suspend fun incrementUnread(
-        companyId: String,
-        businessId: String,
-        senderId: String
-    ) {
-        val channelRef = firestore
-            .collection("companies")
-            .document(companyId)
-            .collection("businesses")
-            .document(businessId)
-
-        val channelSnapshot = channelRef.get().await()
-
-        val members = channelSnapshot.get("members") as? Map<String, *>
-            ?: return
-
-        val updates = mutableMapOf<String, Any>()
-
-        for (uid in members.keys) {
-            if (uid != senderId) {
-                updates["unreadCount.$uid"] =
-                    FieldValue.increment(1)
-            }
-        }
-
-        if (updates.isNotEmpty()) {
-            channelRef.update(updates).await()
-        }
     }
 }
