@@ -58,15 +58,35 @@ class DashboardActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         // Creamos el adapter con una lista vacía
-        adapter = AppAdapter(emptyList()) { app ->
+        adapter = AppAdapter(
+            emptyList(),
 
-            val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
+            onChatClick = { app ->
 
-            intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
-            intent.putExtra("businessId", app.id)
+                val intent = Intent(
+                    this,
+                    com.example.ngdtechsupport.ui.chat.ChatActivity::class.java
+                )
 
-            startActivity(intent)
-        }
+                intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
+                intent.putExtra("businessId", app.id)
+
+                startActivity(intent)
+            },
+
+            onUpdatesClick = { app ->
+
+                val intent = Intent(
+                    this,
+                    com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java
+                )
+
+                intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
+                intent.putExtra("businessId", app.id)
+
+                startActivity(intent)
+            }
+        )
         recyclerView.adapter = adapter
 
         // Observamos el estado del ViewModel (TODO en uno)
