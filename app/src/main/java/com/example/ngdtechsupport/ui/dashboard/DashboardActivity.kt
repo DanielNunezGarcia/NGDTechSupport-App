@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.ViewModelProvider
 
 import com.example.ngdtechsupport.ui.channel.ChannelViewModel
+import com.example.ngdtechsupport.ui.activity.AppDetailActivity
 import com.example.ngdtechsupport.ui.auth.LoginActivity
 import com.example.ngdtechsupport.R
 
@@ -46,11 +47,15 @@ class DashboardActivity : AppCompatActivity() {
         val btnCreatePrivateChannel = findViewById<Button>(R.id.btnCreatePrivateChannel)
         btnCreatePrivateChannel.setOnClickListener {
 
+            val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
+            val companyId = viewModel.uiState.value?.companyName
+                ?: return@setOnClickListener
+
             channelViewModel.createPrivateChannel(
-                companyId = "NGDStudios",
-                channelId = "private_admin_client",
-                adminUid = "adminUid01",
-                memberUid = "clientUid02"
+                companyId = companyId,
+                channelId = "private_$currentUid",
+                adminUid = currentUid,
+                memberUid = currentUid
             )
         }
 
@@ -59,34 +64,19 @@ class DashboardActivity : AppCompatActivity() {
 
         // Creamos el adapter con una lista vacía
         adapter = AppAdapter(
-            emptyList(),
+            emptyList()
+        ) { app ->
 
-            onChatClick = { app ->
+            val intent = Intent(
+                this,
+                AppDetailActivity::class.java // pantalla futura
+            )
 
-                val intent = Intent(
-                    this,
-                    com.example.ngdtechsupport.ui.chat.ChatActivity::class.java
-                )
+            intent.putExtra("businessId", app.id)
+            intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
 
-                intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
-                intent.putExtra("businessId", app.id)
-
-                startActivity(intent)
-            },
-
-            onUpdatesClick = { app ->
-
-                val intent = Intent(
-                    this,
-                    com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java
-                )
-
-                intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
-                intent.putExtra("businessId", app.id)
-
-                startActivity(intent)
-            }
-        )
+            startActivity(intent)
+        }
         recyclerView.adapter = adapter
 
         // Observamos el estado del ViewModel (TODO en uno)
@@ -122,10 +112,37 @@ class DashboardActivity : AppCompatActivity() {
         // Pedimos al ViewModel que cargue las apps del usuario actual
         viewModel.loadAppsForCurrentUser()
 
+        // Botón para cerrar sesión
         logoutButton.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             val intent = Intent(this, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+        }
+
+        val btnChatGlobal = findViewById<Button>(R.id.btnChat)
+        val btnUpdatesGlobal = findViewById<Button>(R.id.btnUpdates)
+
+        // Funcionalidad botones Chat y Updates
+        btnChatGlobal.setOnClickListener {
+
+            val intent = Intent(
+                this,
+                com.example.ngdtechsupport.ui.chat.ChatActivity::class.java
+            )
+
+            intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
+            startActivity(intent)
+        }
+
+        btnUpdatesGlobal.setOnClickListener {
+
+            val intent = Intent(
+                this,
+                com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java
+            )
+
+            intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
             startActivity(intent)
         }
 

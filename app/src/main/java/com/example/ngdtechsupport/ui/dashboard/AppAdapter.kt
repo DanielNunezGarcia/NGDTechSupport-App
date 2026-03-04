@@ -13,8 +13,7 @@ import com.example.ngdtechsupport.model.AppModel
 
 class AppAdapter(
     private var apps: List<AppModel>,
-    private val onChatClick: (AppModel) -> Unit,
-    private val onUpdatesClick: (AppModel) -> Unit
+    private val onItemClick: (AppModel) -> Unit
 ) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
     inner class AppViewHolder(itemView: View) :
@@ -28,8 +27,6 @@ class AppAdapter(
         private val versionText: TextView = itemView.findViewById(R.id.tvVersion)
         private val supportTypeText: TextView = itemView.findViewById(R.id.tvSupportType)
         private val lastUpdateText: TextView = itemView.findViewById(R.id.tvLastUpdate)
-        private val btnChat: Button = itemView.findViewById(R.id.btnChat)
-        private val btnUpdates: Button = itemView.findViewById(R.id.btnUpdates)
 
         fun bind(app: AppModel) {
             nameText.text = app.name
@@ -64,14 +61,6 @@ class AppAdapter(
                 else -> android.R.drawable.presence_invisible
             }
             statusIcon.setImageResource(iconRes)
-
-            btnChat.setOnClickListener {
-                onChatClick(app)
-            }
-
-            btnUpdates.setOnClickListener {
-                onUpdatesClick(app)
-            }
         }
     }
 
@@ -88,15 +77,12 @@ class AppAdapter(
 
     override fun getItemCount(): Int = apps.size
 
-    override fun onBindViewHolder(
-        holder: AppViewHolder,
-        position: Int
-    ) {
+    override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val app = apps[position]
         holder.bind(app)
 
         holder.itemView.setOnClickListener {
-            onChatClick(app)
+            onItemClick(app)
         }
     }
 

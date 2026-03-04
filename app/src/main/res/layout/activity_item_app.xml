@@ -19,9 +19,9 @@
             android:id="@+id/tvAppName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Nombre App"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:text="Nombre App"/>
+            android:textStyle="bold" />
 
         <!-- Estado -->
         <TextView
@@ -29,18 +29,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:padding="2dp"
             android:background="@drawable/bg_status_badge"
-            android:text="Estado"/>
+            android:padding="2dp"
+            android:text="Estado" />
 
+        <!-- Barra de progreso -->
         <ImageView
             android:id="@+id/ivStatusIcon"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginTop="4dp"
-            android:contentDescription="Estado Icono"/>
+            android:contentDescription="Estado Icono" />
 
-        <!-- Barra de progreso -->
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleHorizontal"
@@ -48,7 +48,7 @@
             android:layout_height="8dp"
             android:layout_marginTop="8dp"
             android:max="100"
-            android:progress="0"/>
+            android:progress="0" />
 
         <!-- Porcentaje -->
         <TextView
@@ -56,7 +56,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="0%"/>
+            android:text="0%" />
 
         <!-- Versión -->
         <TextView
@@ -64,14 +64,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Versión: 1.0.0"/>
+            android:text="Versión: 1.0.0" />
 
         <!-- Tipo de soporte -->
         <TextView
             android:id="@+id/tvSupportType"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Soporte: Desarrollo activo"/>
+            android:text="Soporte: Desarrollo activo" />
 
         <!-- Última actualización -->
         <TextView
@@ -79,7 +79,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Última actualización: 17/02/2026"/>
+            android:text="Última actualización: 17/02/2026" />
 
     </LinearLayout>
 
