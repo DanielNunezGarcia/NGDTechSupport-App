@@ -69,11 +69,10 @@ class DashboardActivity : AppCompatActivity() {
 
             val intent = Intent(
                 this,
-                AppDetailActivity::class.java // pantalla futura
+                com.example.ngdtechsupport.ui.activity.AppDetailActivity::class.java
             )
 
-            intent.putExtra("businessId", app.id)
-            intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
+            intent.putExtra("appId", app.id)
 
             startActivity(intent)
         }
