@@ -40,20 +40,23 @@ class CompanyRepository {
 
         return try {
 
-            val document = db.collection("companies")
+            val doc = db.collection("companies")
                 .document(companyId)
                 .collection("businesses")
                 .document(businessId)
                 .get()
                 .await()
 
+            if (!doc.exists()) return null
+
             BusinessModel(
-                id = document.id,
-                name = document.getString("name") ?: "",
-                status = document.getString("status") ?: "",
-                progress = document.getLong("progress")?.toInt() ?: 0,
-                version = document.getString("version") ?: "",
-                lastUpdate = document.getString("lastUpdate") ?: ""
+                id = doc.id,
+                name = doc.getString("name") ?: "",
+                status = doc.getString("status") ?: "",
+                progress = doc.getLong("progress")?.toInt() ?: 0,
+                version = doc.getString("version") ?: "",
+                supportType = doc.getString("supportType") ?: "",
+                lastUpdate = doc.getString("lastUpdate") ?: ""
             )
 
         } catch (e: Exception) {
