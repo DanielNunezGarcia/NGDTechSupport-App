@@ -1,48 +1,41 @@
 package com.example.ngdtechsupport.ui.updates
 
 import android.os.Bundle
-import android.view.View
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.ngdtechsupport.databinding.ActivityUpdatesBinding
+import androidx.recyclerview.widget.RecyclerView
+import androidx.lifecycle.ViewModelProvider
+import com.example.ngdtechsupport.R
 
 class UpdatesActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityUpdatesBinding
-    private val viewModel: UpdatesViewModel by viewModels()
-
-    private lateinit var adapter: UpdateAdapter
+    private lateinit var viewModel: UpdatesViewModel
+    private lateinit var adapter: UpdatesAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
 
-        binding = ActivityUpdatesBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_updates)
 
-        adapter = UpdateAdapter(emptyList())
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerUpdates)
 
-        binding.recyclerUpdates.layoutManager = LinearLayoutManager(this)
-        binding.recyclerUpdates.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
 
-        observeViewModel()
+        adapter = UpdatesAdapter(emptyList())
 
-        val companyId = intent.getStringExtra("companyId") ?: ""
-        val businessId = intent.getStringExtra("businessId") ?: ""
+        recyclerView.adapter = adapter
 
-        val userRole = intent.getStringExtra("userRole") ?: ""
-        if (userRole == "ADMIN") {
-            binding.btnNewUpdate.visibility = View.VISIBLE
+        val companyId = intent.getStringExtra("companyId") ?: return
+        val businessId = intent.getStringExtra("businessId") ?: return
+
+        viewModel = ViewModelProvider(this)[UpdatesViewModel::class.java]
+
+        viewModel.updates.observe(this) {
+
+            adapter.updateList(it)
         }
-    }
 
-    private fun observeViewModel() {
-        viewModel.uiState.observe(this) { state ->
-
-            binding.progressBar.visibility =
-                if (state.isLoading) View.VISIBLE else View.GONE
-
-            adapter.updateList(state.updates)
-        }
+        viewModel.loadUpdates(companyId, businessId)
     }
 }

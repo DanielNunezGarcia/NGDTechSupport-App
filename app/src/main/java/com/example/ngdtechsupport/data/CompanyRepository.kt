@@ -1,6 +1,7 @@
 package com.example.ngdtechsupport.data
 
 import com.example.ngdtechsupport.model.BusinessModel
+import com.example.ngdtechsupport.model.UpdateModel
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -61,6 +62,37 @@ class CompanyRepository {
 
         } catch (e: Exception) {
             null
+        }
+    }
+
+    // Recibir Updates / Noticias
+    suspend fun getUpdates(
+        companyId: String,
+        businessId: String
+    ): List<UpdateModel> {
+
+        return try {
+
+            val snapshot = db.collection("companies")
+                .document(companyId)
+                .collection("businesses")
+                .document(businessId)
+                .collection("updates")
+                .get()
+                .await()
+
+            snapshot.documents.map {
+
+                UpdateModel(
+                    id = it.id,
+                    title = it.getString("title") ?: "",
+                    description = it.getString("description") ?: "",
+                    date = it.getString("date") ?: ""
+                )
+            }
+
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 
