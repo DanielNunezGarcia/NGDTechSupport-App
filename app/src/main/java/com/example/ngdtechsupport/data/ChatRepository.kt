@@ -2,6 +2,7 @@ package com.example.ngdtechsupport.data.repository
 
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.model.ChatMessageModel
+import com.example.ngdtechsupport.model.MessageModel
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FieldValue
@@ -89,7 +90,9 @@ class ChatRepository {
             .document(companyId)
             .collection("businesses")
             .document(businessId)
-            .collection("chat")
+            .collection("channels")
+            .document("support_chat")
+            .collection("messages")
             .document()
 
         val message = hashMapOf(

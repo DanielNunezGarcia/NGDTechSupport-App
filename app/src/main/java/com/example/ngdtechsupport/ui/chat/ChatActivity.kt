@@ -75,6 +75,7 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
+    // Función Botón Enviar
     private fun setupSendButton() {
 
         binding.buttonSend.setOnClickListener {
