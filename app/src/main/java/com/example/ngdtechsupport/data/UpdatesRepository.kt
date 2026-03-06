@@ -1,6 +1,7 @@
 package com.example.ngdtechsupport.data
 
 import com.example.ngdtechsupport.model.UpdateModel
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
@@ -64,15 +65,27 @@ class UpdatesRepository {
     suspend fun createUpdate(
         companyId: String,
         businessId: String,
-        update: UpdateModel
+        title: String,
+        description: String,
+        version: String
     ) {
-        firestore
+
+        val ref = firestore
             .collection("companies")
             .document(companyId)
             .collection("businesses")
             .document(businessId)
             .collection("updates")
-            .add(update)
-            .await()
+            .document()
+
+        val update = hashMapOf(
+            "id" to ref.id,
+            "title" to title,
+            "description" to description,
+            "version" to version,
+            "createdAt" to Timestamp.now()
+        )
+
+        ref.set(update).await()
     }
 }

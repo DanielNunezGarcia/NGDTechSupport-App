@@ -46,6 +46,9 @@
             android:name=".ui.activity.AppDetailActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.updates.CreateUpdateActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

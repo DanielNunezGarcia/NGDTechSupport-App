@@ -40,11 +40,10 @@ class ChatActivity : AppCompatActivity() {
         chatViewModel.listenMessages(companyId, businessId)
 
         chatViewModel.messages.observe(this) { messages ->
-
-            adapter.submitList(messages)
+            adapter.submitMessages(messages)
 
             if (messages.isNotEmpty()) {
-                binding.recyclerMessages.scrollToPosition(messages.size - 1)
+                binding.recyclerViewChat.scrollToPosition(messages.size - 1)
             }
         }
     }
