@@ -25,6 +25,7 @@ class ChatViewModel : ViewModel() {
 
     private val currentList = mutableListOf<ChatMessageModel>()
 
+    // Cargado inicial de los mensajes
     fun loadInitial(companyId: String, businessId: String) {
 
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -36,6 +37,14 @@ class ChatViewModel : ViewModel() {
         resetUnread(companyId, businessId, uid)
     }
 
+    fun listenMessages(companyId: String, businessId: String) {
+
+        chatRepository.listenMessages(companyId, businessId) { messages ->
+            _messages.postValue(messages)
+        }
+    }
+
+    // Cargar más compañías en el caso de que haya más
     fun loadMore(companyId: String, businessId: String) {
         chatRepository.loadMoreMessages(companyId, businessId) { list ->
             currentList.addAll(0, list)

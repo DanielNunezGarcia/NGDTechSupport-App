@@ -112,6 +112,31 @@ class ChatRepository {
         incrementUnread(companyId, businessId, senderId)
     }
 
+    fun listenMessages(
+        companyId: String,
+        businessId: String,
+        onMessagesChange: (List<ChatMessageModel>) -> Unit
+    ) {
+
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("chat")
+            .orderBy("timestamp")
+            .addSnapshotListener { snapshot, _ ->
+
+                if (snapshot == null) return@addSnapshotListener
+
+                val messages = snapshot.documents.mapNotNull {
+                    it.toObject(ChatMessageModel::class.java)
+                }
+
+                onMessagesChange(messages)
+            }
+    }
+
     private suspend fun incrementUnread(
         companyId: String,
         businessId: String,

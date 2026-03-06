@@ -36,6 +36,17 @@ class ChatActivity : AppCompatActivity() {
 
         setupRecycler()
         setupSendButton()
+
+        chatViewModel.listenMessages(companyId, businessId)
+
+        chatViewModel.messages.observe(this) { messages ->
+
+            adapter.submitList(messages)
+
+            if (messages.isNotEmpty()) {
+                binding.recyclerMessages.scrollToPosition(messages.size - 1)
+            }
+        }
     }
 
     private fun setupRecycler() {
