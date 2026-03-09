@@ -123,16 +123,16 @@ class ChatViewModel : ViewModel() {
 
     fun markChatAsRead(
         companyId: String,
-        businessId: String,
-        userId: String
+        channelId: String,
+        isAdmin: Boolean
     ) {
 
         viewModelScope.launch {
 
-            chatRepository.markChannelAsRead(
+            chatRepository.markChatAsRead(
                 companyId,
-                businessId,
-                userId
+                channelId,
+                isAdmin
             )
         }
     }

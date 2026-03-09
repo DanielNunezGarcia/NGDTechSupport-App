@@ -19,6 +19,7 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var companyId: String
     private lateinit var businessId: String
     private val chatViewModel: ChatViewModel by viewModels()
+    private lateinit var channelId: String
 
     private var replyMessage: ChatMessageModel? = null
     private var isUserAtBottom = true
@@ -33,9 +34,17 @@ class ChatActivity : AppCompatActivity() {
 
         companyId = intent.getStringExtra("companyId") ?: ""
         businessId = intent.getStringExtra("businessId") ?: ""
+        channelId = intent.getStringExtra("channelId") ?: ""
 
         setupRecycler()
         setupSendButton()
+
+        // Marcar como leído mensaje en el Chat
+        chatViewModel.markChatAsRead(
+            companyId,
+            channelId,
+            true
+        )
 
         chatViewModel.listenMessages(companyId, businessId)
 
@@ -46,13 +55,6 @@ class ChatActivity : AppCompatActivity() {
                 binding.recyclerViewChat.scrollToPosition(messages.size - 1)
             }
         }
-
-        // Marcar como leído mensaje en el Chat
-        chatViewModel.markChatAsRead(
-            companyId,
-            businessId,
-            currentUserId
-        )
 
         chatViewModel.updateLastRead(
             companyId,

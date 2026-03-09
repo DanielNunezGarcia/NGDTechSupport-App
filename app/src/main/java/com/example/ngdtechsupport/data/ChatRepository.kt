@@ -5,6 +5,7 @@ import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.tasks.await
 
 class ChatRepository {
@@ -76,7 +77,7 @@ class ChatRepository {
 
     suspend fun sendMessage(
         companyId: String,
-        businessId: String,
+        channelId: String,
         text: String,
         senderId: String,
         replyToId: String?,
@@ -86,10 +87,8 @@ class ChatRepository {
         val messageRef = firestore
             .collection("companies")
             .document(companyId)
-            .collection("businesses")
-            .document(businessId)
             .collection("channels")
-            .document("support_chat")
+            .document(channelId)
             .collection("messages")
             .document()
 
@@ -103,11 +102,20 @@ class ChatRepository {
             "replyToText" to replyToText
         )
 
+        firestore.collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .update(
+                "unread_client",
+                FieldValue.increment(1)
+            )
+
         // 1️⃣ Guardar mensaje
         messageRef.set(message).await()
 
         // 2️⃣ Incrementar unreadCount
-        incrementUnread(companyId, businessId, senderId)
+        incrementUnread(companyId, channelId, senderId)
     }
 
     fun listenMessages(
@@ -202,6 +210,29 @@ class ChatRepository {
                 System.currentTimeMillis()
             )
             .await()
+    }
+
+    suspend fun markChatAsRead(
+        companyId: String,
+        channelId: String,
+        isAdmin: Boolean
+    ) {
+
+        val channelRef = firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+
+        if (isAdmin) {
+
+            channelRef.update("unread_admin", 0).await()
+
+        } else {
+
+            channelRef.update("unread_client", 0).await()
+
+        }
     }
 
     suspend fun markChannelAsRead(

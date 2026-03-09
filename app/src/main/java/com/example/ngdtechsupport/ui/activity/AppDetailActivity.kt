@@ -65,8 +65,10 @@ class AppDetailActivity : AppCompatActivity() {
         btnUpdates.setOnClickListener {
 
             val intent = Intent(this, UpdatesActivity::class.java)
+
             intent.putExtra("companyId", companyId)
             intent.putExtra("businessId", businessId)
+            intent.putExtra("channelId", "private_admin_client")
 
             startActivity(intent)
         }
