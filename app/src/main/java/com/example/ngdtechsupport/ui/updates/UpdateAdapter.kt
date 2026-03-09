@@ -2,15 +2,17 @@ package com.example.ngdtechsupport.ui.updates
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.model.UpdateModel
-import android.widget.TextView
-import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.*
 
-class UpdatesAdapter(
-    private var updates: List<UpdateModel>
-) : RecyclerView.Adapter<UpdatesAdapter.UpdateViewHolder>() {
+class UpdatesAdapter :
+    ListAdapter<UpdateModel, UpdatesAdapter.UpdateViewHolder>(DiffCallback()) {
 
     class UpdateViewHolder(parent: ViewGroup) :
         RecyclerView.ViewHolder(
@@ -27,19 +29,33 @@ class UpdatesAdapter(
         return UpdateViewHolder(parent)
     }
 
-    override fun getItemCount(): Int = updates.size
-
     override fun onBindViewHolder(holder: UpdateViewHolder, position: Int) {
 
-        val update = updates[position]
+        val update = getItem(position)
 
         holder.title.text = update.title
         holder.description.text = update.description
-        holder.date.text = Date(update.createdAt).toString()
+
+        val formatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+        holder.date.text = formatter.format(Date(update.createdAt))
     }
 
-    fun updateList(newUpdates: List<UpdateModel>) {
-        updates = newUpdates
-        notifyDataSetChanged()
+    class DiffCallback : DiffUtil.ItemCallback<UpdateModel>() {
+
+        override fun areItemsTheSame(
+            oldItem: UpdateModel,
+            newItem: UpdateModel
+        ): Boolean {
+
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(
+            oldItem: UpdateModel,
+            newItem: UpdateModel
+        ): Boolean {
+
+            return oldItem == newItem
+        }
     }
 }

@@ -25,7 +25,7 @@ class UpdatesActivity : AppCompatActivity() {
         companyId = intent.getStringExtra("companyId") ?: ""
         businessId = intent.getStringExtra("businessId") ?: ""
 
-        adapter = UpdatesAdapter(emptyList())
+        adapter = UpdatesAdapter()
 
         binding.recyclerUpdates.adapter = adapter
         binding.recyclerUpdates.layoutManager =
@@ -38,7 +38,7 @@ class UpdatesActivity : AppCompatActivity() {
 
         viewModel.updates.observe(this) { updates ->
 
-            adapter.updateList(updates)
+            adapter.submitList(updates)
 
         }
     }
