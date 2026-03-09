@@ -189,19 +189,18 @@ class ChatRepository {
             }
     }
 
-    fun markChannelAsRead(
+    suspend fun markChannelAsRead(
         companyId: String,
         businessId: String,
-        channelId: String,
         userId: String
     ) {
         firestore.collection("companies")
             .document(companyId)
-            .collection("businesses")
-            .document(businessId)
             .collection("channels")
-            .document(channelId)
-            .update("unreadCount.$userId", 0)
+            .document("${businessId}_support")
+            .update("unreadCount.$userId", 0
+        )
+        .await()
     }
 
     fun setChannelPinned(

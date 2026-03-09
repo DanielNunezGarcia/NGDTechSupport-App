@@ -104,6 +104,22 @@ class ChatViewModel : ViewModel() {
         }
     }
 
+    fun markChatAsRead(
+        companyId: String,
+        businessId: String,
+        userId: String
+    ) {
+
+        viewModelScope.launch {
+
+            chatRepository.markChannelAsRead(
+                companyId,
+                businessId,
+                userId
+            )
+        }
+    }
+
     fun resetUnread(
         companyId: String,
         channelId: String,

@@ -46,6 +46,13 @@ class ChatActivity : AppCompatActivity() {
                 binding.recyclerViewChat.scrollToPosition(messages.size - 1)
             }
         }
+
+        // Marcar como leído mensaje en el Chat
+        chatViewModel.markChatAsRead(
+            companyId,
+            businessId,
+            currentUserId
+        )
     }
 
     private fun setupRecycler() {
