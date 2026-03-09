@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.model.UpdateModel
 import android.widget.TextView
+import java.util.Date
 
 class UpdatesAdapter(
     private var updates: List<UpdateModel>
@@ -34,7 +35,7 @@ class UpdatesAdapter(
 
         holder.title.text = update.title
         holder.description.text = update.description
-        holder.date.text = update.date
+        holder.date.text = Date(update.createdAt).toString()
     }
 
     fun updateList(newUpdates: List<UpdateModel>) {

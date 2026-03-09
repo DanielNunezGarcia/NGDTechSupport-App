@@ -2,10 +2,8 @@ package com.example.ngdtechsupport.data.repository
 
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.model.ChatMessageModel
-import com.example.ngdtechsupport.model.MessageModel
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
@@ -187,6 +185,23 @@ class ChatRepository {
                     onResult(channels)
                 }
             }
+    }
+
+    suspend fun updateLastRead(
+        companyId: String,
+        businessId: String,
+        userId: String
+    ) {
+
+        firestore.collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document("${businessId}_support")
+            .update(
+                "lastRead_$userId",
+                System.currentTimeMillis()
+            )
+            .await()
     }
 
     suspend fun markChannelAsRead(

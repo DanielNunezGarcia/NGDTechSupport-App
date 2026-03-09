@@ -31,7 +31,7 @@ class UpdatesRepository {
                 title = doc.getString("title") ?: "",
                 description = doc.getString("description") ?: "",
                 type = doc.getString("type") ?: "",
-                createdAt = doc.getTimestamp("createdAt"),
+                createdAt = doc.getTimestamp("createdAt") ?.toDate()?.time ?: 0L,
                 createdBy = doc.getString("createdBy") ?: ""
             )
         }
@@ -87,5 +87,37 @@ class UpdatesRepository {
         )
 
         ref.set(update).await()
+    }
+
+    fun listenUpdates(
+        companyId: String,
+        businessId: String,
+        onResult: (List<UpdateModel>) -> Unit
+    ) {
+
+        firestore.collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("updates")
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, _ ->
+
+                val updates = snapshot?.documents?.map {
+
+                    UpdateModel(
+                        id = it.id,
+                        title = it.getString("title") ?: "",
+                        description = it.getString("description") ?: "",
+                        type = it.getString("type") ?: "",
+                        createdAt = it.getTimestamp("createdAt")
+                            ?.toDate()?.time ?: 0L,
+                        createdBy = it.getString("createdBy") ?: ""
+                    )
+
+                } ?: emptyList()
+
+                onResult(updates)
+            }
     }
 }

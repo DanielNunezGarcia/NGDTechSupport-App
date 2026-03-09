@@ -1,35 +1,31 @@
 package com.example.ngdtechsupport.ui.updates
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.example.ngdtechsupport.R
+import com.example.ngdtechsupport.databinding.ActivityCreateUpdatesBinding
+class CreateUpdatesActivity : AppCompatActivity() {
 
-class CreateUpdateActivity : AppCompatActivity() {
-
+    private lateinit var binding: ActivityCreateUpdatesBinding
     private val viewModel: UpdatesViewModel by viewModels()
+
+    private lateinit var companyId: String
+    private lateinit var businessId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setContentView(R.layout.activity_create_updates)
+        binding = ActivityCreateUpdatesBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        val companyId = intent.getStringExtra("companyId") ?: return
-        val businessId = intent.getStringExtra("businessId") ?: return
+        companyId = intent.getStringExtra("companyId") ?: ""
+        businessId = intent.getStringExtra("businessId") ?: ""
 
-        val etTitle = findViewById<EditText>(R.id.etTitle)
-        val etDescription = findViewById<EditText>(R.id.etDescription)
-        val etVersion = findViewById<EditText>(R.id.etVersion)
+        binding.btnPublish.setOnClickListener {
 
-        val btnPublish = findViewById<Button>(R.id.btnPublish)
-
-        btnPublish.setOnClickListener {
-
-            val title = etTitle.text.toString()
-            val description = etDescription.text.toString()
-            val version = etVersion.text.toString()
+            val title = binding.etTitle.text.toString()
+            val description = binding.etDescription.text.toString()
+            val version = binding.etVersion.text.toString()
 
             viewModel.createUpdate(
                 companyId,

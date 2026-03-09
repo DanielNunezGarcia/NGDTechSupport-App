@@ -53,6 +53,12 @@ class ChatActivity : AppCompatActivity() {
             businessId,
             currentUserId
         )
+
+        chatViewModel.updateLastRead(
+            companyId,
+            businessId,
+            currentUserId
+        )
     }
 
     private fun setupRecycler() {

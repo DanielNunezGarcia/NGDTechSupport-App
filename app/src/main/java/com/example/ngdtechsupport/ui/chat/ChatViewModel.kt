@@ -104,6 +104,23 @@ class ChatViewModel : ViewModel() {
         }
     }
 
+    fun updateLastRead(
+        companyId: String,
+        businessId: String,
+        userId: String
+    ) {
+
+        viewModelScope.launch {
+
+            chatRepository.updateLastRead(
+                companyId,
+                businessId,
+                userId
+            )
+
+        }
+    }
+
     fun markChatAsRead(
         companyId: String,
         businessId: String,

@@ -1,26 +1,29 @@
 package com.example.ngdtechsupport.ui.updates
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.ngdtechsupport.data.CompanyRepository
-import com.example.ngdtechsupport.data.UpdatesRepository
 import com.example.ngdtechsupport.model.UpdateModel
+import com.example.ngdtechsupport.data.UpdatesRepository
 import kotlinx.coroutines.launch
 
 class UpdatesViewModel : ViewModel() {
 
     private val repository = UpdatesRepository()
 
-    val updates = MutableLiveData<List<UpdateModel>>()
+    private val _updates = MutableLiveData<List<UpdateModel>>()
+    val updates: LiveData<List<UpdateModel>> = _updates
 
-    fun loadUpdates(companyId: String, businessId: String) {
+    fun listenUpdates(
+        companyId: String,
+        businessId: String
+    ) {
 
-        viewModelScope.launch {
+        repository.listenUpdates(companyId, businessId) {
 
-            val result = repository.getUpdates(companyId, businessId)
+            _updates.value = it
 
-            updates.postValue(result)
         }
     }
 
@@ -33,6 +36,7 @@ class UpdatesViewModel : ViewModel() {
     ) {
 
         viewModelScope.launch {
+
             repository.createUpdate(
                 companyId,
                 businessId,
@@ -40,6 +44,7 @@ class UpdatesViewModel : ViewModel() {
                 description,
                 version
             )
+
         }
     }
 }
