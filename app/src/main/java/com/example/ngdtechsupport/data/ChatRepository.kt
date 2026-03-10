@@ -114,6 +114,19 @@ class ChatRepository {
         // 1️⃣ Guardar mensaje
         messageRef.set(message).await()
 
+        val channelRef = firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+
+        channelRef.update(
+            mapOf(
+                "lastMessage" to text,
+                "lastMessageAt" to System.currentTimeMillis()
+            )
+        ).await()
+
         // 2️⃣ Incrementar unreadCount
         incrementUnread(companyId, channelId, senderId)
     }

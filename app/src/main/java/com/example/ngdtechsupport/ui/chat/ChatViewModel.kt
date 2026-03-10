@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import com.example.ngdtechsupport.data.model.ChatMessageModel
+import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.repository.ChatRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
@@ -24,6 +25,9 @@ class ChatViewModel : ViewModel() {
         get() = FirebaseAuth.getInstance().currentUser?.uid
 
     private val currentList = mutableListOf<ChatMessageModel>()
+
+    private val _channels = MutableLiveData<List<ChannelModel>>()
+    val channels: LiveData<List<ChannelModel>> = _channels
 
     // Cargado inicial de los mensajes
     fun loadInitial(companyId: String, businessId: String) {
@@ -49,6 +53,15 @@ class ChatViewModel : ViewModel() {
         chatRepository.loadMoreMessages(companyId, businessId) { list ->
             currentList.addAll(0, list)
             _messages.postValue(currentList.toList())
+        }
+    }
+
+    fun listenChannels(companyId: String, businessId: String) {
+
+        chatRepository.listenChannels(companyId, businessId) { channelList ->
+
+            _channels.value = channelList
+
         }
     }
 

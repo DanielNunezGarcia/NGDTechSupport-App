@@ -42,7 +42,7 @@ class PublishUpdateActivity : AppCompatActivity() {
                 title = title,
                 description = description,
                 type = "info",
-                createdAt = Timestamp.now(),
+                createdAt = System.currentTimeMillis(),
                 createdBy = uid
             )
 
