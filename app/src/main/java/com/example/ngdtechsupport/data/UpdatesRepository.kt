@@ -62,11 +62,14 @@ class UpdatesRepository {
         ).await()
     }
 
+    // Admin puede crear novedades
     suspend fun createUpdate(
         companyId: String,
         businessId: String,
         title: String,
         description: String,
+        type: String,
+        adminId: String,
         version: String
     ) {
 
@@ -82,13 +85,16 @@ class UpdatesRepository {
             "id" to ref.id,
             "title" to title,
             "description" to description,
+            "type" to type,
             "version" to version,
-            "createdAt" to Timestamp.now()
+            "createdAt" to Timestamp.now(),
+            "createdBy" to adminId
         )
 
         ref.set(update).await()
     }
 
+    // Updates se actualizan automáticamente
     fun listenUpdates(
         companyId: String,
         businessId: String,
@@ -119,5 +125,48 @@ class UpdatesRepository {
 
                 onResult(updates)
             }
+    }
+
+    // Eliminar el Update
+    suspend fun deleteUpdate(
+        companyId: String,
+        businessId: String,
+        updateId: String
+    ) {
+
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("updates")
+            .document(updateId)
+            .delete()
+            .await()
+    }
+
+    // Editar los Updates
+    suspend fun editUpdate(
+        companyId: String,
+        businessId: String,
+        updateId: String,
+        title: String,
+        description: String
+    ) {
+
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("businesses")
+            .document(businessId)
+            .collection("updates")
+            .document(updateId)
+            .update(
+                mapOf(
+                    "title" to title,
+                    "description" to description
+                )
+            )
+            .await()
     }
 }
