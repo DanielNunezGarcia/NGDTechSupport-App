@@ -69,8 +69,8 @@ class UpdatesRepository {
         title: String,
         description: String,
         type: String,
-        adminId: String,
-        version: String
+        version: String,
+        adminId: String
     ) {
 
         val ref = firestore

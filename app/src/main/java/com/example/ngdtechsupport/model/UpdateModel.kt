@@ -9,6 +9,7 @@ data class UpdateModel(
     val timestamp: Long = 0,
     val date: String = "",
     val type: String = "",
+    val version: String = "",
     val createdAt: Long = 0,
     val createdBy: String = ""
 )

@@ -17,13 +17,12 @@ class UpdatesViewModel : ViewModel() {
 
     fun listenUpdates(
         companyId: String,
-        businessId: String
+        businessId: String,
     ) {
 
         repository.listenUpdates(companyId, businessId) {
 
             _updates.value = it
-
         }
     }
 
@@ -32,7 +31,9 @@ class UpdatesViewModel : ViewModel() {
         businessId: String,
         title: String,
         description: String,
-        version: String
+        version: String,
+        type: String,
+        adminId: String
     ) {
 
         viewModelScope.launch {
@@ -42,9 +43,10 @@ class UpdatesViewModel : ViewModel() {
                 businessId,
                 title,
                 description,
-                version
+                type,
+                version,
+                adminId
             )
-
         }
     }
 }
