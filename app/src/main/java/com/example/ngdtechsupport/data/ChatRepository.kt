@@ -25,7 +25,6 @@ class ChatRepository {
             .collection("businesses")
             .document(businessId)
             .collection("chat")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
             .limit(30)
             .get()
             .addOnSuccessListener { snapshot ->
@@ -36,7 +35,6 @@ class ChatRepository {
 
                     val messages = snapshot
                         .toObjects(ChatMessageModel::class.java)
-                        .reversed()
 
                     onResult(messages)
                 }
@@ -56,7 +54,6 @@ class ChatRepository {
             .collection("businesses")
             .document(businessId)
             .collection("chat")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
             .startAfter(lastDoc)
             .limit(30)
             .get()
@@ -68,7 +65,6 @@ class ChatRepository {
 
                     val messages = snapshot
                         .toObjects(ChatMessageModel::class.java)
-                        .reversed()
 
                     onResult(messages)
                 }
@@ -102,6 +98,7 @@ class ChatRepository {
             "replyToText" to replyToText
         )
 
+        // 2️⃣ Incrementar unreadCount
         firestore.collection("companies")
             .document(companyId)
             .collection("channels")
@@ -127,22 +124,36 @@ class ChatRepository {
             )
         ).await()
 
-        // 2️⃣ Incrementar unreadCount
-        incrementUnread(companyId, channelId, senderId)
+        // Incrementar contador al enviar mensaje
+        if (senderId.contains("admin")) {
+
+            channelRef.update(
+                "unread_client",
+                FieldValue.increment(1)
+            ).await()
+
+        } else {
+
+            channelRef.update(
+                "unread_admin",
+                FieldValue.increment(1)
+            ).await()
+
+        }
     }
 
     fun listenMessages(
         companyId: String,
-        businessId: String,
+        channelId: String,
         onMessagesChange: (List<ChatMessageModel>) -> Unit
     ) {
 
         firestore
             .collection("companies")
             .document(companyId)
-            .collection("businesses")
-            .document(businessId)
-            .collection("chat")
+            .collection("channels")
+            .document(channelId)
+            .collection("messages")
             .orderBy("timestamp")
             .addSnapshotListener { snapshot, _ ->
 
@@ -156,7 +167,7 @@ class ChatRepository {
             }
     }
 
-    private suspend fun incrementUnread(
+    /* private suspend fun incrementUnread(
         companyId: String,
         businessId: String,
         senderId: String
@@ -184,7 +195,7 @@ class ChatRepository {
                 ).await()
             }
         }
-    }
+    } */
 
     fun listenChannels(
         companyId: String,
@@ -225,6 +236,7 @@ class ChatRepository {
             .await()
     }
 
+    // Resetea contador cuando se abre el chat
     suspend fun markChatAsRead(
         companyId: String,
         channelId: String,
@@ -239,12 +251,11 @@ class ChatRepository {
 
         if (isAdmin) {
 
-            channelRef.update("unread_admin", 0).await()
+            channelRef.update("unread_admin", 0)
 
         } else {
 
-            channelRef.update("unread_client", 0).await()
-
+            channelRef.update("unread_client", 0)
         }
     }
 
