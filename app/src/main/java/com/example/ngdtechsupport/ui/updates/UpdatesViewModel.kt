@@ -49,4 +49,13 @@ class UpdatesViewModel : ViewModel() {
             )
         }
     }
+
+    fun markUpdatesRead(userId: String) {
+
+        viewModelScope.launch {
+
+            repository.markUpdatesAsRead(userId)
+
+        }
+    }
 }

@@ -171,4 +171,16 @@ class UpdatesRepository {
             )
             .await()
     }
+
+    suspend fun markUpdatesAsRead(userId: String) {
+
+        firestore
+            .collection("users")
+            .document(userId)
+            .update(
+                "lastUpdateRead",
+                System.currentTimeMillis()
+            )
+            .await()
+    }
 }

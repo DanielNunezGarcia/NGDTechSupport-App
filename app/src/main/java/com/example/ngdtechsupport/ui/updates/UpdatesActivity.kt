@@ -11,6 +11,8 @@ class UpdatesActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUpdatesBinding
     private val viewModel: UpdatesViewModel by viewModels()
 
+    private var currentUserId: String = ""
+
     private lateinit var companyId: String
     private lateinit var businessId: String
 
@@ -39,7 +41,8 @@ class UpdatesActivity : AppCompatActivity() {
         viewModel.updates.observe(this) { updates ->
 
             adapter.submitList(updates)
-
         }
+
+        viewModel.markUpdatesRead(currentUserId)
     }
 }
