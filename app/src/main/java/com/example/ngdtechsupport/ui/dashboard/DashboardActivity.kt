@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.TextView
 import android.widget.Button
 import android.content.Intent
+
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -11,7 +12,6 @@ import androidx.activity.viewModels
 import androidx.lifecycle.ViewModelProvider
 
 import com.example.ngdtechsupport.ui.channel.ChannelViewModel
-import com.example.ngdtechsupport.ui.activity.AppDetailActivity
 import com.example.ngdtechsupport.ui.auth.LoginActivity
 import com.example.ngdtechsupport.R
 
@@ -146,7 +146,8 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         // Obtener FCM Token
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+        FirebaseMessaging.getInstance().token
+            .addOnCompleteListener { task ->
 
             if (!task.isSuccessful) {
                 return@addOnCompleteListener
