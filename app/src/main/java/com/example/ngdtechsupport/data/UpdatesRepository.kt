@@ -21,6 +21,7 @@ class UpdatesRepository {
             .collection("businesses")
             .document(businessId)
             .collection("updates")
+            .orderBy("pinned", Query.Direction.DESCENDING)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .get()
             .await()
@@ -106,6 +107,7 @@ class UpdatesRepository {
             .collection("businesses")
             .document(businessId)
             .collection("updates")
+            .orderBy("pinned", Query.Direction.DESCENDING)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, _ ->
 
