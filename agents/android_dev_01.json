@@ -1,0 +1,17 @@
+{
+ "name": "Android Developer",
+ "role": "Senior Android Developer",
+ "skills": [
+   "Kotlin",
+   "Java",
+   "Android Studio",
+   "REST APIs",
+   "Firebase",
+   "MVVM architecture"
+ ],
+ "tasks": [
+   "write code",
+   "review code",
+   "optimize performance"
+ ]
+}

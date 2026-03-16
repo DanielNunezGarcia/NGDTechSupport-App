@@ -1,0 +1,15 @@
+{
+ "name": "QA Tester",
+ "role": "Software Testing Engineer",
+ "skills": [
+   "Functional testing",
+   "API testing",
+   "Bug detection",
+   "Automation testing"
+ ],
+ "tasks": [
+   "run tests",
+   "detect bugs",
+   "report issues"
+ ]
+}

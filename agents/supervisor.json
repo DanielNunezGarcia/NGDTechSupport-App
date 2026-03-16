@@ -1,0 +1,24 @@
+{
+ "name": "Supervisor Agent",
+ "role": "Project Coordinator",
+ "goal": "Coordinate all agents to complete development tasks",
+ "rules": [
+   "Analyze the user request",
+   "Divide the task into subtasks",
+   "Assign tasks to the correct agent",
+   "Verify results from other agents"
+ ],
+ "agents": [
+   "architect",
+   "android_dev_01",
+   "android_dev_02",
+   "backend",
+   "ui",
+   "qa",
+   "qa_tester",
+   "security",
+   "performance",
+   "devops",
+   "documentation"
+ ]
+}

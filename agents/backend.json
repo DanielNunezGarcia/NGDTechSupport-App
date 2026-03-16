@@ -1,0 +1,11 @@
+{
+ "name": "Backend Developer",
+ "role": "Firebase Backend Engineer",
+ "goal": "Create backend services",
+ "skills": [
+   "Firebase",
+   "Firestore",
+   "Authentication",
+   "REST APIs"
+ ]
+}

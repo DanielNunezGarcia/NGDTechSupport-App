@@ -1,0 +1,114 @@
+DISEÑO DE LA APP
+1️⃣ Línea de diseño general para toda la app
+
+Paleta (ajustable):
+Color primario: morado profesional 🟪 #5B4B8A
+Secundario: azul suave 🟦 #4C7DFA
+Fondo general: gris-lila muy claro ⬜ #F5F2FF
+Éxito: verde 🟩 #4CAF50
+Alerta: ámbar 🟨 #FFC107
+Error: rojo 🟥 #E53935
+Tipografía:
+Títulos: 20–22sp, textStyle="bold".
+Subtítulos/labels: 14–16sp.
+Texto normal: 14sp.
+Componentes:
+Usar botones con esquinas redondeadas y relleno generoso.
+Tarjetas (CardView) para cada app/negocio (ya tienes activity_item_app)
+Fondos suaves + contraste claro para estados (success/warning/error).
+Añadir temas en themes.xml y colors.xml
+
+2️⃣Login – diseño + icono de ojo en la contraseña
+
+Objetivo: pantalla limpia, centrada, con tarjetas y botón principal bien marcado.
+Estructura propuesta:
+Fondo con android:background="@color/loginBackground" (por ejemplo el #F5F2FF).
+Un CardView centrado que contenga:
+Título “NGD Tech Support”.
+Subtítulo corto tipo “Accede a tu panel de soporte”.
+Campo email.
+Campo password con icono de ojo.
+Botón “Entrar”.
+Texto de error debajo.
+
+Para el ojo en la contraseña lo ideal es usar TextInputLayout de Material:
+En activity_login.xml, envolver los EditText en com.google.android.material.textfield.TextInputLayout.
+En el de la contraseña, activar app:endIconMode="password_toggle"
+3️⃣Dashboard – diseño pro tipo “panel”
+Objetivo: que parezca un panel de estado profesional:
+Cabecera con:
+Título.
+Nombre del cliente + empresa (tvUserInfo).
+Rol (tvRole), con color distinto para ADMIN / SOPORTE / CLIENT.
+Zona central:
+Botones “Chat” y “Updates” convertidos a botones destacados:
+Altura mayor, esquinas redondeadas, color primario.
+Lista:
+RecyclerView que usa activity_item_app como tarjeta:
+Nombre de la app en grande.
+Estado con “badge” coloreado.
+Barra de progreso y porcentaje.
+Versión, tipo de soporte, última actualización.
+Visualmente algo como lo que ya tienes en activity_item_app.xml, pero armonizado con la paleta.
+El layout activity_dashboard.xml ya está bastante bien estructurado, sobre todo hace falta:
+Aplicar colores de tema a textos y botones.
+Ajustar márgenes para respirar más.
+A largo plazo, mover los estilos a styles.xml.
+
+
+
+4️⃣Chat – diseño tipo mensajería moderna
+Tu activity_chat.xml ya tiene una buena base:
+RecyclerView arriba (recyclerViewChat).
+Área de entrada abajo con:
+preview de respuesta.
+campo de texto.
+botón enviar.
+
+Propuesta:
+Fondo del chat en un color muy claro (#F5F2FF).
+Mensajes en burbujas:
+Burbujas del cliente a la derecha (color primario suave).
+Burbujas de soporte/IA a la izquierda (gris claro).
+El input:
+EditText con bordes redondeados.
+Botón de enviar en morado con icono de enviar blanco.
+
+Esto implica más trabajo en el adapter del chat (no lo hemos tocado aún), pero a nivel de layout activity_chat.xml ya está bien; solo habría que:
+
+Añadir android:background al root
+Dar paddings adecuados
+Aplicar estilos al EditText y al ImageButton
+
+5️⃣Updates – diseño tipo timeline de novedades
+La pantalla Updates ya tiene:
+Título.
+RecyclerView.
+Botón “Nuevo Update”.
+
+Propuesta:
+Fondo claro.
+Tarjetas de update con:
+título (corto).
+fecha.
+resumen.
+“Ver más” o expansión si lo necesitas luego.
+
+En esta fase, a nivel de activity_updates.xml:
+Alinear el título al centro o con margen/estilo similar al Dashboard.
+Botón “Nuevo Update” solo visible para ADMIN (ya lo haces en código).
+Asegurarnos de que el RecyclerView tiene padding lateral para que las tarjetas no peguen al borde.
+
+6️⃣Continuación (Mantener estructura)
+Primero acordamos el diseño de Login (que es el más pequeño) y el ojo de la contraseña.
+Te paso el XML completo propuesto para activity_login.xml (solo UI).
+Tú lo pegas, pruebas y me dices si te gusta el resultado visual.
+Luego repetimos el patrón para:
+activity_dashboard.xml + activity_item_app.xml (afinando diseño).
+activity_chat.xml.
+activity_updates.xml.
+¿Te parece bien que empecemos por dejar solo Login con el diseño pro + icono de ojo en la contraseña, y en el siguiente mensaje te paso el XML completo propuesto para esa pantalla para que lo revises antes de pegarlo?
+
+
+
+

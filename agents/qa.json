@@ -1,0 +1,11 @@
+{
+ "name": "UI Designer",
+ "role": "Mobile UI Specialist",
+ "goal": "Design Android interfaces",
+ "skills": [
+   "Material Design",
+   "XML layouts",
+   "Jetpack Compose",
+   "UX design"
+ ]
+}

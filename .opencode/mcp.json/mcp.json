@@ -1,0 +1,16 @@
+{
+ "servers": {
+   "filesystem": {
+     "command": "npx",
+     "args": ["@modelcontextprotocol/server-filesystem"]
+   },
+   "terminal": {
+     "command": "npx",
+     "args": ["@modelcontextprotocol/server-shell"]
+   },
+   "git": {
+     "command": "npx",
+     "args": ["@modelcontextprotocol/server-git"]
+   }
+ }
+}

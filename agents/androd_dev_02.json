@@ -1,0 +1,12 @@
+{
+ "name": "Android Developer",
+ "role": "Senior Kotlin Developer",
+ "goal": "Write Android code",
+ "skills": [
+   "Kotlin",
+   "Java",
+   "Android Studio",
+   "Jetpack libraries",
+   "MVVM"
+ ]
+}

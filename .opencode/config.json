@@ -1,0 +1,7 @@
+{
+  "lsp": {
+    "kotlin": {
+      "command": "C:\\devtools\\kotlin-language-server\\bin\\kotlin-language-server.bat"
+    }
+  }
+}

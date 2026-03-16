@@ -1,10 +1,11 @@
 package com.example.ngdtechsupport.ui.chat
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.ngdtechsupport.data.model.*
+import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.databinding.ItemChatMessageBinding
 import com.example.ngdtechsupport.databinding.ItemDateSeparatorBinding
 import java.text.SimpleDateFormat
@@ -13,9 +14,7 @@ import java.util.*
 class ChatAdapter(
     private val currentUserId: String,
     private val onLongClick: (ChatMessageModel) -> Unit
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-    private val items = mutableListOf<ChatItem>()
+) : ListAdapter<ChatItem, RecyclerView.ViewHolder>(ChatDiffCallback()) {
 
     companion object {
         private const val TYPE_MESSAGE = 1
@@ -23,7 +22,7 @@ class ChatAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
-        return when (items[position]) {
+        return when (getItem(position)) {
             is ChatItem.MessageItem -> TYPE_MESSAGE
             is ChatItem.DateSeparator -> TYPE_DATE
         }
@@ -52,11 +51,9 @@ class ChatAdapter(
         }
     }
 
-    override fun getItemCount() = items.size
-
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
 
-        when (val item = items[position]) {
+        when (val item = getItem(position)) {
 
             is ChatItem.MessageItem -> {
                 (holder as MessageViewHolder).bind(item.message)
@@ -77,12 +74,10 @@ class ChatAdapter(
     }
 
     fun submitMessages(messages: List<ChatMessageModel>) {
-
         val newItems = mutableListOf<ChatItem>()
         var lastDate: String? = null
 
         messages.forEach { message ->
-
             val dateString = SimpleDateFormat(
                 "dd MMM yyyy",
                 Locale.getDefault()
@@ -96,9 +91,7 @@ class ChatAdapter(
             newItems.add(ChatItem.MessageItem(message))
         }
 
-        items.clear()
-        items.addAll(newItems)
-        notifyDataSetChanged()
+        submitList(newItems)
     }
 
     inner class MessageViewHolder(
@@ -106,10 +99,8 @@ class ChatAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(message: ChatMessageModel) {
-
             binding.textViewMessage.text = message.message
 
-            // 🔥 Mostrar preview de respuesta dentro de la burbuja
             if (!message.replyToText.isNullOrEmpty()) {
                 binding.textViewReplyPreview.visibility = android.view.View.VISIBLE
                 binding.textViewReplyPreview.text = message.replyToText
@@ -128,4 +119,25 @@ class ChatAdapter(
     inner class DateViewHolder(
         val binding: ItemDateSeparatorBinding
     ) : RecyclerView.ViewHolder(binding.root)
+}
+
+class ChatDiffCallback : DiffUtil.ItemCallback<ChatItem>() {
+    override fun areItemsTheSame(oldItem: ChatItem, newItem: ChatItem): Boolean {
+        return when {
+            oldItem is ChatItem.MessageItem && newItem is ChatItem.MessageItem ->
+                oldItem.message.id == newItem.message.id
+            oldItem is ChatItem.DateSeparator && newItem is ChatItem.DateSeparator ->
+                oldItem.date == newItem.date
+            else -> false
+        }
+    }
+
+    override fun areContentsTheSame(oldItem: ChatItem, newItem: ChatItem): Boolean {
+        return oldItem == newItem
+    }
+}
+
+sealed class ChatItem {
+    data class MessageItem(val message: ChatMessageModel) : ChatItem()
+    data class DateSeparator(val date: String) : ChatItem()
 }

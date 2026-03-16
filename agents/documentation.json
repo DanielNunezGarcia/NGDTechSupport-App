@@ -1,0 +1,10 @@
+{
+ "name": "DevOps Engineer",
+ "role": "Build and Deployment Specialist",
+ "goal": "Manage builds and CI",
+ "skills": [
+   "Gradle",
+   "CI/CD",
+   "Git"
+ ]
+}
