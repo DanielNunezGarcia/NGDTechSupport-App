@@ -1,6 +1,10 @@
 package com.example.ngdtechsupport.ui.chat
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -23,6 +27,11 @@ class ChatActivity : AppCompatActivity() {
 
     private var replyMessage: ChatMessageModel? = null
     private var isUserAtBottom = true
+    
+    // Typing indicator
+    private val typingHandler = Handler(Looper.getMainLooper())
+    private var typingRunnable: Runnable? = null
+    private val typingDelay = 2000L // 2 segundos de inactividad
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +47,8 @@ class ChatActivity : AppCompatActivity() {
 
         setupRecycler()
         setupSendButton()
+        setupTypingIndicator()
+        setupQuickReplies()
 
         // Marcar como leído mensaje en el Chat
         chatViewModel.markChatAsRead(
@@ -47,6 +58,9 @@ class ChatActivity : AppCompatActivity() {
         )
 
         chatViewModel.listenMessages(companyId, businessId)
+        
+        // Escuchar typing
+        chatViewModel.listenTyping(companyId, channelId)
 
         chatViewModel.messages.observe(this) { messages ->
             adapter.submitMessages(messages)
@@ -56,11 +70,62 @@ class ChatActivity : AppCompatActivity() {
             }
         }
 
+        chatViewModel.typingUsers.observe(this) { typingMap ->
+            updateTypingIndicator(typingMap)
+        }
+
         chatViewModel.updateLastRead(
             companyId,
             businessId,
             currentUserId
         )
+    }
+
+    private fun setupTypingIndicator() {
+        binding.editTextMessage.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Usuario está escribiendo
+                chatViewModel.setTyping(companyId, channelId, true)
+                
+                // Cancelar el typing anterior
+                typingRunnable?.let { typingHandler.removeCallbacks(it) }
+                
+                // Establecer nuevo timer para dejar de mostrar "escribiendo"
+                typingRunnable = Runnable {
+                    chatViewModel.setTyping(companyId, channelId, false)
+                }
+                typingHandler.postDelayed(typingRunnable!!, typingDelay)
+            }
+            
+            override fun afterTextChanged(s: Editable?) {}
+        })
+    }
+
+    private fun updateTypingIndicator(typingMap: Map<String, Any>) {
+        if (typingMap.isEmpty()) {
+            binding.textTyping.visibility = View.GONE
+            return
+        }
+        
+        val names = typingMap.values.mapNotNull {
+            (it as? Map<*, *>)?.get("name") as? String
+        }
+        
+        val text = when {
+            names.size == 1 -> "${names[0]} está escribiendo..."
+            names.size == 2 -> "${names[0]} y ${names[1]} están escribiendo..."
+            names.size > 2 -> "Varias personas están escribiendo..."
+            else -> ""
+        }
+        
+        if (text.isNotEmpty()) {
+            binding.textTyping.visibility = View.VISIBLE
+            binding.textTyping.text = text
+        } else {
+            binding.textTyping.visibility = View.GONE
+        }
     }
 
     private fun setupRecycler() {
@@ -110,12 +175,16 @@ class ChatActivity : AppCompatActivity() {
 
             chatViewModel.sendMessage(
                 companyId = companyId,
-                businessId = businessId,
+                channelId = channelId,
                 text = text,
                 senderId = currentUserId,
                 replyToId = replyMessage?.id,
                 replyToText = replyMessage?.message
             )
+
+            // Dejar de mostrar "escribiendo"
+            chatViewModel.setTyping(companyId, channelId, false)
+            typingRunnable?.let { typingHandler.removeCallbacks(it) }
 
             binding.editTextMessage.text.clear()
             replyMessage = null
@@ -128,6 +197,35 @@ class ChatActivity : AppCompatActivity() {
         binding.textReplyingTo.text = "Respondiendo a: ${message.message}"
     }
 
+    private fun setupQuickReplies() {
+        binding.btnQuick1.setOnClickListener {
+            sendQuickMessage("Quiero consultar el estado de mi proyecto")
+        }
+        
+        binding.btnQuick2.setOnClickListener {
+            sendQuickMessage("Tengo un problema/error en mi aplicación")
+        }
+        
+        binding.btnQuick3.setOnClickListener {
+            sendQuickMessage("Quiero solicitar un presupuesto")
+        }
+        
+        binding.btnQuick4.setOnClickListener {
+            sendQuickMessage("Quiero hablar con un agente humano")
+        }
+    }
+
+    private fun sendQuickMessage(text: String) {
+        chatViewModel.sendMessage(
+            companyId = companyId,
+            channelId = channelId,
+            text = text,
+            senderId = currentUserId,
+            replyToId = null,
+            replyToText = null
+        )
+    }
+
     private fun scrollToBottom() {
         binding.recyclerViewChat.post {
             binding.recyclerViewChat.scrollToPosition(adapter.itemCount - 1)
@@ -137,5 +235,11 @@ class ChatActivity : AppCompatActivity() {
 
     private fun hideNewMessageIndicator() {
         binding.fabNewMessage.visibility = View.GONE
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        typingRunnable?.let { typingHandler.removeCallbacks(it) }
+        chatViewModel.setTyping(companyId, channelId, false)
     }
 }

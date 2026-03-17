@@ -139,20 +139,30 @@ class DashboardActivity : AppCompatActivity() {
             val intent = Intent(
                 this,
                 com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java
-            )Android Studio Otter 3 Feature Drop | 2025.2.3
-            Build #AI-252.28238.7.2523.14688667, built on January 9, 2026
-            Runtime version: 21.0.8+-14196175-b1038.72 amd64
-            VM: OpenJDK 64-Bit Server VM by JetBrains s.r.o.
-            Toolkit: sun.awt.windows.WToolkit
-            Windows 11.0
-            GC: G1 Young Generation, G1 Concurrent GC, G1 Old Generation
-            Memory: 2048M
-            Cores: 20
-            Registry:
-            ide.experimental.ui=true
-
+            )
 
             intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
+            startActivity(intent)
+        }
+
+        // Botón Configuración IA (solo para ADMIN)
+        val btnAiConfig = findViewById<Button>(R.id.btnAiConfig)
+        
+        // Ocultar botón si no es admin
+        viewModel.uiState.observe(this) { state ->
+            btnAiConfig.visibility = if (state.role == "admin") {
+                android.view.View.VISIBLE
+            } else {
+                android.view.View.GONE
+            }
+        }
+
+        btnAiConfig.setOnClickListener {
+            val intent = Intent(
+                this,
+                com.example.ngdtechsupport.ui.admin.AiConfigActivity::class.java
+            )
+            intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "NGDStudios")
             startActivity(intent)
         }
 

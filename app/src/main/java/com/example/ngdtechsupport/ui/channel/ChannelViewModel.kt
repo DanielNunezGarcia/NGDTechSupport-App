@@ -19,6 +19,10 @@ class ChannelViewModel : ViewModel() {
 
     val visibleChannels = MediatorLiveData<List<ChannelModel>>()
 
+    // Callback para click en canal
+    private val _channelClickEvent = MutableLiveData<ChannelModel?>()
+    val channelClickEvent: LiveData<ChannelModel?> = _channelClickEvent
+
     init {
         visibleChannels.addSource(_channels) { list ->
             visibleChannels.value = list.filter { !it.isArchived }
@@ -34,6 +38,14 @@ class ChannelViewModel : ViewModel() {
         }
     }
 
+    fun onChannelClick(channel: ChannelModel) {
+        _channelClickEvent.value = channel
+    }
+
+    fun clearChannelClickEvent() {
+        _channelClickEvent.value = null
+    }
+
     fun archiveChannel(
         companyId: String,
         channelId: String,
@@ -41,6 +53,27 @@ class ChannelViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             repository.archiveChannel(companyId, channelId, archived)
+        }
+    }
+
+    fun toggleMute(
+        companyId: String,
+        channelId: String,
+        userId: String,
+        muted: Boolean
+    ) {
+        viewModelScope.launch {
+            repository.setChannelMuted(companyId, channelId, userId, muted)
+        }
+    }
+
+    fun togglePin(
+        companyId: String,
+        channelId: String,
+        pinned: Boolean
+    ) {
+        viewModelScope.launch {
+            repository.setChannelPinned(companyId, channelId, pinned)
         }
     }
 

@@ -79,4 +79,16 @@ class ChannelRepository {
             .document(channelId)
             .update("mutedUsers.$userId", muted)
     }
+
+    suspend fun setChannelPinned(
+        companyId: String,
+        channelId: String,
+        pinned: Boolean
+    ) {
+        firestore.collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .update("pinned", pinned)
+    }
 }

@@ -6,16 +6,41 @@
     android:layout_height="72dp"
     android:padding="12dp">
 
+    <!-- Icono silenciado -->
+    <ImageView
+        android:id="@+id/imageMuted"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@android:drawable/ic_lock_silent_mode_off"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <!-- Nombre del canal -->
     <TextView
         android:id="@+id/textChannelName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textSize="16sp"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/textUnread"
+        android:layout_marginStart="8dp"
+        app:layout_constraintStart_toEndOf="@id/imageMuted"
+        app:layout_constraintEnd_toStartOf="@id/imagePinned"
         app:layout_constraintTop_toTopOf="parent"/>
 
+    <!-- Icono fijado -->
+    <ImageView
+        android:id="@+id/imagePinned"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@android:drawable/ic_menu_send"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@id/textUnread"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <!-- Contador no leídos -->
     <TextView
         android:id="@+id/textUnread"
         android:layout_width="wrap_content"

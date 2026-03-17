@@ -98,16 +98,6 @@ class ChatRepository {
             "replyToText" to replyToText
         )
 
-        // 2️⃣ Incrementar unreadCount
-        firestore.collection("companies")
-            .document(companyId)
-            .collection("channels")
-            .document(channelId)
-            .update(
-                "unread_client",
-                FieldValue.increment(1)
-            )
-
         // 1️⃣ Guardar mensaje
         messageRef.set(message).await()
 
@@ -286,5 +276,93 @@ class ChatRepository {
             .collection("channels")
             .document(channelId)
             .update("pinned", pinned)
+    }
+
+    // ========== INDICADOR "ESCRIBIENDO..." ==========
+    
+    fun setTyping(
+        companyId: String,
+        channelId: String,
+        userId: String,
+        userName: String,
+        isTyping: Boolean
+    ) {
+        val channelRef = firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+        
+        if (isTyping) {
+            channelRef.update(
+                "typing.$userId", mapOf(
+                    "name" to userName,
+                    "timestamp" to System.currentTimeMillis()
+                )
+            )
+        } else {
+            channelRef.update(
+                "typing.$userId", FieldValue.delete()
+            )
+        }
+    }
+
+    fun listenTyping(
+        companyId: String,
+        channelId: String,
+        currentUserId: String,
+        onTypingChange: (Map<String, Any>) -> Unit
+    ) {
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .addSnapshotListener { snapshot, _ ->
+                if (snapshot == null) {
+                    onTypingChange(emptyMap())
+                    return@addSnapshotListener
+                }
+                
+                val typingData = snapshot.get("typing") as? Map<String, Any>
+                    ?: emptyMap()
+                
+                val filteredTyping = typingData.filterKeys { it != currentUserId }
+                onTypingChange(filteredTyping)
+            }
+    }
+
+    // ========== MUTE Y ARCHIVE ==========
+
+    suspend fun setChannelMuted(
+        companyId: String,
+        channelId: String,
+        userId: String,
+        muted: Boolean
+    ) {
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .update(
+                "mutedUsers.$userId",
+                if (muted) true else FieldValue.delete()
+            )
+            .await()
+    }
+
+    suspend fun setChannelArchived(
+        companyId: String,
+        channelId: String,
+        archived: Boolean
+    ) {
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .update("isArchived", archived)
+            .await()
     }
 }

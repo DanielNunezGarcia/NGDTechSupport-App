@@ -1,14 +1,18 @@
 package com.example.ngdtechsupport.ui.channel
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.databinding.ItemChannelBinding
 
 class ChannelAdapter(
     private val viewModel: ChannelViewModel,
-    private val companyId: String
+    private val companyId: String,
+    private val currentUserId: String = ""
 ) : RecyclerView.Adapter<ChannelAdapter.ChannelViewHolder>() {
 
     private var channels: List<ChannelModel> = emptyList()
@@ -19,18 +23,91 @@ class ChannelAdapter(
 
         fun bind(channel: ChannelModel) {
 
-            // 👇 ESTE ES EL ID REAL DE TU XML
             binding.textChannelName.text = channel.name
 
-            // Mostrar unread si existe
-            val unread = channel.unreadCount.values.sum()
+            // Mostrar badge de silenciado
+            val isMuted = channel.mutedUsers?.get(currentUserId) == true
+            binding.imageMuted.visibility = if (isMuted) View.VISIBLE else View.GONE
+
+            // Mostrar badge de fijado
+            binding.imagePinned.visibility = if (channel.pinned == true) View.VISIBLE else View.GONE
+
+            // Mostrar unread
+            val unread = channel.unreadCount?.values?.sum() ?: 0
 
             if (unread > 0) {
-                binding.textUnread.visibility = android.view.View.VISIBLE
+                binding.textUnread.visibility = View.VISIBLE
                 binding.textUnread.text = unread.toString()
             } else {
-                binding.textUnread.visibility = android.view.View.GONE
+                binding.textUnread.visibility = View.GONE
             }
+
+            // Click normal -> abrir chat
+            binding.root.setOnClickListener {
+                viewModel.onChannelClick(channel)
+            }
+
+            // Click largo -> mostrar menú
+            binding.root.setOnLongClickListener { view ->
+                showPopupMenu(view, channel)
+                true
+            }
+        }
+
+        private fun showPopupMenu(view: View, channel: ChannelModel) {
+            val popup = PopupMenu(view.context, view)
+            popup.menuInflater.inflate(R.menu.menu_channel_options, popup.menu)
+
+            // Actualizar textos según estado
+            val isMuted = channel.mutedUsers?.get(currentUserId) == true
+            val isPinned = channel.pinned == true
+            val isArchived = channel.isArchived == true
+
+            popup.menu.findItem(R.id.action_mute)?.title = if (isMuted) "Activar sonido" else "Silenciar"
+            popup.menu.findItem(R.id.action_pin)?.title = if (isPinned) "Desfijar" else "Fijar"
+            popup.menu.findItem(R.id.action_archive)?.title = if (isArchived) "Desarchivar" else "Archivar"
+
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.action_mute -> {
+                        viewModel.toggleMute(companyId, channel.id, currentUserId, !isMuted)
+                        true
+                    }
+                    R.id.action_pin -> {
+                        viewModel.togglePin(companyId, channel.id, !isPinned)
+                        true
+                    }
+                    R.id.action_archive -> {
+                        viewModel.archiveChannel(companyId, channel.id, !isArchived)
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChannelViewHolder {
+        val binding = ItemChannelBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+        return ChannelViewHolder()
+    }
+
+    override fun getItemCount(): Int = channels.size
+
+    override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
+        holder.bind(channels[position])
+    }
+
+    fun submitList(list: List<ChannelModel>) {
+        channels = list
+        notifyDataSetChanged()
+    }
+}
 
             // Click largo para archivar
             binding.root.setOnLongClickListener {

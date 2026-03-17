@@ -24,10 +24,19 @@ class ChatViewModel : ViewModel() {
     private val currentUserId: String?
         get() = FirebaseAuth.getInstance().currentUser?.uid
 
+    private val currentUserName: String
+        get() = FirebaseAuth.getInstance().currentUser?.displayName ?: "Usuario"
+
     private val currentList = mutableListOf<ChatMessageModel>()
 
     private val _channels = MutableLiveData<List<ChannelModel>>()
     val channels: LiveData<List<ChannelModel>> = _channels
+
+    // Typing indicator state
+    private val _typingUsers = MutableLiveData<Map<String, Any>>()
+    val typingUsers: LiveData<Map<String, Any>> = _typingUsers
+
+    private var typingListenerCleanup: (() -> Unit)? = null
 
     // Cargado inicial de los mensajes
     fun loadInitial(companyId: String, businessId: String) {
@@ -46,6 +55,28 @@ class ChatViewModel : ViewModel() {
         chatRepository.listenMessages(companyId, businessId) { messages ->
             _messages.postValue(messages)
         }
+    }
+
+    // Escuchar indicador de typing
+    fun listenTyping(companyId: String, channelId: String) {
+        val uid = currentUserId ?: return
+        
+        chatRepository.listenTyping(companyId, channelId, uid) { typing ->
+            _typingUsers.postValue(typing)
+        }
+    }
+
+    // Establecer que el usuario está escribiendo
+    fun setTyping(companyId: String, channelId: String, isTyping: Boolean) {
+        val uid = currentUserId ?: return
+        
+        chatRepository.setTyping(
+            companyId = companyId,
+            channelId = channelId,
+            userId = uid,
+            userName = currentUserName,
+            isTyping = isTyping
+        )
     }
 
     // Cargar más compañías en el caso de que haya más
@@ -67,7 +98,7 @@ class ChatViewModel : ViewModel() {
 
     fun sendMessage(
         companyId: String,
-        businessId: String,
+        channelId: String,
         text: String,
         senderId: String,
         replyToId: String?,
@@ -76,12 +107,15 @@ class ChatViewModel : ViewModel() {
         viewModelScope.launch {
             chatRepository.sendMessage(
                 companyId,
-                businessId,
+                channelId,
                 text,
                 senderId,
                 replyToId,
                 replyToText
             )
+            
+            // Dejar de mostrar "escribiendo" al enviar
+            chatRepository.setTyping(companyId, channelId, senderId, "", false)
         }
     }
 
@@ -92,12 +126,17 @@ class ChatViewModel : ViewModel() {
         muted: Boolean
     ) {
         viewModelScope.launch {
-            channelRepository.setChannelMuted(
-                companyId,
-                channelId,
-                userId,
-                muted
-            )
+            chatRepository.setChannelMuted(companyId, channelId, userId, muted)
+        }
+    }
+
+    fun setChannelArchived(
+        companyId: String,
+        channelId: String,
+        archived: Boolean
+    ) {
+        viewModelScope.launch {
+            chatRepository.setChannelArchived(companyId, channelId, archived)
         }
     }
 
@@ -163,5 +202,10 @@ class ChatViewModel : ViewModel() {
                 .document(channelId)
                 .update("unreadCount.$userId", 0)
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        typingListenerCleanup?.invoke()
     }
 }

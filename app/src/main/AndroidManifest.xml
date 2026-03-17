@@ -49,6 +49,12 @@
             android:name=".ui.updates.CreateUpdateActivity"
             android:exported="false" />
         <activity
+            android:name=".ai.AiChatActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.AiConfigActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

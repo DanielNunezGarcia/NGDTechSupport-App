@@ -55,6 +55,15 @@
             android:text="Updates" />
     </LinearLayout>
 
+    <!-- Botón Config IA (solo para ADMIN) -->
+    <Button
+        android:id="@+id/btnAiConfig"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="⚙️ Configuración IA"
+        android:backgroundTint="#9C27B0"
+        android:layout_marginBottom="8dp"/>
+
     <Button
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"

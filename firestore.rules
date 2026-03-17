@@ -1,0 +1,72 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función para verificar membresía en empresa
+    function isCompanyMember(companyId) {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid));
+    }
+    
+    // Función para verificar rol de usuario
+    function hasRole(companyId, role) {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/companies/$(companyId)/members/$(request.auth.uid)).data.role == role;
+    }
+    
+    // Función para verificar si es propietario del recurso
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Companies - acceso solo para miembros
+    match /companies/{companyId} {
+      allow read: if isCompanyMember(companyId);
+      allow write: if hasRole(companyId, 'admin');
+      
+      // Miembros de empresa
+      match /members/{userId} {
+        allow read: if isCompanyMember(companyId);
+        allow write: if hasRole(companyId, 'admin');
+        allow create: if hasRole(companyId, 'admin');
+        allow delete: if hasRole(companyId, 'admin');
+      }
+      
+      // Canales - acceso solo para miembros
+      match /channels/{channelId} {
+        allow read, write: if isCompanyMember(companyId);
+        
+        // Mensajes en canales
+        match /messages/{messageId} {
+          allow read, write: if isCompanyMember(companyId);
+        }
+      }
+      
+      // Conversaciones de IA - solo para miembros con acceso a IA
+      match /aiConversations/{conversationId} {
+        allow read: if isCompanyMember(companyId) && 
+          resource.data.userId == request.auth.uid;
+        allow create, write: if isCompanyMember(companyId) && 
+          request.resource.data.userId == request.auth.uid;
+        allow delete: if isCompanyMember(companyId) && 
+          resource.data.userId == request.auth.uid;
+      }
+      
+      // Estadísticas de uso de IA
+      match /usage/{userId} {
+        allow read: if isCompanyMember(companyId) && 
+          (userId == request.auth.uid || hasRole(companyId, 'admin'));
+        allow write: if false;
+        allow create: if isCompanyMember(companyId) && 
+          userId == request.auth.uid;
+      }
+    }
+    
+    // Usuarios - perfil propio
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if isOwner(userId);
+    }
+  }
+}
