@@ -11,6 +11,8 @@ import com.example.ngdtechsupport.data.repository.ChatRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
 import com.example.ngdtechsupport.data.repository.ChannelRepository
+import com.example.ngdtechsupport.ai.AiResponseHelper
+import com.google.firebase.Timestamp
 
 class ChatViewModel : ViewModel() {
 
@@ -116,6 +118,36 @@ class ChatViewModel : ViewModel() {
             
             // Dejar de mostrar "escribiendo" al enviar
             chatRepository.setTyping(companyId, channelId, senderId, "", false)
+
+            // Procesar mensaje con IA
+            processMessageWithAi(companyId, channelId, text)
+        }
+    }
+
+    // Procesar mensaje con IA
+    fun processMessageWithAi(companyId: String, channelId: String, userMessage: String) {
+        viewModelScope.launch {
+            // Obtener respuesta de IA
+            val aiResponse = AiResponseHelper.getResponse(userMessage)
+
+            // Crear mensaje de IA
+            val aiMessage = ChatMessageModel(
+                id = "",
+                message = aiResponse,
+                senderId = "ai_assistant",
+                senderName = "Asistente IA",
+                senderType = ChatMessageModel.SENDER_TYPE_AI,
+                timestamp = Timestamp.now(),
+                status = "sent"
+            )
+
+            // Añadir a la lista de mensajes
+            val currentMessages = _messages.value?.toMutableList() ?: mutableListOf()
+            currentMessages.add(aiMessage)
+            _messages.postValue(currentMessages)
+
+            // Guardar en Firestore
+            chatRepository.sendAiMessage(companyId, channelId, aiMessage)
         }
     }
 

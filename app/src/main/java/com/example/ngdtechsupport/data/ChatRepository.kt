@@ -2,6 +2,7 @@ package com.example.ngdtechsupport.data.repository
 
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.model.ChatMessageModel
+import com.example.ngdtechsupport.utils.SecurityValidator
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -79,6 +80,11 @@ class ChatRepository {
         replyToId: String?,
         replyToText: String?
     ) {
+        val sanitizedText = SecurityValidator.sanitizeInput(text)
+        
+        if (!SecurityValidator.isValidMessage(sanitizedText)) {
+            throw IllegalArgumentException("Mensaje inválido: contenido potencialmente peligroso o excede longitud máxima")
+        }
 
         val messageRef = firestore
             .collection("companies")
@@ -90,12 +96,12 @@ class ChatRepository {
 
         val message = hashMapOf(
             "id" to messageRef.id,
-            "message" to text,
+            "message" to sanitizedText,
             "senderId" to senderId,
             "timestamp" to com.google.firebase.Timestamp.now(),
             "status" to "sent",
             "replyToId" to replyToId,
-            "replyToText" to replyToText
+            "replyToText" to (replyToText?.let { SecurityValidator.sanitizeInput(it) })
         )
 
         // 1️⃣ Guardar mensaje
@@ -109,7 +115,7 @@ class ChatRepository {
 
         channelRef.update(
             mapOf(
-                "lastMessage" to text,
+                "lastMessage" to sanitizedText,
                 "lastMessageAt" to System.currentTimeMillis()
             )
         ).await()
@@ -364,5 +370,51 @@ class ChatRepository {
             .document(channelId)
             .update("isArchived", archived)
             .await()
+    }
+
+    suspend fun sendAiMessage(
+        companyId: String,
+        channelId: String,
+        message: ChatMessageModel
+    ) {
+        val sanitizedMessage = SecurityValidator.sanitizeInput(message.message)
+        
+        if (!SecurityValidator.isValidMessage(sanitizedMessage)) {
+            throw IllegalArgumentException("Mensaje de IA inválido")
+        }
+
+        val messageRef = firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .collection("messages")
+            .document()
+
+        val messageMap = hashMapOf(
+            "id" to messageRef.id,
+            "message" to sanitizedMessage,
+            "senderId" to message.senderId,
+            "senderName" to (message.senderName ?: "Asistente IA"),
+            "senderType" to message.senderType,
+            "timestamp" to com.google.firebase.Timestamp.now(),
+            "status" to "sent"
+        )
+
+        messageRef.set(messageMap).await()
+
+        // Actualizar último mensaje del canal
+        val channelRef = firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+
+        channelRef.update(
+            mapOf(
+                "lastMessage" to sanitizedMessage,
+                "lastMessageAt" to System.currentTimeMillis()
+            )
+        ).await()
     }
 }
