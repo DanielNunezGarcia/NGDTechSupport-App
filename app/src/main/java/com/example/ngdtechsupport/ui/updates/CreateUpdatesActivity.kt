@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.ngdtechsupport.databinding.ActivityCreateUpdatesBinding
+import com.google.firebase.auth.FirebaseAuth
 class CreateUpdatesActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCreateUpdatesBinding
@@ -32,7 +33,9 @@ class CreateUpdatesActivity : AppCompatActivity() {
                 businessId,
                 title,
                 description,
-                version
+                version,
+                "general",
+                FirebaseAuth.getInstance().currentUser?.uid ?: ""
             )
 
             finish()

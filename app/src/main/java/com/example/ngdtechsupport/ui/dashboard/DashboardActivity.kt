@@ -150,7 +150,7 @@ class DashboardActivity : AppCompatActivity() {
         
         // Ocultar botón si no es admin
         viewModel.uiState.observe(this) { state ->
-            btnAiConfig.visibility = if (state.role == "admin") {
+            btnAiConfig.visibility = if (state.userRole == "ADMIN") {
                 android.view.View.VISIBLE
             } else {
                 android.view.View.GONE

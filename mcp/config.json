@@ -12,5 +12,63 @@
       "command": "npx",
       "args": ["@modelcontextprotocol/server-shell"]
     }
+  },
+
+  "context": {
+    "project_type": "Desarrollo y mantenimiento de aplicaciones Android",
+    "stack": ["Kotlin", "Firebase", "SQL", "OpenCode"],
+    "business_model": [
+      "Desarrollo de apps",
+      "Mantenimiento mensual",
+      "Soporte técnico",
+      "Optimización"
+    ]
+  },
+
+  "workflows": {
+    "nueva_funcionalidad": [
+      "Supervisor",
+      "Arquitecto",
+      "Android_dev_01",
+      "Android_dev_02",
+      "Backend",
+      "QA",
+      "QA_Tester",
+      "DevOps"
+    ],
+    "bug_produccion": [
+      "Supervisor",
+      "Soporte",
+      "QA_Tester",
+      "Android_dev_01",
+      "Backend",
+      "QA",
+      "DevOps"
+    ],
+    "soporte_cliente": [
+      "Supervisor",
+      "Soporte",
+      "QA_Tester",
+      "Android_dev_01"
+    ],
+    "optimizacion": [
+      "Supervisor",
+      "Rendimiento",
+      "Android_dev_02",
+      "Backend",
+      "QA"
+    ]
+  },
+
+  "execution_rules": {
+    "parallel_execution": [
+      ["Android_dev_01", "Android_dev_02"],
+      ["QA", "QA_Tester"]
+    ],
+    "mandatory_checks": [
+      "QA antes de deploy",
+      "Seguridad antes de producción",
+      "Rendimiento en optimizaciones"
+    ]
   }
 }

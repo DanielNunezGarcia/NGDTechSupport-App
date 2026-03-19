@@ -11,6 +11,7 @@ data class ChannelModel(
     val isArchived: Boolean = false,
     val members: Map<String, ChannelMember> = emptyMap(),
     val mutedUsers: Map<String, Boolean> = emptyMap(),
+    val pinned: Boolean = false,
 
     val lastMessage: String = "",
     val lastMessageAt: String = "",

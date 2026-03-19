@@ -2,27 +2,18 @@ package com.example.ngdtechsupport.data.repository
 
 import android.util.Log
 import com.example.ngdtechsupport.ai.AiMessage
-import com.google.firebase.functions.FirebaseFunctions
-import kotlinx.coroutines.tasks.await
+import com.example.ngdtechsupport.ai.AiResponseHelper
+import kotlinx.coroutines.delay
 
 class AiRepositoryImpl : com.example.ngdtechsupport.ai.AiRepository {
 
-    private val functions = FirebaseFunctions.getInstance()
+    private val conversations = mutableMapOf<String, MutableList<AiMessage>>()
 
     override suspend fun createConversation(companyId: String, userId: String): String {
-        return try {
-            val result = functions.getHttpsCallable("chatWithAI")
-                .call(hashMapOf(
-                    "companyId" to companyId,
-                    "message" to "",
-                    "conversationId" to null
-                )).await()
-
-            (result.data as? HashMap<*, *>)?.get("conversationId") as? String ?: ""
-        } catch (e: Exception) {
-            Log.e("AiRepository", "Error creating conversation", e)
-            ""
-        }
+        val conversationId = "${companyId}_${userId}_${System.currentTimeMillis()}"
+        conversations[conversationId] = mutableListOf()
+        Log.d("AiRepository", "Created conversation: $conversationId")
+        return conversationId
     }
 
     override suspend fun sendMessage(
@@ -31,15 +22,18 @@ class AiRepositoryImpl : com.example.ngdtechsupport.ai.AiRepository {
         message: AiMessage
     ): String {
         return try {
-            val result = functions.getHttpsCallable("chatWithAI")
-                .call(hashMapOf(
-                    "companyId" to companyId,
-                    "message" to message.content,
-                    "conversationId" to conversationId
-                )).await()
-
-            val data = result.data as? HashMap<*, *>
-            data?.get("response") as? String ?: "Error al obtener respuesta"
+            conversations.getOrPut(conversationId) { mutableListOf() }.add(message)
+            
+            delay(500)
+            
+            val responseText = AiResponseHelper.getResponse(message.content)
+            val assistantMessage = AiMessage(
+                content = responseText,
+                role = com.example.ngdtechsupport.ai.AiRole.ASSISTANT
+            )
+            conversations[conversationId]?.add(assistantMessage)
+            
+            responseText
         } catch (e: Exception) {
             Log.e("AiRepository", "Error sending message", e)
             "Disculpa, tuve un problema al procesar tu mensaje."
@@ -50,20 +44,13 @@ class AiRepositoryImpl : com.example.ngdtechsupport.ai.AiRepository {
         companyId: String,
         conversationId: String
     ): List<AiMessage> {
-        // Por ahora retornamos vacío, se puede implementar lectura desde Firestore
-        return emptyList()
+        return conversations[conversationId]?.toList() ?: emptyList()
     }
 
     suspend fun transferToHuman(companyId: String, userId: String): String? {
         return try {
-            val result = functions.getHttpsCallable("transferToHuman")
-                .call(hashMapOf(
-                    "companyId" to companyId,
-                    "userId" to userId
-                )).await()
-
-            val data = result.data as? HashMap<*, *>
-            data?.get("channelId") as? String
+            val conversationId = createConversation(companyId, userId)
+            conversationId
         } catch (e: Exception) {
             Log.e("AiRepository", "Error transferring to human", e)
             null

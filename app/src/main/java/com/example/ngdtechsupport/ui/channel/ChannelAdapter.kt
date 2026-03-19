@@ -25,14 +25,11 @@ class ChannelAdapter(
 
             binding.textChannelName.text = channel.name
 
-            // Mostrar badge de silenciado
             val isMuted = channel.mutedUsers?.get(currentUserId) == true
             binding.imageMuted.visibility = if (isMuted) View.VISIBLE else View.GONE
 
-            // Mostrar badge de fijado
             binding.imagePinned.visibility = if (channel.pinned == true) View.VISIBLE else View.GONE
 
-            // Mostrar unread
             val unread = channel.unreadCount?.values?.sum() ?: 0
 
             if (unread > 0) {
@@ -42,12 +39,10 @@ class ChannelAdapter(
                 binding.textUnread.visibility = View.GONE
             }
 
-            // Click normal -> abrir chat
             binding.root.setOnClickListener {
                 viewModel.onChannelClick(channel)
             }
 
-            // Click largo -> mostrar menú
             binding.root.setOnLongClickListener { view ->
                 showPopupMenu(view, channel)
                 true
@@ -58,7 +53,6 @@ class ChannelAdapter(
             val popup = PopupMenu(view.context, view)
             popup.menuInflater.inflate(R.menu.menu_channel_options, popup.menu)
 
-            // Actualizar textos según estado
             val isMuted = channel.mutedUsers?.get(currentUserId) == true
             val isPinned = channel.pinned == true
             val isArchived = channel.isArchived == true
@@ -94,50 +88,17 @@ class ChannelAdapter(
             parent,
             false
         )
-        return ChannelViewHolder()
-    }
-
-    override fun getItemCount(): Int = channels.size
-
-    override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
-        holder.bind(channels[position])
-    }
-
-    fun submitList(list: List<ChannelModel>) {
-        channels = list
-        notifyDataSetChanged()
-    }
-}
-
-            // Click largo para archivar
-            binding.root.setOnLongClickListener {
-                viewModel.archiveChannel(
-                    companyId = companyId,
-                    channelId = channel.id,
-                    archived = true
-                )
-                true
-            }
-        }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChannelViewHolder {
-        val binding = ItemChannelBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
         return ChannelViewHolder(binding)
     }
 
-    override fun getItemCount(): Int = channels.size
-
     override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
         holder.bind(channels[position])
     }
 
-    fun submitList(list: List<ChannelModel>) {
-        channels = list
+    override fun getItemCount(): Int = channels.size
+
+    fun submitList(newChannels: List<ChannelModel>) {
+        channels = newChannels
         notifyDataSetChanged()
     }
 }

@@ -87,7 +87,11 @@ class CompanyRepository {
                     id = it.id,
                     title = it.getString("title") ?: "",
                     description = it.getString("description") ?: "",
-                    date = it.getString("date") ?: ""
+                    version = it.getString("version") ?: "",
+                    type = it.getString("type") ?: "",
+                    createdAt = it.getLong("createdAt") ?: 0,
+                    createdBy = it.getString("createdBy") ?: "",
+                    status = it.getString("status") ?: ""
                 )
             }
 

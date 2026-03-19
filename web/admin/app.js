@@ -4,6 +4,10 @@ const ADMIN_EMAILS = [
     'admin@ngd.com'
 ];
 
+// Variables globales para sesión
+let currentUserRole = 'guest';
+let currentUserEmail = '';
+
 // Variables para limpiar listeners de Firestore
 let conversationsUnsubscribe = null;
 let messagesUnsubscribe = null;
@@ -13,12 +17,11 @@ function login(email, password) {
     return auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
             const user = userCredential.user;
-            console.error('Usuario autenticado:', user.email);
             
             // Verificar rol del usuario
             const isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
-            user.isAdmin = isAdmin;
-            user.role = isAdmin ? 'admin' : 'client';
+            currentUserRole = isAdmin ? 'admin' : 'client';
+            currentUserEmail = user.email;
             
             return user;
         })
@@ -39,9 +42,12 @@ function logout() {
         messagesUnsubscribe = null;
     }
     
+    // Limpiar sesión
+    currentUserRole = 'guest';
+    currentUserEmail = '';
+    
     return auth.signOut()
         .then(() => {
-            console.error('Sesión cerrada');
             showLogin();
         })
         .catch((error) => {
@@ -54,8 +60,11 @@ function onAuthStateChange(callback) {
         if (user) {
             // Verificar rol
             const isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
-            user.isAdmin = isAdmin;
-            user.role = isAdmin ? 'admin' : 'client';
+            currentUserRole = isAdmin ? 'admin' : 'client';
+            currentUserEmail = user.email;
+        } else {
+            currentUserRole = 'guest';
+            currentUserEmail = '';
         }
         callback(user);
     });
@@ -296,44 +305,38 @@ function showDashboard() {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('dashboard-section').style.display = 'block';
     
+    const isAdmin = currentUserRole === 'admin';
+    
     // Mostrar email y rol del usuario
     const userEmailEl = document.getElementById('user-email');
     const userRoleEl = document.getElementById('user-role');
     const adminPanel = document.getElementById('admin-panel');
-    const settingsTab = document.getElementById('settings-tab');
     const tabSettingsBtn = document.querySelector('[data-tab="settings"]');
     
-    if (userEmailEl && auth.currentUser) {
-        userEmailEl.textContent = auth.currentUser.email;
+    if (userEmailEl) {
+        userEmailEl.textContent = currentUserEmail;
     }
     
     // Mostrar rol
-    if (userRoleEl && auth.currentUser) {
-        const isAdmin = auth.currentUser.isAdmin;
+    if (userRoleEl) {
         userRoleEl.textContent = isAdmin ? '👑 Admin' : '👤 Cliente';
         userRoleEl.className = isAdmin ? 'badge badge-admin' : 'badge badge-client';
     }
     
     // Mostrar/ocultar panel de admin según rol
     if (adminPanel) {
-        adminPanel.style.display = auth.currentUser?.isAdmin ? 'block' : 'none';
+        adminPanel.style.display = isAdmin ? 'block' : 'none';
     }
     
     // Ocultar tab de settings para no-admins
     if (tabSettingsBtn) {
-        tabSettingsBtn.style.display = auth.currentUser?.isAdmin ? 'block' : 'none';
-    }
-    
-    // Ocultar entire settings tab para no-admins
-    const settingsContent = document.getElementById('settings-tab');
-    if (settingsContent && !auth.currentUser?.isAdmin) {
-        settingsContent.style.display = 'none';
+        tabSettingsBtn.style.display = isAdmin ? 'block' : 'none';
     }
     
     loadConversations();
     
     // Solo admins pueden cargar configuración de IA
-    if (auth.currentUser?.isAdmin) {
+    if (isAdmin) {
         loadAISettings();
     }
 }
