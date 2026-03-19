@@ -25,6 +25,8 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var adapter: AppAdapter
     private lateinit var channelViewModel: ChannelViewModel
     private var currentCompanyId: String = ""
+    private var currentBusinessId: String = ""
+    private var currentUserId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,32 +38,14 @@ class DashboardActivity : AppCompatActivity() {
         val roleTextView = findViewById<TextView>(R.id.tvRole)
         val userInfoTextView = findViewById<TextView>(R.id.tvUserInfo)
 
-        val uid = FirebaseAuth.getInstance().currentUser?.uid
-        if (uid == null) {
+        currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        if (currentUserId.isEmpty()) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
 
         channelViewModel = ChannelViewModel()
-
-        val btnCreatePrivateChannel = findViewById<Button>(R.id.btnCreatePrivateChannel)
-        btnCreatePrivateChannel.setOnClickListener {
-            val currentUid = FirebaseAuth.getInstance().currentUser?.uid
-            if (currentCompanyId.isEmpty()) {
-                Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            currentUid?.let { uid ->
-                channelViewModel.createPrivateChannel(
-                    companyId = currentCompanyId,
-                    channelId = "private_$uid",
-                    adminUid = uid,
-                    memberUid = uid
-                )
-                Toast.makeText(this, "Canal privado creado", Toast.LENGTH_SHORT).show()
-            }
-        }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -76,6 +60,11 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
         recyclerView.adapter = adapter
+
+        val btnChatGlobal = findViewById<Button>(R.id.btnChat)
+        val btnUpdatesGlobal = findViewById<Button>(R.id.btnUpdates)
+        val btnAiConfig = findViewById<Button>(R.id.btnAiConfig)
+        val btnCreatePrivateChannel = findViewById<Button>(R.id.btnCreatePrivateChannel)
 
         viewModel.uiState.observe(this) { state ->
             if (state.isLoading) {
@@ -103,6 +92,57 @@ class DashboardActivity : AppCompatActivity() {
             }
 
             currentCompanyId = state.companyId
+            currentBusinessId = state.apps.firstOrNull()?.id ?: ""
+
+            btnChatGlobal.setOnClickListener {
+                if (currentCompanyId.isEmpty()) {
+                    Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
+                intent.putExtra("companyId", currentCompanyId)
+                intent.putExtra("businessId", currentBusinessId)
+                intent.putExtra("channelId", "${currentBusinessId}_support")
+                startActivity(intent)
+            }
+
+            btnUpdatesGlobal.setOnClickListener {
+                if (currentCompanyId.isEmpty()) {
+                    Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                val intent = Intent(this, com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java)
+                intent.putExtra("companyId", currentCompanyId)
+                intent.putExtra("businessId", currentBusinessId)
+                startActivity(intent)
+            }
+
+            btnAiConfig.visibility = if (state.userRole == "ADMIN") {
+                android.view.View.VISIBLE
+            } else {
+                android.view.View.GONE
+            }
+
+            btnAiConfig.setOnClickListener {
+                val intent = Intent(this, com.example.ngdtechsupport.ui.admin.AiConfigActivity::class.java)
+                intent.putExtra("companyId", currentCompanyId.ifEmpty { "NGDStudios" })
+                startActivity(intent)
+            }
+
+            btnCreatePrivateChannel.setOnClickListener {
+                if (currentCompanyId.isEmpty()) {
+                    Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                val channelId = "private_${currentUserId}_${System.currentTimeMillis()}"
+                channelViewModel.createPrivateChannel(
+                    companyId = currentCompanyId,
+                    channelId = channelId,
+                    adminUid = currentUserId,
+                    memberUid = currentUserId
+                )
+                Toast.makeText(this, "Canal privado creado", Toast.LENGTH_SHORT).show()
+            }
         }
 
         viewModel.loadAppsForCurrentUser()
@@ -111,57 +151,6 @@ class DashboardActivity : AppCompatActivity() {
             FirebaseAuth.getInstance().signOut()
             val intent = Intent(this, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-        }
-
-        val btnChatGlobal = findViewById<Button>(R.id.btnChat)
-        val btnUpdatesGlobal = findViewById<Button>(R.id.btnUpdates)
-
-        btnChatGlobal.setOnClickListener {
-            val companyId = viewModel.uiState.value?.companyId ?: ""
-            if (companyId.isEmpty()) {
-                Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val intent = Intent(
-                this,
-                com.example.ngdtechsupport.ui.chat.ChatActivity::class.java
-            )
-            intent.putExtra("companyId", companyId)
-            startActivity(intent)
-        }
-
-        btnUpdatesGlobal.setOnClickListener {
-            val companyId = viewModel.uiState.value?.companyId ?: ""
-            if (companyId.isEmpty()) {
-                Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val intent = Intent(
-                this,
-                com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java
-            )
-            intent.putExtra("companyId", companyId)
-            startActivity(intent)
-        }
-
-        val btnAiConfig = findViewById<Button>(R.id.btnAiConfig)
-        
-        viewModel.uiState.observe(this) { state ->
-            btnAiConfig.visibility = if (state.userRole == "ADMIN") {
-                android.view.View.VISIBLE
-            } else {
-                android.view.View.GONE
-            }
-        }
-
-        btnAiConfig.setOnClickListener {
-            val companyId = viewModel.uiState.value?.companyId ?: "NGDStudios"
-            val intent = Intent(
-                this,
-                com.example.ngdtechsupport.ui.admin.AiConfigActivity::class.java
-            )
-            intent.putExtra("companyId", companyId)
             startActivity(intent)
         }
 

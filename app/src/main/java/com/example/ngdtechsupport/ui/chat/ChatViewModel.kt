@@ -8,17 +8,15 @@ import kotlinx.coroutines.launch
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.repository.ChatRepository
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.auth.FirebaseAuth
-import com.example.ngdtechsupport.data.repository.ChannelRepository
+import com.google.firebase.firestore.FirebaseFirestore
 import com.example.ngdtechsupport.ai.AiResponseHelper
 import com.google.firebase.Timestamp
 
 class ChatViewModel : ViewModel() {
 
     private val chatRepository = ChatRepository()
-    private val channelRepository = ChannelRepository()
-    private val repository = ChannelRepository()
+    private val channelRepository = com.example.ngdtechsupport.data.repository.ChannelRepository()
 
     private val _messages = MutableLiveData<List<ChatMessageModel>>()
     val messages: LiveData<List<ChatMessageModel>> = _messages
@@ -34,32 +32,17 @@ class ChatViewModel : ViewModel() {
     private val _channels = MutableLiveData<List<ChannelModel>>()
     val channels: LiveData<List<ChannelModel>> = _channels
 
-    // Typing indicator state
     private val _typingUsers = MutableLiveData<Map<String, Any>>()
     val typingUsers: LiveData<Map<String, Any>> = _typingUsers
 
     private var typingListenerCleanup: (() -> Unit)? = null
 
-    // Cargado inicial de los mensajes
-    fun loadInitial(companyId: String, businessId: String) {
-
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-
-        chatRepository.loadInitialMessages(companyId, businessId) { list ->
-            _messages.postValue(list)
-        }
-
-        resetUnread(companyId, businessId, uid)
-    }
-
-    fun listenMessages(companyId: String, businessId: String) {
-
-        chatRepository.listenMessages(companyId, businessId) { messages ->
+    fun listenMessages(companyId: String, channelId: String) {
+        chatRepository.listenMessages(companyId, channelId) { messages ->
             _messages.postValue(messages)
         }
     }
 
-    // Escuchar indicador de typing
     fun listenTyping(companyId: String, channelId: String) {
         val uid = currentUserId ?: return
         
@@ -68,7 +51,6 @@ class ChatViewModel : ViewModel() {
         }
     }
 
-    // Establecer que el usuario está escribiendo
     fun setTyping(companyId: String, channelId: String, isTyping: Boolean) {
         val uid = currentUserId ?: return
         
@@ -79,23 +61,6 @@ class ChatViewModel : ViewModel() {
             userName = currentUserName,
             isTyping = isTyping
         )
-    }
-
-    // Cargar más compañías en el caso de que haya más
-    fun loadMore(companyId: String, businessId: String) {
-        chatRepository.loadMoreMessages(companyId, businessId) { list ->
-            currentList.addAll(0, list)
-            _messages.postValue(currentList.toList())
-        }
-    }
-
-    fun listenChannels(companyId: String, businessId: String) {
-
-        chatRepository.listenChannels(companyId, businessId) { channelList ->
-
-            _channels.value = channelList
-
-        }
     }
 
     fun sendMessage(
@@ -116,21 +81,16 @@ class ChatViewModel : ViewModel() {
                 replyToText
             )
             
-            // Dejar de mostrar "escribiendo" al enviar
             chatRepository.setTyping(companyId, channelId, senderId, "", false)
 
-            // Procesar mensaje con IA
             processMessageWithAi(companyId, channelId, text)
         }
     }
 
-    // Procesar mensaje con IA
     fun processMessageWithAi(companyId: String, channelId: String, userMessage: String) {
         viewModelScope.launch {
-            // Obtener respuesta de IA
             val aiResponse = AiResponseHelper.getResponse(userMessage)
 
-            // Crear mensaje de IA
             val aiMessage = ChatMessageModel(
                 id = "",
                 message = aiResponse,
@@ -141,12 +101,10 @@ class ChatViewModel : ViewModel() {
                 status = "sent"
             )
 
-            // Añadir a la lista de mensajes
             val currentMessages = _messages.value?.toMutableList() ?: mutableListOf()
             currentMessages.add(aiMessage)
             _messages.postValue(currentMessages)
 
-            // Guardar en Firestore
             chatRepository.sendAiMessage(companyId, channelId, aiMessage)
         }
     }
@@ -179,7 +137,7 @@ class ChatViewModel : ViewModel() {
         memberUid: String
     ) {
         viewModelScope.launch {
-            repository.createPrivateChannel(
+            channelRepository.createPrivateChannel(
                 companyId,
                 channelId,
                 adminUid,
@@ -190,18 +148,20 @@ class ChatViewModel : ViewModel() {
 
     fun updateLastRead(
         companyId: String,
-        businessId: String,
+        channelId: String,
         userId: String
     ) {
-
         viewModelScope.launch {
-
-            chatRepository.updateLastRead(
-                companyId,
-                businessId,
-                userId
-            )
-
+            try {
+                FirebaseFirestore.getInstance()
+                    .collection("companies")
+                    .document(companyId)
+                    .collection("channels")
+                    .document(channelId)
+                    .update("unreadCount.$userId", 0)
+            } catch (e: Exception) {
+                // El canal puede no existir aún
+            }
         }
     }
 
@@ -210,29 +170,8 @@ class ChatViewModel : ViewModel() {
         channelId: String,
         isAdmin: Boolean
     ) {
-
         viewModelScope.launch {
-
-            chatRepository.markChatAsRead(
-                companyId,
-                channelId,
-                isAdmin
-            )
-        }
-    }
-
-    fun resetUnread(
-        companyId: String,
-        channelId: String,
-        userId: String
-    ) {
-        viewModelScope.launch {
-            FirebaseFirestore.getInstance()
-                .collection("companies")
-                .document(companyId)
-                .collection("channels")
-                .document(channelId)
-                .update("unreadCount.$userId", 0)
+            chatRepository.markChatAsRead(companyId, channelId, isAdmin)
         }
     }
 

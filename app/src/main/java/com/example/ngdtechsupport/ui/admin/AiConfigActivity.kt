@@ -70,7 +70,6 @@ class AiConfigActivity : AppCompatActivity() {
                 }
                 is AiConfigViewModel.UiState.Success -> {
                     binding.btnSave.isEnabled = true
-                    Toast.makeText(this, "Guardado correctamente", Toast.LENGTH_SHORT).show()
                 }
                 is AiConfigViewModel.UiState.Error -> {
                     binding.btnSave.isEnabled = true

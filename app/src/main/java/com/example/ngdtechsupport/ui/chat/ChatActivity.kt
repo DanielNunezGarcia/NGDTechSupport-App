@@ -6,6 +6,7 @@ import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,6 +14,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.Timestamp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class ChatActivity : AppCompatActivity() {
 
@@ -20,18 +27,17 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var adapter: ChatAdapter
     private lateinit var layoutManager: LinearLayoutManager
     private var currentUserId: String = ""
-    private lateinit var companyId: String
-    private lateinit var businessId: String
+    private var companyId: String = ""
+    private var businessId: String = ""
+    private var channelId: String = ""
     private val chatViewModel: ChatViewModel by viewModels()
-    private lateinit var channelId: String
 
     private var replyMessage: ChatMessageModel? = null
     private var isUserAtBottom = true
     
-    // Typing indicator
     private val typingHandler = Handler(Looper.getMainLooper())
     private var typingRunnable: Runnable? = null
-    private val typingDelay = 2000L // 2 segundos de inactividad
+    private val typingDelay = 2000L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,23 +49,23 @@ class ChatActivity : AppCompatActivity() {
 
         companyId = intent.getStringExtra("companyId") ?: ""
         businessId = intent.getStringExtra("businessId") ?: ""
-        channelId = intent.getStringExtra("channelId") ?: ""
+        channelId = intent.getStringExtra("channelId") ?: getDefaultChannelId()
+
+        if (companyId.isEmpty() || channelId.isEmpty()) {
+            Toast.makeText(this, "Error: Datos de chat no disponibles", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         setupRecycler()
         setupSendButton()
         setupTypingIndicator()
         setupQuickReplies()
 
-        // Marcar como leído mensaje en el Chat
-        chatViewModel.markChatAsRead(
-            companyId,
-            channelId,
-            true
-        )
+        chatViewModel.markChatAsRead(companyId, channelId, true)
 
-        chatViewModel.listenMessages(companyId, businessId)
+        chatViewModel.listenMessages(companyId, channelId)
         
-        // Escuchar typing
         chatViewModel.listenTyping(companyId, channelId)
 
         chatViewModel.messages.observe(this) { messages ->
@@ -74,11 +80,15 @@ class ChatActivity : AppCompatActivity() {
             updateTypingIndicator(typingMap)
         }
 
-        chatViewModel.updateLastRead(
-            companyId,
-            businessId,
-            currentUserId
-        )
+        chatViewModel.updateLastRead(companyId, channelId, currentUserId)
+    }
+
+    private fun getDefaultChannelId(): String {
+        return if (businessId.isNotEmpty()) {
+            "${businessId}_support"
+        } else {
+            "default_support"
+        }
     }
 
     private fun setupTypingIndicator() {
@@ -86,13 +96,10 @@ class ChatActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Usuario está escribiendo
                 chatViewModel.setTyping(companyId, channelId, true)
                 
-                // Cancelar el typing anterior
                 typingRunnable?.let { typingHandler.removeCallbacks(it) }
                 
-                // Establecer nuevo timer para dejar de mostrar "escribiendo"
                 typingRunnable = Runnable {
                     chatViewModel.setTyping(companyId, channelId, false)
                 }
@@ -129,7 +136,6 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun setupRecycler() {
-
         adapter = ChatAdapter(currentUserId) { message ->
             replyMessage = message
             showReplyPreview(message)
@@ -143,17 +149,10 @@ class ChatActivity : AppCompatActivity() {
 
         binding.recyclerViewChat.addOnScrollListener(object :
             RecyclerView.OnScrollListener() {
-
-            override fun onScrolled(
-                recyclerView: RecyclerView,
-                dx: Int,
-                dy: Int
-            ) {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 val lastVisible = layoutManager.findLastVisibleItemPosition()
                 val total = layoutManager.itemCount
-
                 isUserAtBottom = lastVisible >= total - 2
-
                 if (isUserAtBottom) {
                     hideNewMessageIndicator()
                 }
@@ -165,11 +164,8 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    // Función Botón Enviar
     private fun setupSendButton() {
-
         binding.buttonSend.setOnClickListener {
-
             val text = binding.editTextMessage.text.toString()
             if (text.isBlank()) return@setOnClickListener
 
@@ -182,7 +178,6 @@ class ChatActivity : AppCompatActivity() {
                 replyToText = replyMessage?.message
             )
 
-            // Dejar de mostrar "escribiendo"
             chatViewModel.setTyping(companyId, channelId, false)
             typingRunnable?.let { typingHandler.removeCallbacks(it) }
 

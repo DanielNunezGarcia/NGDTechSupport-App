@@ -6,15 +6,24 @@ import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.ui.chat.ChatActivity
 import com.example.ngdtechsupport.ui.updates.UpdatesActivity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.Timestamp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class AppDetailActivity : AppCompatActivity() {
 
     private lateinit var viewModel: AppDetailViewModel
+    private val firestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,12 +74,20 @@ class AppDetailActivity : AppCompatActivity() {
 
         viewModel.loadBusiness(companyId, businessId)
 
+        val channelId = "${businessId}_support"
+
         btnChat.setOnClickListener {
-            val intent = Intent(this, ChatActivity::class.java)
-            intent.putExtra("companyId", companyId)
-            intent.putExtra("businessId", businessId)
-            intent.putExtra("channelId", "private_admin_client")
-            startActivity(intent)
+            ensureChannelExists(companyId, channelId) { success ->
+                if (success) {
+                    val intent = Intent(this, ChatActivity::class.java)
+                    intent.putExtra("companyId", companyId)
+                    intent.putExtra("businessId", businessId)
+                    intent.putExtra("channelId", channelId)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "Error al abrir chat", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
 
         btnUpdates.setOnClickListener {
@@ -78,6 +95,48 @@ class AppDetailActivity : AppCompatActivity() {
             intent.putExtra("companyId", companyId)
             intent.putExtra("businessId", businessId)
             startActivity(intent)
+        }
+    }
+
+    private fun ensureChannelExists(companyId: String, channelId: String, onComplete: (Boolean) -> Unit) {
+        val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: run {
+            onComplete(false)
+            return
+        }
+
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                val channelRef = firestore.collection("companies")
+                    .document(companyId)
+                    .collection("channels")
+                    .document(channelId)
+
+                val channelDoc = channelRef.get().await()
+
+                if (!channelDoc.exists()) {
+                    val channelData = hashMapOf(
+                        "name" to "Soporte",
+                        "createdAt" to Timestamp.now(),
+                        "isArchived" to false,
+                        "pinned" to false,
+                        "members" to mapOf(
+                            currentUid to mapOf("role" to "member")
+                        ),
+                        "mutedUsers" to emptyMap<String, Boolean>(),
+                        "unreadCount" to mapOf(
+                            currentUid to 0L
+                        ),
+                        "unread_admin" to 0,
+                        "unread_client" to 0
+                    )
+                    channelRef.set(channelData).await()
+                }
+
+                onComplete(true)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                onComplete(false)
+            }
         }
     }
 }
