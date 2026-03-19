@@ -71,6 +71,7 @@ class DashboardViewModel(
                     userRole = role,
                     userName = userName,
                     companyName = companyName,
+                    companyId = companyId,
                     errorMessage = null
                 )
             } catch (e: Exception) {
@@ -107,7 +108,8 @@ class DashboardViewModel(
                             progress = business.progress,
                             version = business.version,
                             supportType = business.supportType,
-                            lastUpdate = business.lastUpdate
+                            lastUpdate = business.lastUpdate,
+                            companyId = companyId
                         )
                     }
                 } else {
@@ -134,7 +136,8 @@ class DashboardViewModel(
                                 progress = singleBusiness.progress,
                                 version = singleBusiness.version,
                                 supportType = singleBusiness.supportType,
-                                lastUpdate = singleBusiness.lastUpdate
+                                lastUpdate = singleBusiness.lastUpdate,
+                                companyId = companyId
                             )
                         )
                     } else {

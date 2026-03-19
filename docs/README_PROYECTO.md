@@ -243,6 +243,18 @@ Seguimos el conventional commits:
 - `docs:` Documentación
 - `refactor:` Refactorización de código
 
+## Fases del Proyecto
+
+| Fase | Descripción | Estado |
+|------|-------------|--------|
+| FASE 1-6 | Chat humano funcionando | ✅ Completada |
+| FASE 7 | Chat con IA (Mock responses) | ✅ Completada |
+| FASE 8 | Seguridad (Firestore rules) | ✅ Completada |
+| FASE 9 | Preparación Web (panel admin) | ✅ Completada |
+| FASE 10 | Pulido Final (optimización) | 📋 En progreso |
+
+---
+
 ## Licencia
 
 Este proyecto es propiedad de NGD Studios y está destinado exclusivamente para fines de demostración y desarrollo.

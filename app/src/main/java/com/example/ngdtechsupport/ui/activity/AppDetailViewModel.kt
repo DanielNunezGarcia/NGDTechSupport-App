@@ -12,15 +12,22 @@ class AppDetailViewModel : ViewModel() {
     private val repository = CompanyRepository()
 
     val business = MutableLiveData<BusinessModel>()
+    val error = MutableLiveData<String?>()
 
     fun loadBusiness(companyId: String, businessId: String) {
+        error.value = null
 
         viewModelScope.launch {
+            try {
+                val result = repository.getBusiness(companyId, businessId)
 
-            val result = repository.getBusiness(companyId, businessId)
-
-            result?.let {
-                business.postValue(it)
+                if (result != null) {
+                    business.postValue(result)
+                } else {
+                    error.postValue("Negocio no encontrado")
+                }
+            } catch (e: Exception) {
+                error.postValue(e.message ?: "Error al cargar el negocio")
             }
         }
     }

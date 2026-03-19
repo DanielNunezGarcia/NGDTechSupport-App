@@ -3,6 +3,7 @@ package com.example.ngdtechsupport.data.repository
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.tasks.await
 
 class ChannelRepository {
 
@@ -34,17 +35,18 @@ class ChannelRepository {
     ) {
 
         val channelData = hashMapOf(
-            "name" to "Private Channel",
+            "name" to "Canal Privado",
             "createdAt" to Timestamp.now(),
             "isArchived" to false,
+            "pinned" to false,
             "members" to mapOf(
                 adminUid to mapOf("role" to "admin"),
                 memberUid to mapOf("role" to "member")
             ),
             "mutedUsers" to emptyMap<String, Boolean>(),
             "unreadCount" to mapOf(
-                adminUid to 0,
-                memberUid to 0
+                adminUid to 0L,
+                memberUid to 0L
             )
         )
 
@@ -53,6 +55,7 @@ class ChannelRepository {
             .collection("channels")
             .document(channelId)
             .set(channelData)
+            .await()
     }
 
     suspend fun archiveChannel(
@@ -65,6 +68,7 @@ class ChannelRepository {
             .collection("channels")
             .document(channelId)
             .update("isArchived", archived)
+            .await()
     }
 
     suspend fun setChannelMuted(
@@ -78,6 +82,7 @@ class ChannelRepository {
             .collection("channels")
             .document(channelId)
             .update("mutedUsers.$userId", muted)
+            .await()
     }
 
     suspend fun setChannelPinned(
@@ -90,5 +95,6 @@ class ChannelRepository {
             .collection("channels")
             .document(channelId)
             .update("pinned", pinned)
+            .await()
     }
 }

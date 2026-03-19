@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 
@@ -14,6 +13,7 @@ import androidx.lifecycle.Observer
 
 import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.ui.dashboard.DashboardActivity
+import com.google.android.material.textfield.TextInputEditText
 
 class LoginActivity : AppCompatActivity() {
 
@@ -23,14 +23,13 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        val email = findViewById<EditText>(R.id.etEmail)
-        val password = findViewById<EditText>(R.id.etPassword)
+        val email = findViewById<TextInputEditText>(R.id.etEmail)
+        val password = findViewById<TextInputEditText>(R.id.etPassword)
         val loginBtn = findViewById<Button>(R.id.btnLogin)
 
         val progressBar = findViewById<ProgressBar?>(R.id.pbLoading)
         val errorText = findViewById<TextView?>(R.id.tvError)
 
-        // Observamos el estado del ViewModel
         viewModel.uiState.observe(this, Observer { state ->
             when (state) {
                 is LoginUiState.Idle -> {
@@ -62,7 +61,6 @@ class LoginActivity : AppCompatActivity() {
             }
         })
 
-        // Click en el botón de login llama al ViewModel
         loginBtn.setOnClickListener {
             val userEmail = email.text.toString()
             val userPassword = password.text.toString()

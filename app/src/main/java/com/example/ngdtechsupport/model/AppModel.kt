@@ -8,5 +8,6 @@ data class AppModel(
     val progress: Int = 0,
     val version: String = "",
     val supportType: String = "",
-    val lastUpdate: String = ""
+    val lastUpdate: String = "",
+    val companyId: String = ""
 )

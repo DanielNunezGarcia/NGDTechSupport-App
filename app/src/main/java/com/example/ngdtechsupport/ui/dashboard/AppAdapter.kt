@@ -13,7 +13,7 @@ import com.example.ngdtechsupport.model.AppModel
 
 class AppAdapter(
     private var apps: List<AppModel>,
-    private val onItemClick: (AppModel) -> Unit
+    private val onItemClick: (app: AppModel, companyId: String) -> Unit
 ) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
     inner class AppViewHolder(itemView: View) :
@@ -53,7 +53,6 @@ class AppAdapter(
                 "Última actualización: -"
             }
 
-            // Icono simple según estado (ajusta si quieres)
             val iconRes = when (app.status.lowercase()) {
                 "en desarrollo" -> android.R.drawable.presence_away
                 "completado", "finalizado" -> android.R.drawable.presence_online
@@ -82,7 +81,7 @@ class AppAdapter(
         holder.bind(app)
 
         holder.itemView.setOnClickListener {
-            onItemClick(app)
+            onItemClick(app, app.companyId)
         }
     }
 

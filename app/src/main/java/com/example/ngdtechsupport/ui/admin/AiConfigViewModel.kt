@@ -1,5 +1,6 @@
 package com.example.ngdtechsupport.ui.admin
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -46,12 +47,23 @@ class AiConfigViewModel : ViewModel() {
     val uiState: LiveData<UiState> = _uiState
 
     fun loadConfig(companyId: String) {
+        if (companyId.isBlank()) {
+            _uiState.value = UiState.Error("Company ID no puede estar vacío")
+            return
+        }
+
         _companyId.value = companyId
         _uiState.value = UiState.Loading
 
         viewModelScope.launch {
             try {
-                val docRef = db.collection("companies").document(companyId).collection("ai_config").document("settings")
+                val docRef = db.collection("companies")
+                    .document(companyId)
+                    .collection("ai_config")
+                    .document("settings")
+                
+                Log.d("AiConfigViewModel", "Loading config from: companies/$companyId/ai_config/settings")
+                
                 val document = docRef.get().await()
 
                 if (document.exists()) {
@@ -62,15 +74,24 @@ class AiConfigViewModel : ViewModel() {
                     _escalationKeywords.value = (document.get("escalationKeywords") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
                     _fallbackMessage.value = document.getString("fallbackMessage") ?: ""
                     _autoTransferEnabled.value = document.getBoolean("autoTransferEnabled") ?: false
+                    Log.d("AiConfigViewModel", "Config loaded successfully")
+                } else {
+                    Log.d("AiConfigViewModel", "Config document does not exist, using defaults")
                 }
                 _uiState.value = UiState.Success
             } catch (e: Exception) {
-                _uiState.value = UiState.Error(e.message ?: "Unknown error")
+                Log.e("AiConfigViewModel", "Error loading config", e)
+                _uiState.value = UiState.Error(e.message ?: "Error al cargar configuración")
             }
         }
     }
 
     fun saveConfig(companyId: String) {
+        if (companyId.isBlank()) {
+            _uiState.value = UiState.Error("Company ID no puede estar vacío")
+            return
+        }
+
         _companyId.value = companyId
         _uiState.value = UiState.Loading
 
@@ -86,6 +107,8 @@ class AiConfigViewModel : ViewModel() {
                     "autoTransferEnabled" to (_autoTransferEnabled.value ?: false)
                 )
 
+                Log.d("AiConfigViewModel", "Saving config to: companies/$companyId/ai_config/settings")
+
                 db.collection("companies")
                     .document(companyId)
                     .collection("ai_config")
@@ -93,9 +116,11 @@ class AiConfigViewModel : ViewModel() {
                     .set(configData)
                     .await()
 
+                Log.d("AiConfigViewModel", "Config saved successfully")
                 _uiState.value = UiState.Success
             } catch (e: Exception) {
-                _uiState.value = UiState.Error(e.message ?: "Unknown error")
+                Log.e("AiConfigViewModel", "Error saving config", e)
+                _uiState.value = UiState.Error(e.message ?: "Error al guardar configuración")
             }
         }
     }

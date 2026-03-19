@@ -4,12 +4,12 @@ import android.os.Bundle
 import android.widget.TextView
 import android.widget.Button
 import android.content.Intent
+import android.widget.Toast
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.activity.viewModels
-import androidx.lifecycle.ViewModelProvider
 
 import com.example.ngdtechsupport.ui.channel.ChannelViewModel
 import com.example.ngdtechsupport.ui.auth.LoginActivity
@@ -24,6 +24,7 @@ class DashboardActivity : AppCompatActivity() {
     private val viewModel: DashboardViewModel by viewModels()
     private lateinit var adapter: AppAdapter
     private lateinit var channelViewModel: ChannelViewModel
+    private var currentCompanyId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,45 +43,41 @@ class DashboardActivity : AppCompatActivity() {
             return
         }
 
-        // Función del botón para crear Canal Privado
-        channelViewModel = ViewModelProvider(this)[ChannelViewModel::class.java]
+        channelViewModel = ChannelViewModel()
+
         val btnCreatePrivateChannel = findViewById<Button>(R.id.btnCreatePrivateChannel)
         btnCreatePrivateChannel.setOnClickListener {
-
-            val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
-            val companyId = viewModel.uiState.value?.companyName
-                ?: return@setOnClickListener
-
-            channelViewModel.createPrivateChannel(
-                companyId = companyId,
-                channelId = "private_$currentUid",
-                adminUid = currentUid,
-                memberUid = currentUid
-            )
+            val currentUid = FirebaseAuth.getInstance().currentUser?.uid
+            if (currentCompanyId.isEmpty()) {
+                Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            currentUid?.let { uid ->
+                channelViewModel.createPrivateChannel(
+                    companyId = currentCompanyId,
+                    channelId = "private_$uid",
+                    adminUid = uid,
+                    memberUid = uid
+                )
+                Toast.makeText(this, "Canal privado creado", Toast.LENGTH_SHORT).show()
+            }
         }
 
-        // Configuramos el RecyclerView con un LinearLayoutManager
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Creamos el adapter con una lista vacía
-        adapter = AppAdapter(
-            emptyList()
-        ) { app ->
-
+        adapter = AppAdapter(emptyList()) { app, companyId ->
             val intent = Intent(
                 this,
                 com.example.ngdtechsupport.ui.activity.AppDetailActivity::class.java
             )
-
             intent.putExtra("appId", app.id)
-
+            intent.putExtra("companyId", companyId)
+            intent.putExtra("businessId", app.id)
             startActivity(intent)
         }
         recyclerView.adapter = adapter
 
-        // Observamos el estado del ViewModel (TODO en uno)
         viewModel.uiState.observe(this) { state ->
-            // Mostrar/ocultar loading si es necesario
             if (state.isLoading) {
                 textView.text = "Cargando..."
                 adapter.updateApps(emptyList())
@@ -95,23 +92,21 @@ class DashboardActivity : AppCompatActivity() {
                 adapter.updateApps(state.apps)
             }
 
-            // Mostrar rol
             if (state.userRole.isNotEmpty()) {
                 roleTextView.text = "Rol: ${state.userRole}"
             }
 
-            // Mostrar información del usuario
             if (state.companyName.isNotEmpty()) {
                 userInfoTextView.text = "${state.userName} - ${state.companyName}"
             } else if (state.userName.isNotEmpty()) {
                 userInfoTextView.text = state.userName
             }
+
+            currentCompanyId = state.companyId
         }
 
-        // Pedimos al ViewModel que cargue las apps del usuario actual
         viewModel.loadAppsForCurrentUser()
 
-        // Botón para cerrar sesión
         logoutButton.setOnClickListener {
             FirebaseAuth.getInstance().signOut()
             val intent = Intent(this, LoginActivity::class.java)
@@ -122,33 +117,36 @@ class DashboardActivity : AppCompatActivity() {
         val btnChatGlobal = findViewById<Button>(R.id.btnChat)
         val btnUpdatesGlobal = findViewById<Button>(R.id.btnUpdates)
 
-        // Funcionalidad botones Chat y Updates
         btnChatGlobal.setOnClickListener {
-
+            val companyId = viewModel.uiState.value?.companyId ?: ""
+            if (companyId.isEmpty()) {
+                Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val intent = Intent(
                 this,
                 com.example.ngdtechsupport.ui.chat.ChatActivity::class.java
             )
-
-            intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
+            intent.putExtra("companyId", companyId)
             startActivity(intent)
         }
 
         btnUpdatesGlobal.setOnClickListener {
-
+            val companyId = viewModel.uiState.value?.companyId ?: ""
+            if (companyId.isEmpty()) {
+                Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             val intent = Intent(
                 this,
                 com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java
             )
-
-            intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "")
+            intent.putExtra("companyId", companyId)
             startActivity(intent)
         }
 
-        // Botón Configuración IA (solo para ADMIN)
         val btnAiConfig = findViewById<Button>(R.id.btnAiConfig)
         
-        // Ocultar botón si no es admin
         viewModel.uiState.observe(this) { state ->
             btnAiConfig.visibility = if (state.userRole == "ADMIN") {
                 android.view.View.VISIBLE
@@ -158,33 +156,31 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         btnAiConfig.setOnClickListener {
+            val companyId = viewModel.uiState.value?.companyId ?: "NGDStudios"
             val intent = Intent(
                 this,
                 com.example.ngdtechsupport.ui.admin.AiConfigActivity::class.java
             )
-            intent.putExtra("companyId", viewModel.uiState.value?.companyName ?: "NGDStudios")
+            intent.putExtra("companyId", companyId)
             startActivity(intent)
         }
 
-        // Obtener FCM Token
         FirebaseMessaging.getInstance().token
             .addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    return@addOnCompleteListener
+                }
 
-            if (!task.isSuccessful) {
-                return@addOnCompleteListener
+                val token = task.result
+                val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@addOnCompleteListener
+
+                FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(userId)
+                    .set(
+                        mapOf("fcmToken" to token),
+                        com.google.firebase.firestore.SetOptions.merge()
+                    )
             }
-
-            val token = task.result
-            val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@addOnCompleteListener
-
-            val firestore = FirebaseFirestore.getInstance()
-
-            firestore.collection("users")
-                .document(uid)
-                .set(
-                    mapOf("fcmToken" to token),
-                    com.google.firebase.firestore.SetOptions.merge()
-                )
-        }
     }
 }

@@ -2,6 +2,7 @@ package com.example.ngdtechsupport.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -31,13 +32,19 @@ class AppDetailActivity : AppCompatActivity() {
         val btnChat = findViewById<Button>(R.id.btnChat)
         val btnUpdates = findViewById<Button>(R.id.btnUpdates)
 
-        val companyId = intent.getStringExtra("companyId") ?: return
-        val businessId = intent.getStringExtra("businessId") ?: return
+        val companyId = intent.getStringExtra("companyId") ?: "NGDStudios"
+        val businessId = intent.getStringExtra("businessId") ?: intent.getStringExtra("appId") ?: ""
+
+        if (businessId.isEmpty()) {
+            tvBusinessName.text = "Error: No se encontró el negocio"
+            btnChat.isEnabled = false
+            btnUpdates.isEnabled = false
+            return
+        }
 
         viewModel = ViewModelProvider(this)[AppDetailViewModel::class.java]
 
         viewModel.business.observe(this) { business ->
-
             tvBusinessName.text = business.name
             tvStatus.text = business.status
 
@@ -49,27 +56,27 @@ class AppDetailActivity : AppCompatActivity() {
             tvLastUpdate.text = "Última actualización: ${business.lastUpdate}"
         }
 
+        viewModel.error.observe(this) { error ->
+            if (error != null) {
+                tvBusinessName.text = "Error al cargar"
+                tvStatus.text = error
+            }
+        }
+
         viewModel.loadBusiness(companyId, businessId)
 
-        // Botón Chat
         btnChat.setOnClickListener {
-
             val intent = Intent(this, ChatActivity::class.java)
             intent.putExtra("companyId", companyId)
             intent.putExtra("businessId", businessId)
-
+            intent.putExtra("channelId", "private_admin_client")
             startActivity(intent)
         }
 
-        // Botón Updates
         btnUpdates.setOnClickListener {
-
             val intent = Intent(this, UpdatesActivity::class.java)
-
             intent.putExtra("companyId", companyId)
             intent.putExtra("businessId", businessId)
-            intent.putExtra("channelId", "private_admin_client")
-
             startActivity(intent)
         }
     }
