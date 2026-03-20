@@ -1,6 +1,7 @@
 package com.example.ngdtechsupport.ui.dashboard
 
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import android.widget.Button
 import android.content.Intent
@@ -83,6 +84,7 @@ class DashboardActivity : AppCompatActivity() {
 
             if (state.userRole.isNotEmpty()) {
                 roleTextView.text = "Rol: ${state.userRole}"
+                btnAiConfig.visibility = if (state.userRole == "ADMIN") View.VISIBLE else View.GONE
             }
 
             if (state.companyName.isNotEmpty()) {
@@ -138,6 +140,12 @@ class DashboardActivity : AppCompatActivity() {
                 adminUid = currentUserId,
                 memberUid = currentUserId
             )
+            
+            val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
+            intent.putExtra("companyId", currentCompanyId)
+            intent.putExtra("businessId", "")
+            intent.putExtra("channelId", channelId)
+            startActivity(intent)
         }
 
         channelViewModel.toastMessage.observe(this) { message ->

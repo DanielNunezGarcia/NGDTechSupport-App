@@ -121,12 +121,9 @@ class DashboardViewModel(
             "SOPORTE", "CLIENT" -> {
                 // SOPORTE y CLIENT → ven solo su negocio específico
                 if (companyId.isNotEmpty() && businessId.isNotEmpty()) {
-                    // Intentar obtener el negocio específico desde CompanyRepository
-                    val businesses = companyRepository.getBusinesses(companyId)
-                    val singleBusiness = businesses.find { it.id == businessId }
+                    val singleBusiness = companyRepository.getBusiness(companyId, businessId)
 
                     if (singleBusiness != null) {
-                        // Convertir BusinessModel a AppModel
                         listOf(
                             com.example.ngdtechsupport.model.AppModel(
                                 id = singleBusiness.id,
@@ -141,12 +138,10 @@ class DashboardViewModel(
                             )
                         )
                     } else {
-                        // Fallback: usar AppRepository
-                        appRepository.getSingleBusiness(companyId, businessId)
+                        emptyList()
                     }
                 } else {
-                    // Fallback: apps del usuario si no tiene companyId/businessId
-                    appRepository.getAppsForUser(uid)
+                    emptyList()
                 }
             }
             else -> {

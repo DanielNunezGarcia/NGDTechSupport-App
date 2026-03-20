@@ -214,10 +214,6 @@ class ChatActivity : AppCompatActivity() {
             replyToId = null,
             replyToText = null
         )
-        
-        binding.recyclerViewChat.postDelayed({
-            binding.recyclerViewChat.smoothScrollToPosition(adapter.itemCount)
-        }, 300)
     }
 
     private fun scrollToBottom() {

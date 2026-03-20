@@ -101,31 +101,33 @@ class UpdatesRepository {
         businessId: String,
         onResult: (List<UpdateModel>) -> Unit
     ) {
-
-        firestore.collection("companies")
+        val updatesRef = firestore.collection("companies")
             .document(companyId)
             .collection("businesses")
             .document(businessId)
             .collection("updates")
+
+        updatesRef
+            .orderBy("pinned", Query.Direction.DESCENDING)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    android.util.Log.e("UpdatesRepository", "Error: ${error.message}")
                     onResult(emptyList())
                     return@addSnapshotListener
                 }
 
-                val updates = snapshot?.documents?.map {
-
+                val updates = snapshot?.documents?.map { doc ->
                     UpdateModel(
-                        id = it.id,
-                        title = it.getString("title") ?: "",
-                        description = it.getString("description") ?: "",
-                        type = it.getString("type") ?: "",
-                        createdAt = it.getTimestamp("createdAt")
+                        id = doc.id,
+                        title = doc.getString("title") ?: "",
+                        description = doc.getString("description") ?: "",
+                        type = doc.getString("type") ?: "",
+                        version = doc.getString("version") ?: "",
+                        createdAt = doc.getTimestamp("createdAt")
                             ?.toDate()?.time ?: 0L,
-                        createdBy = it.getString("createdBy") ?: ""
+                        createdBy = doc.getString("createdBy") ?: ""
                     )
-
                 } ?: emptyList()
 
                 onResult(updates)

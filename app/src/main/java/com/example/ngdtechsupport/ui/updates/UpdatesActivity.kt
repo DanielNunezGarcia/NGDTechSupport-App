@@ -27,11 +27,13 @@ class UpdatesActivity : AppCompatActivity() {
         val companyId = intent.getStringExtra("companyId") ?: ""
         val businessId = intent.getStringExtra("businessId") ?: ""
 
-        if (companyId.isEmpty() || businessId.isEmpty()) {
-            Toast.makeText(this, "Error: Datos no disponibles", Toast.LENGTH_SHORT).show()
+        if (companyId.isEmpty()) {
+            Toast.makeText(this, "Error: CompanyId no disponible", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
+
+        val finalBusinessId = if (businessId.isEmpty()) "default" else businessId
 
         adapter = UpdatesAdapter { update ->
             Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
@@ -54,6 +56,6 @@ class UpdatesActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.listenUpdates(companyId, businessId)
+        viewModel.listenUpdates(companyId, finalBusinessId)
     }
 }
