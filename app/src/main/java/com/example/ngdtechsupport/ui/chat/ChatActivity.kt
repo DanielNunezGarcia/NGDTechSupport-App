@@ -14,12 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.Timestamp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 class ChatActivity : AppCompatActivity() {
 
@@ -33,7 +27,6 @@ class ChatActivity : AppCompatActivity() {
     private val chatViewModel: ChatViewModel by viewModels()
 
     private var replyMessage: ChatMessageModel? = null
-    private var isUserAtBottom = true
     
     private val typingHandler = Handler(Looper.getMainLooper())
     private var typingRunnable: Runnable? = null
@@ -69,10 +62,13 @@ class ChatActivity : AppCompatActivity() {
         chatViewModel.listenTyping(companyId, channelId)
 
         chatViewModel.messages.observe(this) { messages ->
-            adapter.submitMessages(messages)
-
-            if (messages.isNotEmpty()) {
-                binding.recyclerViewChat.scrollToPosition(messages.size - 1)
+            val itemCount = adapter.itemCount
+            adapter.submitMessages(messages) {
+                if (messages.isNotEmpty()) {
+                    binding.recyclerViewChat.post {
+                        binding.recyclerViewChat.smoothScrollToPosition(messages.size - 1)
+                    }
+                }
             }
         }
 
@@ -152,8 +148,7 @@ class ChatActivity : AppCompatActivity() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 val lastVisible = layoutManager.findLastVisibleItemPosition()
                 val total = layoutManager.itemCount
-                isUserAtBottom = lastVisible >= total - 2
-                if (isUserAtBottom) {
+                if (lastVisible >= total - 2) {
                     hideNewMessageIndicator()
                 }
             }
@@ -219,11 +214,15 @@ class ChatActivity : AppCompatActivity() {
             replyToId = null,
             replyToText = null
         )
+        
+        binding.recyclerViewChat.postDelayed({
+            binding.recyclerViewChat.smoothScrollToPosition(adapter.itemCount)
+        }, 300)
     }
 
     private fun scrollToBottom() {
         binding.recyclerViewChat.post {
-            binding.recyclerViewChat.scrollToPosition(adapter.itemCount - 1)
+            binding.recyclerViewChat.smoothScrollToPosition(adapter.itemCount - 1)
         }
         hideNewMessageIndicator()
     }

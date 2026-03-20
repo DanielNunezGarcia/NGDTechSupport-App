@@ -17,7 +17,7 @@ import java.util.*
 
 class ChatAdapter(
     private val currentUserId: String,
-    private val onLongClick: (ChatMessageModel) -> Unit
+    private val onLongClick: (ChatMessageModel) -> Unit = {}
 ) : ListAdapter<ChatItem, RecyclerView.ViewHolder>(ChatDiffCallback()) {
 
     companion object {
@@ -32,20 +32,15 @@ class ChatAdapter(
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int)
-            : RecyclerView.ViewHolder {
-
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return if (viewType == TYPE_MESSAGE) {
-
             val binding = ItemChatMessageBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
             )
             MessageViewHolder(binding)
-
         } else {
-
             val binding = ItemDateSeparatorBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
@@ -56,46 +51,40 @@ class ChatAdapter(
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-
         when (val item = getItem(position)) {
-
             is ChatItem.MessageItem -> {
                 (holder as MessageViewHolder).bind(item.message)
             }
-
             is ChatItem.DateSeparator -> {
-                (holder as DateViewHolder).binding.textViewDate.text = item.date
+                (holder as DateViewHolder).bind(item.date)
             }
         }
     }
 
-    override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
-        holder.itemView.alpha = 0f
-        holder.itemView.animate()
-            .alpha(1f)
-            .setDuration(200)
-            .start()
-    }
-
-    fun submitMessages(messages: List<ChatMessageModel>) {
+    fun submitMessages(
+        messages: List<ChatMessageModel>,
+        onSubmit: (() -> Unit)? = null
+    ) {
         val newItems = mutableListOf<ChatItem>()
         var lastDate: String? = null
 
-        messages.forEach { message ->
+        messages.forEach { msg ->
             val dateString = SimpleDateFormat(
                 "dd MMM yyyy",
                 Locale.getDefault()
-            ).format(message.timestamp?.toDate() ?: Date())
+            ).format(msg.timestamp?.toDate() ?: Date())
 
             if (dateString != lastDate) {
                 newItems.add(ChatItem.DateSeparator(dateString))
                 lastDate = dateString
             }
 
-            newItems.add(ChatItem.MessageItem(message))
+            newItems.add(ChatItem.MessageItem(msg))
         }
 
-        submitList(newItems)
+        submitList(newItems) {
+            onSubmit?.invoke()
+        }
     }
 
     inner class MessageViewHolder(
@@ -108,35 +97,29 @@ class ChatAdapter(
             val isAgentMessage = message.senderType == ChatMessageModel.SENDER_TYPE_AGENT
             val context = binding.root.context
 
-            // Mensaje texto
             binding.textViewMessage.text = message.message
 
-            // Diferenciación visual según tipo de remitente
             val layoutParams = binding.layoutBubble.layoutParams as ViewGroup.MarginLayoutParams
             
             when {
-                // Mensaje del usuario actual
                 isOwnMessage -> {
                     binding.layoutBubble.setBackgroundResource(R.drawable.bg_bubble_sent)
                     binding.layoutBubble.gravity = Gravity.END
                     layoutParams.marginStart = 100
                     layoutParams.marginEnd = 8
                 }
-                // Mensaje de IA
                 isAiMessage -> {
                     binding.layoutBubble.setBackgroundResource(R.drawable.bg_bubble_ai)
                     binding.layoutBubble.gravity = Gravity.START
                     layoutParams.marginStart = 8
                     layoutParams.marginEnd = 100
                 }
-                // Mensaje de agente humano
                 isAgentMessage -> {
                     binding.layoutBubble.setBackgroundResource(R.drawable.bg_bubble_agent)
                     binding.layoutBubble.gravity = Gravity.START
                     layoutParams.marginStart = 8
                     layoutParams.marginEnd = 100
                 }
-                // Otro usuario
                 else -> {
                     binding.layoutBubble.setBackgroundResource(R.drawable.bg_bubble_received)
                     binding.layoutBubble.gravity = Gravity.START
@@ -146,7 +129,6 @@ class ChatAdapter(
             }
             binding.layoutBubble.layoutParams = layoutParams
 
-            // Nombre del remitente según tipo
             when {
                 isAiMessage -> {
                     binding.textViewSender.visibility = View.VISIBLE
@@ -165,7 +147,6 @@ class ChatAdapter(
                 }
             }
 
-            // Preview de respuesta
             if (!message.replyToText.isNullOrEmpty()) {
                 binding.layoutReplyPreview.visibility = View.VISIBLE
                 binding.textViewReplyPreviewText.text = message.replyToText
@@ -174,13 +155,11 @@ class ChatAdapter(
                 binding.layoutReplyPreview.visibility = View.GONE
             }
 
-            // Hora del mensaje
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             val timeString = timeFormat.format(message.timestamp?.toDate() ?: Date())
             binding.textViewTime.text = timeString
             binding.textViewTime.visibility = View.VISIBLE
 
-            // Estado del mensaje (solo para mensajes propios)
             if (isOwnMessage) {
                 binding.textViewStatus.visibility = View.VISIBLE
                 binding.textViewStatus.text = when (message.status) {
@@ -205,7 +184,12 @@ class ChatAdapter(
 
     inner class DateViewHolder(
         val binding: ItemDateSeparatorBinding
-    ) : RecyclerView.ViewHolder(binding.root)
+    ) : RecyclerView.ViewHolder(binding.root) {
+        
+        fun bind(date: String) {
+            binding.textViewDate.text = date
+        }
+    }
 }
 
 class ChatDiffCallback : DiffUtil.ItemCallback<ChatItem>() {

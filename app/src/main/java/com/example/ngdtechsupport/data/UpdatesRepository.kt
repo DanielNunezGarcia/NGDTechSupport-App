@@ -107,9 +107,12 @@ class UpdatesRepository {
             .collection("businesses")
             .document(businessId)
             .collection("updates")
-            .orderBy("pinned", Query.Direction.DESCENDING)
             .orderBy("createdAt", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, _ ->
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    onResult(emptyList())
+                    return@addSnapshotListener
+                }
 
                 val updates = snapshot?.documents?.map {
 

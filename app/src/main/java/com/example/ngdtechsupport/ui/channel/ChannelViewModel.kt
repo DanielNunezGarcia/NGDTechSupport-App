@@ -1,12 +1,12 @@
 package com.example.ngdtechsupport.ui.channel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ngdtechsupport.data.model.ChannelModel
-import com.example.ngdtechsupport.domain.usecase.CreatePrivateChannelUseCase
 import com.example.ngdtechsupport.data.repository.ChannelRepository
 import kotlinx.coroutines.launch
 
@@ -19,18 +19,21 @@ class ChannelViewModel : ViewModel() {
 
     val visibleChannels = MediatorLiveData<List<ChannelModel>>()
 
-    // Callback para click en canal
     private val _channelClickEvent = MutableLiveData<ChannelModel?>()
     val channelClickEvent: LiveData<ChannelModel?> = _channelClickEvent
+
+    private val _toastMessage = MutableLiveData<String?>()
+    val toastMessage: LiveData<String?> = _toastMessage
+
+    fun clearToastMessage() {
+        _toastMessage.value = null
+    }
 
     init {
         visibleChannels.addSource(_channels) { list ->
             visibleChannels.value = list.filter { !it.isArchived }
         }
     }
-
-    private val createPrivateChannelUseCase =
-        CreatePrivateChannelUseCase(repository)
 
     fun loadChannels(companyId: String) {
         repository.listenChannels(companyId) { list ->
@@ -84,12 +87,17 @@ class ChannelViewModel : ViewModel() {
         memberUid: String
     ) {
         viewModelScope.launch {
-            createPrivateChannelUseCase(
+            val success = repository.createPrivateChannel(
                 companyId,
                 channelId,
                 adminUid,
                 memberUid
             )
+            if (success) {
+                _toastMessage.postValue("Canal privado creado")
+            } else {
+                _toastMessage.postValue("Error al crear canal")
+            }
         }
     }
 }
