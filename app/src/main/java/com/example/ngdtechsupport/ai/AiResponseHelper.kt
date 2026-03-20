@@ -5,7 +5,7 @@ object AiResponseHelper {
     const val USE_OPENAI = false
     
     fun getResponse(userMessage: String): String {
-        val message = userMessage.lowercase()
+        val message = userMessage.lowercase().trim()
         
         if (USE_OPENAI) {
             return "🔧 Integrando con OpenAI..."
@@ -21,15 +21,15 @@ object AiResponseHelper {
 Somos especialistas en desarrollo de apps móviles con IA y soporte técnico.
 ¿En qué puedo ayudarte hoy?"""
 
-            message.contains("estado") || message.contains("progreso") || message.contains("versión") ->
-                """Para consultar el estado de tu proyecto, necesito saber:
+            message.contains("estado") || message.contains("progreso") || message.contains("versión") || message.contains("consultar el estado") ->
+                """📊 Para consultar el estado de tu proyecto:
 - ¿Qué aplicación te gustaría consultar?
 - O escribe el nombre de tu proyecto
 
 Mientras tanto, ¿hay algo más en lo que pueda ayudarte?"""
 
-            message.contains("error") || message.contains("problema") || message.contains("bug") || message.contains("no funciona") ->
-                """Entiendo que tienes un problema. 😟
+            message.contains("error") || message.contains("problema") || message.contains("bug") || message.contains("no funciona") || message.contains("tengo un problema") ->
+                """😟 Entiendo que tienes un problema.
 Para ayudarte mejor, necesito saber:
 1. ¿Qué exactamente no funciona?
 2. ¿Qué mensaje de error aparece?
@@ -37,8 +37,8 @@ Para ayudarte mejor, necesito saber:
 
 Cuantos más detalles, más rápido podré ayudarte."""
 
-            message.contains("presupuesto") || message.contains("precio") || message.contains("coste") || message.contains("cuanto") ->
-                """Para solicitar un presupuesto, necesitamos:
+            message.contains("presupuesto") || message.contains("precio") || message.contains("coste") || message.contains("cuanto") || message.contains("solicitar") ->
+                """💰 Para solicitar un presupuesto, necesitamos:
 1. Tipo de proyecto (app móvil, web, ambos)
 2. Funcionalidades principales
 3. Plazo deseado
@@ -70,12 +70,12 @@ Atendemos a:
 
 Nuestro objetivo es hacer tecnología accesible para todos."""
 
-            message.contains("hablar con agente") || message.contains("persona") || message.contains("humano") ->
+            message.contains("hablar con agente") || message.contains("persona") || message.contains("humano") || message.contains("agente humano") ->
                 """👤 He transferido tu solicitud a nuestro equipo.
 
 Un agente humano te atenderá pronto.
 ¿Puedes darme más detalles sobre tu consulta?
-Así podremos ayudarte mejor cuando un agente tomes tu caso."""
+Así podremos ayudarte mejor."""
 
             message.contains("urgente") || message.contains("ahora") || message.contains("rápido") ->
                 """⚠️ Entiendo que es urgente.

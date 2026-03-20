@@ -19,16 +19,17 @@
     "Adapta la planificación según el contexto: desarrollo inicial, mantenimiento o soporte continuo."
   ],
   "agents": [
-    "arquitecto",
+    "supervisor",
+    "architect",
     "android_dev_01",
     "android_dev_02",
     "backend",
     "ui",
     "qa",
     "qa_tester",
-    "seguridad",
-    "rendimiento",
+    "security",
+    "performance",
     "devops",
-    "documentacion"
+    "documentation"
   ]
 }
