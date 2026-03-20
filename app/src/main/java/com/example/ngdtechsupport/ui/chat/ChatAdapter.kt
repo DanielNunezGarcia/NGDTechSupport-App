@@ -167,11 +167,11 @@ class ChatAdapter(
 
             // Preview de respuesta
             if (!message.replyToText.isNullOrEmpty()) {
-                binding.textViewReplyPreview.visibility = View.VISIBLE
-                binding.textViewReplyPreview.text = message.replyToText
+                binding.layoutReplyPreview.visibility = View.VISIBLE
+                binding.textViewReplyPreviewText.text = message.replyToText
                 binding.textViewReplyUser.text = message.replyToUserName ?: ""
             } else {
-                binding.textViewReplyPreview.visibility = View.GONE
+                binding.layoutReplyPreview.visibility = View.GONE
             }
 
             // Hora del mensaje

@@ -181,7 +181,7 @@ class ChatActivity : AppCompatActivity() {
             chatViewModel.setTyping(companyId, channelId, false)
             typingRunnable?.let { typingHandler.removeCallbacks(it) }
 
-            binding.editTextMessage.text.clear()
+            binding.editTextMessage.text?.clear()
             replyMessage = null
             binding.layoutReplyPreview.visibility = View.GONE
         }

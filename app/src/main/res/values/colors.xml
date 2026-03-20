@@ -8,10 +8,20 @@
     <color name="status_default">#616161</color>
     
     <!-- Chat colors -->
-    <color name="bubble_sent">#5B4B8A</color>
-    <color name="bubble_received">#E0E0E0</color>
+    <color name="bubble_sent">#4CAF50</color>
+    <color name="bubble_received">#F5F5F5</color>
+    <color name="bubble_ai">#9C27B0</color>
+    <color name="bubble_agent">#2196F3</color>
+    
     <color name="text_bubble_sent">#FFFFFF</color>
     <color name="text_bubble_received">#212121</color>
+    <color name="text_sender">#757575</color>
+    <color name="text_time">#9E9E9E</color>
+    
     <color name="status_read">#4FC3F7</color>
     <color name="status_delivered">#9E9E9E</color>
+    
+    <color name="chat_background">#FAFAFA</color>
+    <color name="input_background">#FFFFFF</color>
+    <color name="reply_preview">#E3F2FD</color>
 </resources>

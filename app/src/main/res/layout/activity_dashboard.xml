@@ -90,8 +90,10 @@
 
     <Button
         android:id="@+id/btnCreatePrivateChannel"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Crear Canal Privado"/>
+        android:text="Crear Canal Privado"
+        android:backgroundTint="#2196F3"
+        android:layout_marginTop="8dp"/>
 
 </LinearLayout>

@@ -2,21 +2,24 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:paddingHorizontal="8dp"
+    android:paddingVertical="4dp">
 
     <LinearLayout
         android:id="@+id/layoutBubble"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:maxWidth="280dp">
 
         <TextView
             android:id="@+id/textViewSender"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="13sp"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:textColor="#CCCCCC"
+            android:textColor="@color/text_sender"
+            android:layout_marginBottom="2dp"
             android:visibility="gone"/>
 
         <LinearLayout
@@ -24,8 +27,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#E3F2FD"
+            android:background="@color/reply_preview"
             android:padding="6dp"
+            android:layout_marginBottom="4dp"
             android:visibility="gone">
 
             <TextView
@@ -33,13 +37,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
-                android:textSize="12sp"/>
+                android:textSize="11sp"
+                android:textColor="#1565C0"/>
 
             <TextView
-                android:id="@+id/textViewReplyPreview"
+                android:id="@+id/textViewReplyPreviewText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"/>
+                android:textSize="12sp"
+                android:textColor="#424242"/>
         </LinearLayout>
 
         <TextView
@@ -47,32 +53,32 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="12dp"
-            android:textColor="@android:color/white"
-            android:textSize="16sp"/>
+            android:textColor="@color/text_bubble_sent"
+            android:textSize="15sp"
+            android:lineSpacingExtra="2dp"/>
 
-        <TextView
-            android:id="@+id/textViewReply"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:textSize="12sp"
-            android:textColor="#555555"
-            android:visibility="gone"/>
+            android:orientation="horizontal"
+            android:layout_gravity="end"
+            android:layout_marginTop="2dp">
 
-        <TextView
-            android:id="@+id/textViewTime"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="12sp"
-            android:textColor="#DDDDDD"
-            android:layout_marginTop="4dp"/>
+            <TextView
+                android:id="@+id/textViewTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="11sp"
+                android:textColor="@color/text_time"/>
 
-        <TextView
-            android:id="@+id/textViewStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:textColor="#4CAF50"/>
+            <TextView
+                android:id="@+id/textViewStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="11sp"
+                android:textColor="@color/status_read"
+                android:layout_marginStart="4dp"/>
+        </LinearLayout>
 
     </LinearLayout>
 
