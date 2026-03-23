@@ -42,21 +42,29 @@ class ChannelActivity : AppCompatActivity() {
             recyclerView.adapter = adapter
 
             viewModel.visibleChannels.observe(this) { list ->
-                Log.d("ChannelActivity", "Visible channels updated: ${list.size}")
-                adapter.submitList(list)
+                try {
+                    Log.d("ChannelActivity", "Visible channels updated: ${list.size}")
+                    adapter.submitList(list)
+                } catch (e: Exception) {
+                    Log.e("ChannelActivity", "Error in visibleChannels observer", e)
+                }
             }
 
             // Observar eventos de click
             viewModel.channelClickEvent.observe(this) { channel ->
-                channel?.let {
-                    Log.d("ChannelActivity", "Channel clicked: ${it.id}")
-                    val intent = Intent(this, ChatActivity::class.java).apply {
-                        putExtra("companyId", companyId)
-                        putExtra("businessId", it.id)
-                        putExtra("channelId", it.id)
+                try {
+                    channel?.let {
+                        Log.d("ChannelActivity", "Channel clicked: ${it.id}")
+                        val intent = Intent(this, ChatActivity::class.java).apply {
+                            putExtra("companyId", companyId)
+                            putExtra("businessId", it.id)
+                            putExtra("channelId", it.id)
+                        }
+                        startActivity(intent)
+                        viewModel.clearChannelClickEvent()
                     }
-                    startActivity(intent)
-                    viewModel.clearChannelClickEvent()
+                } catch (e: Exception) {
+                    Log.e("ChannelActivity", "Error in channelClickEvent observer", e)
                 }
             }
 

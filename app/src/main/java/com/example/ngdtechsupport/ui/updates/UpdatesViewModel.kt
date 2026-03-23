@@ -6,24 +6,30 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ngdtechsupport.model.UpdateModel
 import com.example.ngdtechsupport.data.UpdatesRepository
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
 
 class UpdatesViewModel : ViewModel() {
 
     private val repository = UpdatesRepository()
+    private var listenerRegistration: ListenerRegistration? = null
 
-    private val _updates = MutableLiveData<List<UpdateModel>>()
+    private val _updates = MutableLiveData<List<UpdateModel>>(emptyList())
     val updates: LiveData<List<UpdateModel>> = _updates
 
     fun listenUpdates(
         companyId: String,
         businessId: String,
     ) {
-
-        repository.listenUpdates(companyId, businessId) {
-
+        listenerRegistration?.remove()
+        listenerRegistration = repository.listenUpdates(companyId, businessId) {
             _updates.value = it
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        listenerRegistration?.remove()
     }
 
     fun createUpdate(
@@ -51,11 +57,13 @@ class UpdatesViewModel : ViewModel() {
     }
 
     fun markUpdatesRead(userId: String) {
-
+        android.util.Log.d("UpdatesViewModel", "markUpdatesRead called for userId: $userId")
         viewModelScope.launch {
-
-            repository.markUpdatesAsRead(userId)
-
+            try {
+                repository.markUpdatesAsRead(userId)
+            } catch (e: Exception) {
+                android.util.Log.e("UpdatesViewModel", "Error marking updates as read", e)
+            }
         }
     }
 }

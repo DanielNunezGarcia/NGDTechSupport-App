@@ -31,40 +31,48 @@ class LoginActivity : AppCompatActivity() {
         val errorText = findViewById<TextView?>(R.id.tvError)
 
         viewModel.uiState.observe(this, Observer { state ->
-            when (state) {
-                is LoginUiState.Idle -> {
-                    progressBar?.visibility = View.GONE
-                    errorText?.visibility = View.GONE
-                    loginBtn.isEnabled = true
-                }
-                is LoginUiState.Loading -> {
-                    progressBar?.visibility = View.VISIBLE
-                    errorText?.visibility = View.GONE
-                    loginBtn.isEnabled = false
-                }
-                is LoginUiState.Success -> {
-                    progressBar?.visibility = View.GONE
-                    errorText?.visibility = View.GONE
-                    loginBtn.isEnabled = true
+            try {
+                when (state) {
+                    is LoginUiState.Idle -> {
+                        progressBar?.visibility = View.GONE
+                        errorText?.visibility = View.GONE
+                        loginBtn.isEnabled = true
+                    }
+                    is LoginUiState.Loading -> {
+                        progressBar?.visibility = View.VISIBLE
+                        errorText?.visibility = View.GONE
+                        loginBtn.isEnabled = false
+                    }
+                    is LoginUiState.Success -> {
+                        progressBar?.visibility = View.GONE
+                        errorText?.visibility = View.GONE
+                        loginBtn.isEnabled = true
 
-                    startActivity(Intent(this, DashboardActivity::class.java))
-                    finish()
-                }
-                is LoginUiState.Error -> {
-                    progressBar?.visibility = View.GONE
-                    loginBtn.isEnabled = true
-                    errorText?.apply {
-                        visibility = View.VISIBLE
-                        text = state.message
+                        startActivity(Intent(this, DashboardActivity::class.java))
+                        finish()
+                    }
+                    is LoginUiState.Error -> {
+                        progressBar?.visibility = View.GONE
+                        loginBtn.isEnabled = true
+                        errorText?.apply {
+                            visibility = View.VISIBLE
+                            text = state.message
+                        }
                     }
                 }
+            } catch (e: Exception) {
+                android.util.Log.e("LoginActivity", "Error in uiState observer", e)
             }
         })
 
         loginBtn.setOnClickListener {
-            val userEmail = email.text.toString()
-            val userPassword = password.text.toString()
-            viewModel.login(userEmail, userPassword)
+            try {
+                val userEmail = email.text.toString()
+                val userPassword = password.text.toString()
+                viewModel.login(userEmail, userPassword)
+            } catch (e: Exception) {
+                android.util.Log.e("LoginActivity", "Error in login button click", e)
+            }
         }
     }
 }

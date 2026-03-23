@@ -36,7 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:weightSum="2"
+        android:weightSum="3"
         android:paddingBottom="8dp">
 
         <Button
@@ -53,6 +53,14 @@
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:text="Updates" />
+
+        <Button
+            android:id="@+id/btnChannels"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="Canales" />
     </LinearLayout>
 
     <!-- Botón Config IA (solo para ADMIN) -->

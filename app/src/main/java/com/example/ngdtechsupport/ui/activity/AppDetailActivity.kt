@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import android.util.Log
 
 class AppDetailActivity : AppCompatActivity() {
 
@@ -30,71 +31,100 @@ class AppDetailActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_app_detail)
 
-        val tvBusinessName = findViewById<TextView>(R.id.tvBusinessName)
-        val tvStatus = findViewById<TextView>(R.id.tvStatus)
-        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
-        val tvProgress = findViewById<TextView>(R.id.tvProgress)
-        val tvVersion = findViewById<TextView>(R.id.tvVersion)
-        val tvSupportType = findViewById<TextView>(R.id.tvSupportType)
-        val tvLastUpdate = findViewById<TextView>(R.id.tvLastUpdate)
+        try {
+            val tvBusinessName = findViewById<TextView>(R.id.tvBusinessName)
+            val tvStatus = findViewById<TextView>(R.id.tvStatus)
+            val progressBar = findViewById<ProgressBar>(R.id.progressBar)
+            val tvProgress = findViewById<TextView>(R.id.tvProgress)
+            val tvVersion = findViewById<TextView>(R.id.tvVersion)
+            val tvSupportType = findViewById<TextView>(R.id.tvSupportType)
+            val tvLastUpdate = findViewById<TextView>(R.id.tvLastUpdate)
 
-        val btnChat = findViewById<Button>(R.id.btnChat)
-        val btnUpdates = findViewById<Button>(R.id.btnUpdates)
+            val btnChat = findViewById<Button>(R.id.btnChat)
+            val btnUpdates = findViewById<Button>(R.id.btnUpdates)
 
-        val companyId = intent.getStringExtra("companyId") ?: "NGDStudios"
-        val businessId = intent.getStringExtra("businessId") ?: intent.getStringExtra("appId") ?: ""
+            val companyId = intent.getStringExtra("companyId") ?: "NGDStudios"
+            val businessId = intent.getStringExtra("businessId") ?: intent.getStringExtra("appId") ?: ""
 
-        if (businessId.isEmpty()) {
-            tvBusinessName.text = "Error: No se encontró el negocio"
-            btnChat.isEnabled = false
-            btnUpdates.isEnabled = false
-            return
-        }
-
-        viewModel = ViewModelProvider(this)[AppDetailViewModel::class.java]
-
-        viewModel.business.observe(this) { business ->
-            tvBusinessName.text = business.name
-            tvStatus.text = business.status
-
-            progressBar.progress = business.progress
-            tvProgress.text = "${business.progress}%"
-
-            tvVersion.text = "Versión: ${business.version}"
-            tvSupportType.text = "Soporte: ${business.supportType}"
-            tvLastUpdate.text = "Última actualización: ${business.lastUpdate}"
-        }
-
-        viewModel.error.observe(this) { error ->
-            if (error != null) {
-                tvBusinessName.text = "Error al cargar"
-                tvStatus.text = error
+            if (businessId.isEmpty()) {
+                tvBusinessName.text = "Error: No se encontró el negocio"
+                btnChat.isEnabled = false
+                btnUpdates.isEnabled = false
+                return
             }
-        }
 
-        viewModel.loadBusiness(companyId, businessId)
+            viewModel = ViewModelProvider(this)[AppDetailViewModel::class.java]
 
-        val channelId = "${businessId}_support"
+            viewModel.business.observe(this) { business ->
+                try {
+                    tvBusinessName.text = business.name
+                    tvStatus.text = business.status
 
-        btnChat.setOnClickListener {
-            ensureChannelExists(companyId, channelId) { success ->
-                if (success) {
-                    val intent = Intent(this, ChatActivity::class.java)
-                    intent.putExtra("companyId", companyId)
-                    intent.putExtra("businessId", businessId)
-                    intent.putExtra("channelId", channelId)
-                    startActivity(intent)
-                } else {
-                    Toast.makeText(this, "Error al abrir chat", Toast.LENGTH_SHORT).show()
+                    progressBar.progress = business.progress
+                    tvProgress.text = "${business.progress}%"
+
+                    tvVersion.text = "Versión: ${business.version}"
+                    tvSupportType.text = "Soporte: ${business.supportType}"
+                    tvLastUpdate.text = "Última actualización: ${business.lastUpdate}"
+                } catch (e: Exception) {
+                    Log.e("AppDetailActivity", "Error in business observer", e)
                 }
             }
-        }
 
-        btnUpdates.setOnClickListener {
-            val intent = Intent(this, UpdatesActivity::class.java)
-            intent.putExtra("companyId", companyId)
-            intent.putExtra("businessId", businessId)
-            startActivity(intent)
+            viewModel.error.observe(this) { error ->
+                try {
+                    if (error != null) {
+                        tvBusinessName.text = "Error al cargar"
+                        tvStatus.text = error
+                    }
+                } catch (e: Exception) {
+                    Log.e("AppDetailActivity", "Error in error observer", e)
+                }
+            }
+
+            viewModel.loadBusiness(companyId, businessId)
+
+            val channelId = "${businessId}_support"
+
+            btnChat.setOnClickListener {
+                try {
+                    ensureChannelExists(companyId, channelId) { success ->
+                        try {
+                            if (success) {
+                                val intent = Intent(this, ChatActivity::class.java)
+                                intent.putExtra("companyId", companyId)
+                                intent.putExtra("businessId", businessId)
+                                intent.putExtra("channelId", channelId)
+                                startActivity(intent)
+                            } else {
+                                Toast.makeText(this, "Error al abrir chat", Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: Exception) {
+                            Log.e("AppDetailActivity", "Error in chat callback", e)
+                            Toast.makeText(this, "Error al iniciar chat", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("AppDetailActivity", "Error starting channel creation", e)
+                    Toast.makeText(this, "Error al crear canal", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            btnUpdates.setOnClickListener {
+                try {
+                    val intent = Intent(this, UpdatesActivity::class.java)
+                    intent.putExtra("companyId", companyId)
+                    intent.putExtra("businessId", businessId)
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Log.e("AppDetailActivity", "Error opening updates", e)
+                    Toast.makeText(this, "Error al abrir novedades", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("AppDetailActivity", "Error in onCreate", e)
+            Toast.makeText(this, "Error al cargar detalles", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
 

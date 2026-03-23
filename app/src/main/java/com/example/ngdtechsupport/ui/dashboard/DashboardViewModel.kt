@@ -150,8 +150,29 @@ class DashboardViewModel(
                         Log.d("DashboardViewModel", "Created AppModel: $appModel")
                         listOf(appModel)
                     } else {
-                        Log.e("DashboardViewModel", "getBusiness returned null")
-                        emptyList()
+                        Log.e("DashboardViewModel", "getBusiness returned null for companyId=$companyId, businessId=$businessId. Trying fallback via getBusinesses...")
+                        // Fallback: obtener todos los negocios de la compañía y filtrar por businessId
+                        val allBusinesses = companyRepository.getBusinesses(companyId)
+                        Log.d("DashboardViewModel", "Fallback: found ${allBusinesses.size} businesses for company $companyId")
+                        val filteredBusiness = allBusinesses.find { it.id == businessId }
+                        if (filteredBusiness != null) {
+                            Log.d("DashboardViewModel", "Fallback found business: $filteredBusiness")
+                            val appModel = com.example.ngdtechsupport.model.AppModel(
+                                id = filteredBusiness.id,
+                                name = filteredBusiness.name,
+                                clientId = uid,
+                                status = filteredBusiness.status,
+                                progress = filteredBusiness.progress,
+                                version = filteredBusiness.version,
+                                supportType = filteredBusiness.supportType,
+                                lastUpdate = filteredBusiness.lastUpdate,
+                                companyId = companyId
+                            )
+                            listOf(appModel)
+                        } else {
+                            Log.e("DashboardViewModel", "Fallback: business $businessId not found in company $companyId")
+                            emptyList()
+                        }
                     }
                 } else {
                     Log.e("DashboardViewModel", "companyId or businessId is empty")

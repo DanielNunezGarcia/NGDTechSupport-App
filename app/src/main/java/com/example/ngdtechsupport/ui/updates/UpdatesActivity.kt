@@ -52,6 +52,7 @@ class UpdatesActivity : AppCompatActivity() {
             android.util.Log.d("UpdatesActivity", "finalBusinessId: $finalBusinessId")
 
             adapter = UpdatesAdapter { update ->
+                android.util.Log.d("UpdatesActivity", "Update clicked: ${update.id} - ${update.title}")
                 Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
             }
 
@@ -59,12 +60,17 @@ class UpdatesActivity : AppCompatActivity() {
             binding.recyclerUpdates.adapter = adapter
 
             val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+            android.util.Log.d("UpdatesActivity", "currentUserId: $currentUserId")
             if (currentUserId.isNotEmpty()) {
                 viewModel.markUpdatesRead(currentUserId)
             }
 
             viewModel.updates.observe(this) { updates ->
                 try {
+                    android.util.Log.d("UpdatesActivity", "Updates received: ${updates.size}")
+                    updates.forEach { update ->
+                        android.util.Log.d("UpdatesActivity", "Update: ${update.id} - ${update.title}")
+                    }
                     if (updates.isEmpty()) {
                         binding.tvEmpty.visibility = View.VISIBLE
                         binding.recyclerUpdates.visibility = View.GONE
@@ -78,7 +84,19 @@ class UpdatesActivity : AppCompatActivity() {
                 }
             }
 
+            android.util.Log.d("UpdatesActivity", "Calling viewModel.listenUpdates")
             viewModel.listenUpdates(companyId, finalBusinessId)
+
+            binding.btnNewUpdate.setOnClickListener {
+                android.util.Log.d("UpdatesActivity", "btnNewUpdate clicked")
+                val intent = android.content.Intent(this, CreateUpdatesActivity::class.java)
+                intent.putExtra("companyId", companyId)
+                intent.putExtra("businessId", finalBusinessId)
+                startActivity(intent)
+            }
+
+            // TODO: Mostrar botón solo si es admin
+            // binding.btnNewUpdate.visibility = View.VISIBLE
         } catch (e: Exception) {
             android.util.Log.e("UpdatesActivity", "Error in onCreate", e)
             Toast.makeText(this, "Error al cargar novedades", Toast.LENGTH_SHORT).show()

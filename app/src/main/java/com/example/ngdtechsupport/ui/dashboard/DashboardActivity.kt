@@ -16,6 +16,7 @@ import androidx.activity.viewModels
 import androidx.lifecycle.Observer
 
 import com.example.ngdtechsupport.ui.channel.ChannelViewModel
+import com.example.ngdtechsupport.ui.channel.ChannelActivity
 import com.example.ngdtechsupport.ui.auth.LoginActivity
 import com.example.ngdtechsupport.R
 
@@ -53,77 +54,90 @@ class DashboardActivity : AppCompatActivity() {
         channelViewModel = ChannelViewModel()
         
         channelViewModel.privateChannelCreated.observe(this, Observer { success ->
-            if (success) {
-                val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
-                intent.putExtra("companyId", currentCompanyId)
-                intent.putExtra("businessId", "")
-                intent.putExtra("channelId", currentPrivateChannelId)
-                startActivity(intent)
-            } else {
-                Log.e("DashboardActivity", "Failed to create private channel")
+            try {
+                if (success) {
+                    val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
+                    intent.putExtra("companyId", currentCompanyId)
+                    intent.putExtra("businessId", "")
+                    intent.putExtra("channelId", currentPrivateChannelId)
+                    startActivity(intent)
+                } else {
+                    Log.e("DashboardActivity", "Failed to create private channel")
+                }
+            } catch (e: Exception) {
+                Log.e("DashboardActivity", "Error in privateChannelCreated observer", e)
             }
         })
 
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         adapter = AppAdapter(emptyList()) { app, companyId ->
-            val intent = Intent(
-                this,
-                com.example.ngdtechsupport.ui.activity.AppDetailActivity::class.java
-            )
-            intent.putExtra("appId", app.id)
-            intent.putExtra("companyId", companyId)
-            intent.putExtra("businessId", app.id)
-            startActivity(intent)
+            try {
+                val intent = Intent(
+                    this,
+                    com.example.ngdtechsupport.ui.activity.AppDetailActivity::class.java
+                )
+                intent.putExtra("appId", app.id)
+                intent.putExtra("companyId", companyId)
+                intent.putExtra("businessId", app.id)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("DashboardActivity", "Error opening app detail", e)
+            }
         }
         recyclerView.adapter = adapter
 
         val btnChatGlobal = findViewById<Button>(R.id.btnChat)
         val btnUpdatesGlobal = findViewById<Button>(R.id.btnUpdates)
+        val btnChannels = findViewById<Button>(R.id.btnChannels)
         val btnAiConfig = findViewById<Button>(R.id.btnAiConfig)
         val btnCreatePrivateChannel = findViewById<Button>(R.id.btnCreatePrivateChannel)
 
         btnAiConfig.visibility = View.GONE
 
         viewModel.uiState.observe(this) { state ->
-            Log.d("DashboardActivity", "UI State: isLoading=${state.isLoading}, hasError=${state.hasError}, isEmpty=${state.isEmpty}, isSuccess=${state.isSuccess}")
-            Log.d("DashboardActivity", "Apps count: ${state.apps.size}")
-            if (state.apps.isNotEmpty()) {
-                Log.d("DashboardActivity", "First app: ${state.apps.first()}")
-            }
-            if (state.isLoading) {
-                textView.text = "Cargando..."
-                adapter.updateApps(emptyList())
-            } else if (state.hasError) {
-                textView.text = state.errorMessage ?: "Error desconocido"
-                adapter.updateApps(emptyList())
-            } else if (state.isEmpty) {
-                textView.text = "No tienes apps asignadas"
-                adapter.updateApps(emptyList())
-            } else if (state.isSuccess) {
-                textView.text = "Tus aplicaciones:"
-                adapter.updateApps(state.apps)
-            }
+            try {
+                Log.d("DashboardActivity", "UI State: isLoading=${state.isLoading}, hasError=${state.hasError}, isEmpty=${state.isEmpty}, isSuccess=${state.isSuccess}")
+                Log.d("DashboardActivity", "Apps count: ${state.apps.size}")
+                if (state.apps.isNotEmpty()) {
+                    Log.d("DashboardActivity", "First app: ${state.apps.first()}")
+                }
+                if (state.isLoading) {
+                    textView.text = "Cargando..."
+                    adapter.updateApps(emptyList())
+                } else if (state.hasError) {
+                    textView.text = state.errorMessage ?: "Error desconocido"
+                    adapter.updateApps(emptyList())
+                } else if (state.isEmpty) {
+                    textView.text = "No tienes apps asignadas"
+                    adapter.updateApps(emptyList())
+                } else if (state.isSuccess) {
+                    textView.text = "Tus aplicaciones:"
+                    adapter.updateApps(state.apps)
+                }
 
-            if (state.userRole.isNotEmpty()) {
-                roleTextView.text = "Rol: ${state.userRole}"
-                btnAiConfig.visibility = if (state.userRole == "ADMIN") View.VISIBLE else View.GONE
-            }
+                if (state.userRole.isNotEmpty()) {
+                    roleTextView.text = "Rol: ${state.userRole}"
+                    btnAiConfig.visibility = if (state.userRole == "ADMIN") View.VISIBLE else View.GONE
+                }
 
-            if (state.companyName.isNotEmpty()) {
-                userInfoTextView.text = "${state.userName} - ${state.companyName}"
-            } else if (state.userName.isNotEmpty()) {
-                userInfoTextView.text = state.userName
-            }
+                if (state.companyName.isNotEmpty()) {
+                    userInfoTextView.text = "${state.userName} - ${state.companyName}"
+                } else if (state.userName.isNotEmpty()) {
+                    userInfoTextView.text = state.userName
+                }
 
-            currentCompanyId = state.companyId
-            Log.d("DashboardActivity", "currentCompanyId: $currentCompanyId")
-            if (state.apps.isNotEmpty()) {
-                currentBusinessId = state.apps.first().id
-                Log.d("DashboardActivity", "currentBusinessId set to first app id: $currentBusinessId")
-            } else {
-                currentBusinessId = state.businessId
-                Log.d("DashboardActivity", "No apps, currentBusinessId set to state.businessId: $currentBusinessId")
+                currentCompanyId = state.companyId
+                Log.d("DashboardActivity", "currentCompanyId: $currentCompanyId")
+                if (state.apps.isNotEmpty()) {
+                    currentBusinessId = state.apps.first().id
+                    Log.d("DashboardActivity", "currentBusinessId set to first app id: $currentBusinessId")
+                } else {
+                    currentBusinessId = state.businessId
+                    Log.d("DashboardActivity", "No apps, currentBusinessId set to state.businessId: $currentBusinessId")
+                }
+            } catch (e: Exception) {
+                Log.e("DashboardActivity", "Error in UI observer", e)
             }
         }
 
@@ -168,9 +182,22 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         btnAiConfig.setOnClickListener {
-            val intent = Intent(this, com.example.ngdtechsupport.ui.admin.AiConfigActivity::class.java)
-            intent.putExtra("companyId", currentCompanyId.ifEmpty { "NGDStudios" })
-            startActivity(intent)
+            try {
+                val intent = Intent(this, com.example.ngdtechsupport.ui.admin.AiConfigActivity::class.java)
+                intent.putExtra("companyId", currentCompanyId.ifEmpty { "NGDStudios" })
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("DashboardActivity", "Error opening AI config", e)
+            }
+        }
+
+        btnChannels.setOnClickListener {
+            try {
+                val intent = Intent(this, ChannelActivity::class.java)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("DashboardActivity", "Error opening channels", e)
+            }
         }
 
         btnCreatePrivateChannel.setOnClickListener {
@@ -199,28 +226,36 @@ class DashboardActivity : AppCompatActivity() {
         viewModel.loadAppsForCurrentUser()
 
         logoutButton.setOnClickListener {
-            FirebaseAuth.getInstance().signOut()
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+            try {
+                FirebaseAuth.getInstance().signOut()
+                val intent = Intent(this, LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("DashboardActivity", "Error during logout", e)
+            }
         }
 
         FirebaseMessaging.getInstance().token
             .addOnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    return@addOnCompleteListener
+                try {
+                    if (!task.isSuccessful) {
+                        return@addOnCompleteListener
+                    }
+
+                    val token = task.result
+                    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@addOnCompleteListener
+
+                    FirebaseFirestore.getInstance()
+                        .collection("users")
+                        .document(userId)
+                        .set(
+                            mapOf("fcmToken" to token),
+                            com.google.firebase.firestore.SetOptions.merge()
+                        )
+                } catch (e: Exception) {
+                    Log.e("DashboardActivity", "Error saving FCM token", e)
                 }
-
-                val token = task.result
-                val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@addOnCompleteListener
-
-                FirebaseFirestore.getInstance()
-                    .collection("users")
-                    .document(userId)
-                    .set(
-                        mapOf("fcmToken" to token),
-                        com.google.firebase.firestore.SetOptions.merge()
-                    )
             }
     }
 }

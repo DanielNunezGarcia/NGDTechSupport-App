@@ -14,16 +14,22 @@ class AiConfigActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAiConfigBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        try {
+            binding = ActivityAiConfigBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        setupToolbar()
+            setupToolbar()
 
-        val companyId = intent.getStringExtra("companyId") ?: "NGDStudios"
+            val companyId = intent.getStringExtra("companyId") ?: "NGDStudios"
 
-        loadConfig(companyId)
-        setupSaveButton(companyId)
-        observeViewModel()
+            loadConfig(companyId)
+            setupSaveButton(companyId)
+            observeViewModel()
+        } catch (e: Exception) {
+            android.util.Log.e("AiConfigActivity", "Error in onCreate", e)
+            Toast.makeText(this, "Error al cargar configuración", Toast.LENGTH_SHORT).show()
+            finish()
+        }
     }
 
     private fun setupToolbar() {
@@ -38,72 +44,109 @@ class AiConfigActivity : AppCompatActivity() {
 
     private fun setupSaveButton(companyId: String) {
         binding.btnSave.setOnClickListener {
-            val welcomeMessages = binding.etWelcomeMessages.text.toString()
-                .split("\n")
-                .filter { it.isNotBlank() }
+            try {
+                val welcomeMessages = binding.etWelcomeMessages.text.toString()
+                    .split("\n")
+                    .filter { it.isNotBlank() }
 
-            val quickReplies = binding.etQuickReplies.text.toString()
-                .split("\n")
-                .filter { it.isNotBlank() }
+                val quickReplies = binding.etQuickReplies.text.toString()
+                    .split("\n")
+                    .filter { it.isNotBlank() }
 
-            val escalationKeywords = binding.etEscalationKeywords.text.toString()
-                .split("\n")
-                .filter { it.isNotBlank() }
+                val escalationKeywords = binding.etEscalationKeywords.text.toString()
+                    .split("\n")
+                    .filter { it.isNotBlank() }
 
-            viewModel.setAiEnabled(binding.switchAiEnabled.isChecked)
-            viewModel.setAutoGreeting(binding.switchAutoWelcome.isChecked)
-            viewModel.setAutoTransferEnabled(binding.switchAutoEscalation.isChecked)
-            viewModel.setGreetingMessages(welcomeMessages)
-            viewModel.setQuickReplies(quickReplies)
-            viewModel.setEscalationKeywords(escalationKeywords)
-            viewModel.setFallbackMessage(binding.etFallbackMessage.text.toString())
+                viewModel.setAiEnabled(binding.switchAiEnabled.isChecked)
+                viewModel.setAutoGreeting(binding.switchAutoWelcome.isChecked)
+                viewModel.setAutoTransferEnabled(binding.switchAutoEscalation.isChecked)
+                viewModel.setGreetingMessages(welcomeMessages)
+                viewModel.setQuickReplies(quickReplies)
+                viewModel.setEscalationKeywords(escalationKeywords)
+                viewModel.setFallbackMessage(binding.etFallbackMessage.text.toString())
 
-            viewModel.saveConfig(companyId)
+                viewModel.saveConfig(companyId)
+            } catch (e: Exception) {
+                android.util.Log.e("AiConfigActivity", "Error in save button click", e)
+                Toast.makeText(this, "Error al guardar configuración", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
     private fun observeViewModel() {
         viewModel.uiState.observe(this) { state ->
-            when (state) {
-                is AiConfigViewModel.UiState.Loading -> {
-                    binding.btnSave.isEnabled = false
+            try {
+                when (state) {
+                    is AiConfigViewModel.UiState.Loading -> {
+                        binding.btnSave.isEnabled = false
+                    }
+                    is AiConfigViewModel.UiState.Success -> {
+                        binding.btnSave.isEnabled = true
+                    }
+                    is AiConfigViewModel.UiState.Error -> {
+                        binding.btnSave.isEnabled = true
+                        Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
+                    }
                 }
-                is AiConfigViewModel.UiState.Success -> {
-                    binding.btnSave.isEnabled = true
-                }
-                is AiConfigViewModel.UiState.Error -> {
-                    binding.btnSave.isEnabled = true
-                    Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
-                }
+            } catch (e: Exception) {
+                android.util.Log.e("AiConfigActivity", "Error in uiState observer", e)
             }
         }
 
         viewModel.aiEnabled.observe(this) { enabled ->
-            binding.switchAiEnabled.isChecked = enabled
+            try {
+                binding.switchAiEnabled.isChecked = enabled
+            } catch (e: Exception) {
+                android.util.Log.e("AiConfigActivity", "Error in aiEnabled observer", e)
+            }
         }
 
         viewModel.autoGreeting.observe(this) { enabled ->
-            binding.switchAutoWelcome.isChecked = enabled
+            try {
+                binding.switchAutoWelcome.isChecked = enabled
+            } catch (e: Exception) {
+                android.util.Log.e("AiConfigActivity", "Error in autoGreeting observer", e)
+            }
         }
 
         viewModel.autoTransferEnabled.observe(this) { enabled ->
-            binding.switchAutoEscalation.isChecked = enabled
+            try {
+                binding.switchAutoEscalation.isChecked = enabled
+            } catch (e: Exception) {
+                android.util.Log.e("AiConfigActivity", "Error in autoTransferEnabled observer", e)
+            }
         }
 
         viewModel.greetingMessages.observe(this) { messages ->
-            binding.etWelcomeMessages.setText(messages.joinToString("\n"))
+            try {
+                binding.etWelcomeMessages.setText(messages.joinToString("\n"))
+            } catch (e: Exception) {
+                android.util.Log.e("AiConfigActivity", "Error in greetingMessages observer", e)
+            }
         }
 
         viewModel.quickReplies.observe(this) { replies ->
-            binding.etQuickReplies.setText(replies.joinToString("\n"))
+            try {
+                binding.etQuickReplies.setText(replies.joinToString("\n"))
+            } catch (e: Exception) {
+                android.util.Log.e("AiConfigActivity", "Error in quickReplies observer", e)
+            }
         }
 
         viewModel.escalationKeywords.observe(this) { keywords ->
-            binding.etEscalationKeywords.setText(keywords.joinToString("\n"))
+            try {
+                binding.etEscalationKeywords.setText(keywords.joinToString("\n"))
+            } catch (e: Exception) {
+                android.util.Log.e("AiConfigActivity", "Error in escalationKeywords observer", e)
+            }
         }
 
         viewModel.fallbackMessage.observe(this) { message ->
-            binding.etFallbackMessage.setText(message)
+            try {
+                binding.etFallbackMessage.setText(message)
+            } catch (e: Exception) {
+                android.util.Log.e("AiConfigActivity", "Error in fallbackMessage observer", e)
+            }
         }
     }
 }

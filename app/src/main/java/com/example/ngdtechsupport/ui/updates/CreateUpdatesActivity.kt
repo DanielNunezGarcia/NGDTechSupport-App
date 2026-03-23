@@ -16,28 +16,36 @@ class CreateUpdatesActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityCreateUpdatesBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        try {
+            binding = ActivityCreateUpdatesBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        companyId = intent.getStringExtra("companyId") ?: ""
-        businessId = intent.getStringExtra("businessId") ?: ""
+            companyId = intent.getStringExtra("companyId") ?: ""
+            businessId = intent.getStringExtra("businessId") ?: ""
 
-        binding.btnPublish.setOnClickListener {
+            binding.btnPublish.setOnClickListener {
+                try {
+                    val title = binding.etTitle.text.toString()
+                    val description = binding.etDescription.text.toString()
+                    val version = binding.etVersion.text.toString()
 
-            val title = binding.etTitle.text.toString()
-            val description = binding.etDescription.text.toString()
-            val version = binding.etVersion.text.toString()
+                    viewModel.createUpdate(
+                        companyId,
+                        businessId,
+                        title,
+                        description,
+                        version,
+                        "general",
+                        FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                    )
 
-            viewModel.createUpdate(
-                companyId,
-                businessId,
-                title,
-                description,
-                version,
-                "general",
-                FirebaseAuth.getInstance().currentUser?.uid ?: ""
-            )
-
+                    finish()
+                } catch (e: Exception) {
+                    android.util.Log.e("CreateUpdatesActivity", "Error in publish button click", e)
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("CreateUpdatesActivity", "Error in onCreate", e)
             finish()
         }
     }

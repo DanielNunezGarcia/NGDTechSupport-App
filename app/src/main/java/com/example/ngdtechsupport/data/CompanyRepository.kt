@@ -4,6 +4,7 @@ import com.example.ngdtechsupport.model.BusinessModel
 import com.example.ngdtechsupport.model.UpdateModel
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import android.util.Log
 
 class CompanyRepository {
 
@@ -38,19 +39,17 @@ class CompanyRepository {
         companyId: String,
         businessId: String
     ): BusinessModel? {
-
+        Log.d("CompanyRepository", "getBusiness called with companyId=$companyId, businessId=$businessId")
         return try {
-
             val doc = db.collection("companies")
                 .document(companyId)
                 .collection("businesses")
                 .document(businessId)
                 .get()
                 .await()
-
+            Log.d("CompanyRepository", "Document exists: ${doc.exists()}")
             if (!doc.exists()) return null
-
-            BusinessModel(
+            val business = BusinessModel(
                 id = doc.id,
                 name = doc.getString("name") ?: "",
                 status = doc.getString("status") ?: "",
@@ -59,8 +58,10 @@ class CompanyRepository {
                 supportType = doc.getString("supportType") ?: "",
                 lastUpdate = doc.getString("lastUpdate") ?: ""
             )
-
+            Log.d("CompanyRepository", "Business loaded: $business")
+            business
         } catch (e: Exception) {
+            Log.e("CompanyRepository", "Error getting business: ${e.message}", e)
             null
         }
     }

@@ -22,35 +22,53 @@ class AiChatActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAiChatBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        try {
+            binding = ActivityAiChatBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-        
-        companyId = intent.getStringExtra("companyId") ?: companyId
+            currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+            
+            companyId = intent.getStringExtra("companyId") ?: companyId
 
-        setupRecycler()
-        setupSendButton()
-        setupTransferButton()
+            setupRecycler()
+            setupSendButton()
+            setupTransferButton()
 
-        viewModel.sendMessage(companyId, "Hola, necesito ayuda")
+            viewModel.sendMessage(companyId, "Hola, necesito ayuda")
 
-        viewModel.messages.observe(this) { messages ->
-            adapter.submitList(messages.toList())
-            if (messages.isNotEmpty()) {
-                binding.recyclerView.scrollToPosition(messages.size - 1)
+            viewModel.messages.observe(this) { messages ->
+                try {
+                    adapter.submitList(messages.toList())
+                    if (messages.isNotEmpty()) {
+                        binding.recyclerView.scrollToPosition(messages.size - 1)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("AiChatActivity", "Error in messages observer", e)
+                }
             }
-        }
 
-        viewModel.isLoading.observe(this) { isLoading ->
-            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-            binding.buttonSend.isEnabled = !isLoading
-        }
-
-        viewModel.error.observe(this) { error ->
-            error?.let {
-                Toast.makeText(this, it, Toast.LENGTH_LONG).show()
+            viewModel.isLoading.observe(this) { isLoading ->
+                try {
+                    binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+                    binding.buttonSend.isEnabled = !isLoading
+                } catch (e: Exception) {
+                    android.util.Log.e("AiChatActivity", "Error in isLoading observer", e)
+                }
             }
+
+            viewModel.error.observe(this) { error ->
+                try {
+                    error?.let {
+                        Toast.makeText(this, it, Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("AiChatActivity", "Error in error observer", e)
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("AiChatActivity", "Error in onCreate", e)
+            Toast.makeText(this, "Error al iniciar chat AI", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
 
@@ -65,19 +83,31 @@ class AiChatActivity : AppCompatActivity() {
 
     private fun setupSendButton() {
         binding.buttonSend.setOnClickListener {
-            val text = binding.editTextMessage.text.toString()
-            if (text.isBlank()) return@setOnClickListener
+            try {
+                val text = binding.editTextMessage.text.toString()
+                if (text.isBlank()) return@setOnClickListener
 
-            viewModel.sendMessage(companyId, text)
-            binding.editTextMessage.text.clear()
+                viewModel.sendMessage(companyId, text)
+                binding.editTextMessage.text.clear()
+            } catch (e: Exception) {
+                android.util.Log.e("AiChatActivity", "Error in send button click", e)
+            }
         }
     }
 
     private fun setupTransferButton() {
         binding.buttonTransferHuman.setOnClickListener {
-            viewModel.transferToHuman(companyId, currentUserId) { channelId ->
-                Toast.makeText(this, "Conversation transferred to human support", Toast.LENGTH_SHORT).show()
-                finish()
+            try {
+                viewModel.transferToHuman(companyId, currentUserId) { channelId ->
+                    try {
+                        Toast.makeText(this, "Conversation transferred to human support", Toast.LENGTH_SHORT).show()
+                        finish()
+                    } catch (e: Exception) {
+                        android.util.Log.e("AiChatActivity", "Error in transfer callback", e)
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("AiChatActivity", "Error in transfer button click", e)
             }
         }
     }

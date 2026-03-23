@@ -11,9 +11,17 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        FirebaseAuth.getInstance().signOut()
+        try {
+            FirebaseAuth.getInstance().signOut()
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error signing out", e)
+        }
 
-        startActivity(Intent(this, LoginActivity::class.java))
-        finish()
+        try {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error starting LoginActivity", e)
+        }
     }
 }

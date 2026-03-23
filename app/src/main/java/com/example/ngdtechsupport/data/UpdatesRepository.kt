@@ -100,7 +100,7 @@ class UpdatesRepository {
         companyId: String,
         businessId: String,
         onResult: (List<UpdateModel>) -> Unit
-    ) {
+    ): com.google.firebase.firestore.ListenerRegistration {
         android.util.Log.d("UpdatesRepository", "listenUpdates: companyId=$companyId, businessId=$businessId")
 
         val updatesRef = firestore.collection("companies")
@@ -109,7 +109,7 @@ class UpdatesRepository {
             .document(businessId)
             .collection("updates")
 
-        updatesRef
+        return updatesRef
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {

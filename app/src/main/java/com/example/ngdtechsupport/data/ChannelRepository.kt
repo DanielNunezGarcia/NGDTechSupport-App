@@ -67,7 +67,6 @@ class ChannelRepository {
                 .set(channelData)
                 .await()
             
-            Log.d("ChannelRepository", "Channel created successfully: $channelId")
             true
         } catch (e: Exception) {
             Log.e("ChannelRepository", "Error creating channel: ${e.message}", e)
