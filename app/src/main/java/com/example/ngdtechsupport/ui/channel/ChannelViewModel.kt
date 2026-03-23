@@ -84,6 +84,12 @@ class ChannelViewModel : ViewModel() {
         adminUid: String,
         memberUid: String
     ) {
+        Log.d("ChannelViewModel", "createPrivateChannel called with companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid")
+        if (companyId.isEmpty() || channelId.isEmpty() || adminUid.isEmpty() || memberUid.isEmpty()) {
+            Log.e("ChannelViewModel", "Invalid parameters: companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid")
+            _privateChannelCreated.postValue(false)
+            return
+        }
         viewModelScope.launch {
             try {
                 val success = repository.createPrivateChannel(
@@ -93,10 +99,9 @@ class ChannelViewModel : ViewModel() {
                     memberUid
                 )
                 if (success) {
-                    // Canal creado sin mensaje
+                    Log.d("ChannelViewModel", "Private channel created successfully")
                     _privateChannelCreated.postValue(true)
                 } else {
-                    // Error al crear canal, no mostrar toast
                     Log.e("ChannelViewModel", "Failed to create private channel")
                     _privateChannelCreated.postValue(false)
                 }

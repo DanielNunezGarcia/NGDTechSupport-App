@@ -11,10 +11,38 @@ object AiResponseHelper {
         val message = userMessage.lowercase().trim()
         
         if (USE_OPENAI) {
-            return "🔧 Integrando con OpenAI..."
+            return cleanResponse("🔧 Integrando con OpenAI...")
         }
         
-        return getPredefinedResponse(message)
+        return cleanResponse(getPredefinedResponse(message))
+    }
+    
+    private fun cleanResponse(response: String): String {
+        var clean = response
+        // Remover símbolos de formato markdown
+        clean = clean.replace("**", "") // negritas
+        clean = clean.replace("##", "") // headings
+        clean = clean.replace("~~", "") // tachado
+        clean = clean.replace("```", "") // bloques de código
+        
+        // Remover símbolos especiales no deseados
+        clean = clean.replace("!!", "!") // doble exclamación
+        clean = clean.replace("¡¡", "¡") // doble exclamación de apertura
+        clean = clean.replace("//", "") // doble slash
+        clean = clean.replace("/", " ") // slash simple por espacio
+        
+        // Remover otros símbolos de formato
+        clean = clean.replace("*", "") // asteriscos
+        clean = clean.replace("_", "") // underscores
+        clean = clean.replace("~", "") // tildes de formato
+        
+        // Remover backticks
+        clean = clean.replace("`", "")
+        
+        // Espacios múltiples a uno solo
+        clean = clean.replace(Regex("\\s+"), " ")
+        
+        return clean.trim()
     }
     
     private fun getPredefinedResponse(message: String): String {
@@ -39,9 +67,9 @@ Mientras tanto, ¿hay algo más en lo que pueda ayudarte?"""
                 lastTopic = "error"
                 """😟 Lamento que tengas un problema. Para ayudarte de la mejor manera:
 
-1. **¿Qué app o funcionalidad falla?** (ej: chat, login, cámara)
-2. **¿Qué mensaje de error ves?** (copia el texto exacto)
-3. **¿Cuándo empezó?** (después de una actualización, siempre, etc.)
+1. ¿Qué app o funcionalidad falla? (ej: chat, login, cámara)
+2. ¿Qué mensaje de error ves? (copia el texto exacto)
+3. ¿Cuándo empezó? (después de una actualización, siempre, etc.)
 
 También puedes adjuntar una captura de pantalla si es posible."""
             }
@@ -59,10 +87,10 @@ También necesito saber:
 Con eso te puedo dar un presupuesto más exacto."""
                 } else {
                     """💰 Genial, para darte un presupuesto necesito que me cuentes:
-1. **Tipo de proyecto**: ¿App móvil, web o ambos?
-2. **Funcionalidades**: ¿Qué debe hacer la app?
-3. **Plazo**: ¿Cuándo lo necesitas?
-4. **Diseño**: ¿Ya lo tienes o necesitas que te ayudemos?
+1. Tipo de proyecto: ¿App móvil, web o ambos?
+2. Funcionalidades: ¿Qué debe hacer la app?
+3. Plazo: ¿Cuándo lo necesitas?
+4. Diseño: ¿Ya lo tienes o necesitas que te ayudemos?
 
 Cuéntame sobre tu idea y te prepararé una cotización personalizada."""
                 }
@@ -72,7 +100,7 @@ Cuéntame sobre tu idea y te prepararé una cotización personalizada."""
                 lastTopic = "servicios"
                 """📱 NGD Tech Solutions ofrece:
 
-• Desarrollo de Apps (Android/iOS)
+• Desarrollo de Apps (Android iOS)
 • Integración de Inteligencia Artificial
 • Soporte técnico y mantenimiento
 • Consultorías técnicas
@@ -129,26 +157,26 @@ Si tienes más dudas, no dudes en escribir.
                         """📊 Perfecto, sigamos con tu presupuesto.
 
 ¿Podrías darme más detalles sobre:
-• **Funcionalidades principales** que necesitas
-• **Plazo deseado** para el proyecto
+• Funcionalidades principales que necesitas
+• Plazo deseado para el proyecto
 
 Con eso te prepararé una cotización personalizada."""
                     }
                     "error" -> {
                         """🔍 Para solucionar tu problema, necesito saber:
 
-• **¿Qué exactamente falla?** (ej: "no carga el login")
-• **¿Cuándo empezó?** (después de actualizar, siempre, etc.)
+• ¿Qué exactamente falla? (ej: "no carga el login")
+• ¿Cuándo empezó? (después de actualizar, siempre, etc.)
 
 Cuantos más detalles, más rápido puedo ayudarte."""
                     }
                     else -> {
                         """¿En qué puedo ayudarte?
 
-• **Presupuesto** - "quiero un presupuesto para una app"
-• **Error** - "mi app no funciona"
-• **Estado** - "consultar estado de mi proyecto"
-• **Agente** - "hablar con agente"
+• Presupuesto - "quiero un presupuesto para una app"
+• Error - "mi app no funciona"
+• Estado - "consultar estado de mi proyecto"
+• Agente - "hablar con agente"
 
 Sé específico y te ayudaré mejor."""
                     }

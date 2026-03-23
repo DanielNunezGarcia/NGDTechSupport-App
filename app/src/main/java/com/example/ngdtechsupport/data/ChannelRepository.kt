@@ -40,6 +40,11 @@ class ChannelRepository {
         adminUid: String,
         memberUid: String
     ): Boolean {
+        Log.d("ChannelRepository", "createPrivateChannel called with companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid")
+        if (companyId.isEmpty() || channelId.isEmpty() || adminUid.isEmpty() || memberUid.isEmpty()) {
+            Log.e("ChannelRepository", "Invalid parameters: companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid")
+            return false
+        }
         return try {
             val membersMap = mapOf(
                 adminUid to ChannelMember(role = "admin"),

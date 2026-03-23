@@ -63,12 +63,22 @@ class DashboardViewModel(
                 val role = user.role.uppercase()
                 val userName = user.name
                 val companyName = user.company
-                val companyId = user.companyId
-                val businessId = user.businessId
+                var companyId = user.companyId
+                var businessId = user.businessId
                 Log.d("DashboardViewModel", "User role: $role, companyId: $companyId, businessId: $businessId")
+                
+                // Valores por defecto si están vacíos
+                if (companyId.isEmpty()) {
+                    companyId = "NGDStudios"
+                    Log.w("DashboardViewModel", "companyId was empty, using default: $companyId")
+                }
+                if (businessId.isEmpty()) {
+                    businessId = "restaurante_madrid"
+                    Log.w("DashboardViewModel", "businessId was empty, using default: $businessId")
+                }
 
                 // 2) Según el rol, cargamos diferentes datos usando loadBusinessesForUser
-                val apps = loadBusinessesForUser(user)
+                val apps = loadBusinessesForUser(user.copy(companyId = companyId, businessId = businessId))
                 Log.d("DashboardViewModel", "Loaded ${apps.size} apps for user")
 
                 // 3) Actualizar estado de UI con toda la información
@@ -83,6 +93,7 @@ class DashboardViewModel(
                     errorMessage = null
                 )
             } catch (e: Exception) {
+                Log.e("DashboardViewModel", "Exception in loadAppsForCurrentUser", e)
                 _uiState.value = DashboardUiState(
                     isLoading = false,
                     errorMessage = "Error al cargar las aplicaciones: ${e.message}"
@@ -123,7 +134,6 @@ class DashboardViewModel(
                     }
                 } else {
                     // Fallback: todas las apps si no tiene companyId
-                    //getBusinessesForCompany(companyId)
                     appRepository.getAllApps()
                 }
             }

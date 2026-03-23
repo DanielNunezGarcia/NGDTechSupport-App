@@ -55,7 +55,17 @@ class DashboardActivity : AppCompatActivity() {
         
         channelViewModel.privateChannelCreated.observe(this, Observer { success ->
             try {
+                Log.d("DashboardActivity", "Private channel created observer: success=$success, currentCompanyId=$currentCompanyId, currentPrivateChannelId=$currentPrivateChannelId")
                 if (success) {
+                    if (currentCompanyId.isEmpty()) {
+                        Log.w("DashboardActivity", "currentCompanyId is empty, using default")
+                        currentCompanyId = "NGDStudios"
+                    }
+                    if (currentPrivateChannelId.isEmpty()) {
+                        Log.e("DashboardActivity", "currentPrivateChannelId is empty, cannot navigate")
+                        Toast.makeText(this, "Error: ID de canal vacío", Toast.LENGTH_SHORT).show()
+                        return@Observer
+                    }
                     val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
                     intent.putExtra("companyId", currentCompanyId)
                     intent.putExtra("businessId", "")
@@ -63,9 +73,11 @@ class DashboardActivity : AppCompatActivity() {
                     startActivity(intent)
                 } else {
                     Log.e("DashboardActivity", "Failed to create private channel")
+                    Toast.makeText(this, "Error al crear canal privado. Verifique los permisos.", Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
                 Log.e("DashboardActivity", "Error in privateChannelCreated observer", e)
+                Toast.makeText(this, "Error en observador de canal: ${e.message}", Toast.LENGTH_LONG).show()
             }
         })
 
@@ -73,16 +85,18 @@ class DashboardActivity : AppCompatActivity() {
 
         adapter = AppAdapter(emptyList()) { app, companyId ->
             try {
+                Log.d("DashboardActivity", "App clicked: ${app.id}, companyId: $companyId")
                 val intent = Intent(
                     this,
                     com.example.ngdtechsupport.ui.activity.AppDetailActivity::class.java
                 )
                 intent.putExtra("appId", app.id)
-                intent.putExtra("companyId", companyId)
+                intent.putExtra("companyId", companyId.ifEmpty { "NGDStudios" })
                 intent.putExtra("businessId", app.id)
                 startActivity(intent)
             } catch (e: Exception) {
                 Log.e("DashboardActivity", "Error opening app detail", e)
+                Toast.makeText(this, "Error al abrir detalle: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
         recyclerView.adapter = adapter
@@ -127,17 +141,18 @@ class DashboardActivity : AppCompatActivity() {
                     userInfoTextView.text = state.userName
                 }
 
-                currentCompanyId = state.companyId
-                Log.d("DashboardActivity", "currentCompanyId: $currentCompanyId")
+                currentCompanyId = state.companyId.ifEmpty { "NGDStudios" }
+                Log.d("DashboardActivity", "currentCompanyId set to: $currentCompanyId")
                 if (state.apps.isNotEmpty()) {
                     currentBusinessId = state.apps.first().id
                     Log.d("DashboardActivity", "currentBusinessId set to first app id: $currentBusinessId")
                 } else {
-                    currentBusinessId = state.businessId
-                    Log.d("DashboardActivity", "No apps, currentBusinessId set to state.businessId: $currentBusinessId")
+                    currentBusinessId = state.businessId.ifEmpty { "restaurante_madrid" }
+                    Log.d("DashboardActivity", "No apps, currentBusinessId set to: $currentBusinessId")
                 }
             } catch (e: Exception) {
                 Log.e("DashboardActivity", "Error in UI observer", e)
+                Toast.makeText(this, "Error al actualizar UI: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -145,8 +160,8 @@ class DashboardActivity : AppCompatActivity() {
             try {
                 Log.d("DashboardActivity", "Chat button clicked. currentCompanyId: $currentCompanyId, currentBusinessId: $currentBusinessId")
                 if (currentCompanyId.isEmpty()) {
-                    Log.e("DashboardActivity", "Cannot open chat: currentCompanyId is empty")
-                    return@setOnClickListener
+                    Log.e("DashboardActivity", "Cannot open chat: currentCompanyId is empty, using default")
+                    currentCompanyId = "NGDStudios"
                 }
                 val channelId = if (currentBusinessId.isNotEmpty()) "${currentBusinessId}_support" else "default_support"
                 Log.d("DashboardActivity", "Opening ChatActivity with channelId: $channelId")
@@ -157,6 +172,7 @@ class DashboardActivity : AppCompatActivity() {
                 startActivity(intent)
             } catch (e: Exception) {
                 Log.e("DashboardActivity", "Error opening chat", e)
+                Toast.makeText(this, "Error al abrir chat: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -164,13 +180,12 @@ class DashboardActivity : AppCompatActivity() {
             try {
                 Log.d("DashboardActivity", "Updates button clicked. currentCompanyId: $currentCompanyId, currentBusinessId: $currentBusinessId")
                 if (currentCompanyId.isEmpty()) {
-                    Log.e("DashboardActivity", "Cannot open updates: currentCompanyId is empty")
-                    return@setOnClickListener
+                    Log.e("DashboardActivity", "Cannot open updates: currentCompanyId is empty, using default")
+                    currentCompanyId = "NGDStudios"
                 }
                 if (currentBusinessId.isEmpty()) {
-                    Log.e("DashboardActivity", "Cannot open updates: currentBusinessId is empty")
-                    Toast.makeText(this, "Error: No hay negocio seleccionado", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
+                    Log.e("DashboardActivity", "Cannot open updates: currentBusinessId is empty, using default")
+                    currentBusinessId = "restaurante_madrid"
                 }
                 val intent = Intent(this, com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java)
                 intent.putExtra("companyId", currentCompanyId)
@@ -178,6 +193,7 @@ class DashboardActivity : AppCompatActivity() {
                 startActivity(intent)
             } catch (e: Exception) {
                 Log.e("DashboardActivity", "Error opening updates", e)
+                Toast.makeText(this, "Error al abrir actualizaciones: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -188,6 +204,7 @@ class DashboardActivity : AppCompatActivity() {
                 startActivity(intent)
             } catch (e: Exception) {
                 Log.e("DashboardActivity", "Error opening AI config", e)
+                Toast.makeText(this, "Error al abrir configuración AI: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -197,18 +214,25 @@ class DashboardActivity : AppCompatActivity() {
                 startActivity(intent)
             } catch (e: Exception) {
                 Log.e("DashboardActivity", "Error opening channels", e)
+                Toast.makeText(this, "Error al abrir canales: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
 
         btnCreatePrivateChannel.setOnClickListener {
             try {
-                Log.d("DashboardActivity", "Create private channel button clicked. currentCompanyId: $currentCompanyId")
+                Log.d("DashboardActivity", "Create private channel button clicked. currentCompanyId: $currentCompanyId, currentUserId: $currentUserId")
                 if (currentCompanyId.isEmpty()) {
-                    Log.e("DashboardActivity", "Cannot create private channel: currentCompanyId is empty")
+                    Log.e("DashboardActivity", "Cannot create private channel: currentCompanyId is empty, using default")
+                    currentCompanyId = "NGDStudios"
+                }
+                if (currentUserId.isEmpty()) {
+                    Log.e("DashboardActivity", "Cannot create private channel: currentUserId is empty")
+                    Toast.makeText(this, "Error: Usuario no autenticado", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
                 currentPrivateChannelId = "private_${currentUserId}_${System.currentTimeMillis()}"
                 Log.d("DashboardActivity", "Creating private channel with ID: $currentPrivateChannelId")
+                Toast.makeText(this, "Creando canal privado...", Toast.LENGTH_SHORT).show()
                 channelViewModel.createPrivateChannel(
                     companyId = currentCompanyId,
                     channelId = currentPrivateChannelId,
@@ -218,6 +242,7 @@ class DashboardActivity : AppCompatActivity() {
                 // Navigation will be handled by observer on privateChannelCreated
             } catch (e: Exception) {
                 Log.e("DashboardActivity", "Error initiating private channel creation: ${e.message}", e)
+                Toast.makeText(this, "Error al crear canal privado: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
 
@@ -233,6 +258,7 @@ class DashboardActivity : AppCompatActivity() {
                 startActivity(intent)
             } catch (e: Exception) {
                 Log.e("DashboardActivity", "Error during logout", e)
+                Toast.makeText(this, "Error al cerrar sesión: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
 

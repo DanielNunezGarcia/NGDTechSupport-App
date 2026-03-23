@@ -23,7 +23,7 @@ class UpdatesActivity : AppCompatActivity() {
         try {
             binding = ActivityUpdatesBinding.inflate(layoutInflater)
             setContentView(binding.root)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             android.util.Log.e("UpdatesActivity", "Error inflating layout", e)
             finish()
             return
@@ -51,9 +51,16 @@ class UpdatesActivity : AppCompatActivity() {
             val finalBusinessId = businessId
             android.util.Log.d("UpdatesActivity", "finalBusinessId: $finalBusinessId")
 
-            adapter = UpdatesAdapter { update ->
-                android.util.Log.d("UpdatesActivity", "Update clicked: ${update.id} - ${update.title}")
-                Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
+            try {
+                adapter = UpdatesAdapter { update ->
+                    android.util.Log.d("UpdatesActivity", "Update clicked: ${update.id} - ${update.title}")
+                    Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Throwable) {
+                android.util.Log.e("UpdatesActivity", "Error creating adapter", e)
+                Toast.makeText(this, "Error al crear adaptador", Toast.LENGTH_SHORT).show()
+                finish()
+                return
             }
 
             binding.recyclerUpdates.layoutManager = LinearLayoutManager(this)
@@ -80,13 +87,20 @@ class UpdatesActivity : AppCompatActivity() {
                         binding.recyclerUpdates.visibility = View.VISIBLE
                         adapter.submitList(updates)
                     }
-                } catch (e: Exception) {
+                } catch (e: Throwable) {
                     android.util.Log.e("UpdatesActivity", "Error in updates observer", e)
                 }
             }
 
             android.util.Log.d("UpdatesActivity", "Calling viewModel.listenUpdates")
-            viewModel.listenUpdates(companyId, finalBusinessId)
+            try {
+                viewModel.listenUpdates(companyId, finalBusinessId)
+            } catch (e: Throwable) {
+                android.util.Log.e("UpdatesActivity", "Error calling listenUpdates", e)
+                Toast.makeText(this, "Error al cargar novedades", Toast.LENGTH_SHORT).show()
+                finish()
+                return
+            }
 
             binding.btnNewUpdate.setOnClickListener {
                 android.util.Log.d("UpdatesActivity", "btnNewUpdate clicked")
@@ -98,8 +112,8 @@ class UpdatesActivity : AppCompatActivity() {
 
             // TODO: Mostrar botón solo si es admin
             // binding.btnNewUpdate.visibility = View.VISIBLE
-        } catch (e: Exception) {
-            android.util.Log.e("UpdatesActivity", "Error in onCreate", e)
+        } catch (e: Throwable) {
+            android.util.Log.e("UpdatesActivity", "Critical error in onCreate", e)
             Toast.makeText(this, "Error al cargar novedades", Toast.LENGTH_SHORT).show()
             finish()
         }
