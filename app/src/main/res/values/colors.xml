@@ -9,9 +9,9 @@
     
     <!-- Chat colors -->
     <color name="bubble_sent">#2196F3</color>
-    <color name="bubble_received">#E8E8E8</color>
-    <color name="bubble_ai">#FF9800</color>
-    <color name="bubble_agent">#00BCD4</color>
+    <color name="bubble_received">#F5F5F5</color>
+    <color name="bubble_ai">#9E9E9E</color>
+    <color name="bubble_agent">#1565C0</color>
     
     <color name="text_bubble_sent">#FFFFFF</color>
     <color name="text_bubble_received">#212121</color>
@@ -21,7 +21,10 @@
     <color name="status_read">#4FC3F7</color>
     <color name="status_delivered">#9E9E9E</color>
     
-    <color name="chat_background">#ECEFF1</color>
+    <color name="chat_background">#FFFFFF</color>
     <color name="input_background">#FFFFFF</color>
     <color name="reply_preview">#E3F2FD</color>
+    
+    <!-- Error color -->
+    <color name="error_color">#F44336</color>
 </resources>

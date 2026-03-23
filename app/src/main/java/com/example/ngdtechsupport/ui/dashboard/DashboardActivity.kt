@@ -5,7 +5,8 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Button
 import android.content.Intent
-import android.widget.Toast
+import android.util.Log
+
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -70,6 +71,11 @@ class DashboardActivity : AppCompatActivity() {
         btnAiConfig.visibility = View.GONE
 
         viewModel.uiState.observe(this) { state ->
+            Log.d("DashboardActivity", "UI State: isLoading=${state.isLoading}, hasError=${state.hasError}, isEmpty=${state.isEmpty}, isSuccess=${state.isSuccess}")
+            Log.d("DashboardActivity", "Apps count: ${state.apps.size}")
+            if (state.apps.isNotEmpty()) {
+                Log.d("DashboardActivity", "First app: ${state.apps.first()}")
+            }
             if (state.isLoading) {
                 textView.text = "Cargando..."
                 adapter.updateApps(emptyList())
@@ -96,14 +102,18 @@ class DashboardActivity : AppCompatActivity() {
             }
 
             currentCompanyId = state.companyId
+            Log.d("DashboardActivity", "currentCompanyId: $currentCompanyId")
             if (state.apps.isNotEmpty()) {
                 currentBusinessId = state.apps.first().id
+                Log.d("DashboardActivity", "currentBusinessId set to first app id: $currentBusinessId")
+            } else {
+                currentBusinessId = state.businessId
+                Log.d("DashboardActivity", "No apps, currentBusinessId set to state.businessId: $currentBusinessId")
             }
         }
 
         btnChatGlobal.setOnClickListener {
             if (currentCompanyId.isEmpty()) {
-                Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
@@ -115,7 +125,6 @@ class DashboardActivity : AppCompatActivity() {
 
         btnUpdatesGlobal.setOnClickListener {
             if (currentCompanyId.isEmpty()) {
-                Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             val intent = Intent(this, com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java)
@@ -132,30 +141,28 @@ class DashboardActivity : AppCompatActivity() {
 
         btnCreatePrivateChannel.setOnClickListener {
             if (currentCompanyId.isEmpty()) {
-                Toast.makeText(this, "Cargando datos...", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val channelId = "private_${currentUserId}_${System.currentTimeMillis()}"
-            channelViewModel.createPrivateChannel(
-                companyId = currentCompanyId,
-                channelId = channelId,
-                adminUid = currentUserId,
-                memberUid = currentUserId
-            )
-            
-            val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
-            intent.putExtra("companyId", currentCompanyId)
-            intent.putExtra("businessId", "")
-            intent.putExtra("channelId", channelId)
-            startActivity(intent)
-        }
-
-        channelViewModel.toastMessage.observe(this) { message ->
-            message?.let {
-                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
-                channelViewModel.clearToastMessage()
+            try {
+                val channelId = "private_${currentUserId}_${System.currentTimeMillis()}"
+                channelViewModel.createPrivateChannel(
+                    companyId = currentCompanyId,
+                    channelId = channelId,
+                    adminUid = currentUserId,
+                    memberUid = currentUserId
+                )
+                
+                val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
+                intent.putExtra("companyId", currentCompanyId)
+                intent.putExtra("businessId", "")
+                intent.putExtra("channelId", channelId)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("DashboardActivity", "Error creating private channel: ${e.message}", e)
             }
         }
+
+
 
         viewModel.loadAppsForCurrentUser()
 

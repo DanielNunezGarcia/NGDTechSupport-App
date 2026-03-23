@@ -11,6 +11,7 @@ import com.example.ngdtechsupport.data.CompanyRepository
 import com.example.ngdtechsupport.model.UserModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import android.util.Log
 
 // ViewModel del Dashboard: contiene la lógica de carga de apps y el rol del usuario
 class DashboardViewModel(
@@ -29,8 +30,10 @@ class DashboardViewModel(
 
     fun loadAppsForCurrentUser() {
         val uid = auth.currentUser?.uid
+        Log.d("DashboardViewModel", "loadAppsForCurrentUser called with uid: $uid")
 
         if (uid == null) {
+            Log.e("DashboardViewModel", "User not authenticated")
             _uiState.value = DashboardUiState(
                 isLoading = false,
                 errorMessage = "Usuario no autenticado"
@@ -46,8 +49,10 @@ class DashboardViewModel(
             try {
                 // 1) Obtener el usuario y su información
                 val user = userRepository.getUser(uid)
+                Log.d("DashboardViewModel", "User obtained: $user")
                 
                 if (user == null) {
+                    Log.e("DashboardViewModel", "User is null for uid: $uid")
                     _uiState.value = DashboardUiState(
                         isLoading = false,
                         errorMessage = "Usuario no encontrado. UID: $uid. Verifica que el documento exista en la colección 'users' o 'admin'."
@@ -60,9 +65,11 @@ class DashboardViewModel(
                 val companyName = user.company
                 val companyId = user.companyId
                 val businessId = user.businessId
+                Log.d("DashboardViewModel", "User role: $role, companyId: $companyId, businessId: $businessId")
 
                 // 2) Según el rol, cargamos diferentes datos usando loadBusinessesForUser
                 val apps = loadBusinessesForUser(user)
+                Log.d("DashboardViewModel", "Loaded ${apps.size} apps for user")
 
                 // 3) Actualizar estado de UI con toda la información
                 _uiState.value = DashboardUiState(
@@ -72,6 +79,7 @@ class DashboardViewModel(
                     userName = userName,
                     companyName = companyName,
                     companyId = companyId,
+                    businessId = businessId,
                     errorMessage = null
                 )
             } catch (e: Exception) {
@@ -92,6 +100,7 @@ class DashboardViewModel(
         val companyId = user.companyId
         val businessId = user.businessId
         val uid = auth.currentUser?.uid ?: ""
+        Log.d("DashboardViewModel", "loadBusinessesForUser - role: $role, companyId: $companyId, businessId: $businessId")
 
         return when (role) {
             "ADMIN" -> {
@@ -120,27 +129,32 @@ class DashboardViewModel(
             }
             "SOPORTE", "CLIENT" -> {
                 // SOPORTE y CLIENT → ven solo su negocio específico
+                Log.d("DashboardViewModel", "SOPORTE/CLIENT branch - companyId: $companyId, businessId: $businessId")
                 if (companyId.isNotEmpty() && businessId.isNotEmpty()) {
+                    Log.d("DashboardViewModel", "Calling getBusiness with companyId: $companyId, businessId: $businessId")
                     val singleBusiness = companyRepository.getBusiness(companyId, businessId)
+                    Log.d("DashboardViewModel", "getBusiness returned: $singleBusiness")
 
                     if (singleBusiness != null) {
-                        listOf(
-                            com.example.ngdtechsupport.model.AppModel(
-                                id = singleBusiness.id,
-                                name = singleBusiness.name,
-                                clientId = uid,
-                                status = singleBusiness.status,
-                                progress = singleBusiness.progress,
-                                version = singleBusiness.version,
-                                supportType = singleBusiness.supportType,
-                                lastUpdate = singleBusiness.lastUpdate,
-                                companyId = companyId
-                            )
+                        val appModel = com.example.ngdtechsupport.model.AppModel(
+                            id = singleBusiness.id,
+                            name = singleBusiness.name,
+                            clientId = uid,
+                            status = singleBusiness.status,
+                            progress = singleBusiness.progress,
+                            version = singleBusiness.version,
+                            supportType = singleBusiness.supportType,
+                            lastUpdate = singleBusiness.lastUpdate,
+                            companyId = companyId
                         )
+                        Log.d("DashboardViewModel", "Created AppModel: $appModel")
+                        listOf(appModel)
                     } else {
+                        Log.e("DashboardViewModel", "getBusiness returned null")
                         emptyList()
                     }
                 } else {
+                    Log.e("DashboardViewModel", "companyId or businessId is empty")
                     emptyList()
                 }
             }

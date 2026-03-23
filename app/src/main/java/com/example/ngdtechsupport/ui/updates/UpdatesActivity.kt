@@ -32,14 +32,17 @@ class UpdatesActivity : AppCompatActivity() {
         try {
             val companyId = intent.getStringExtra("companyId") ?: ""
             val businessId = intent.getStringExtra("businessId") ?: ""
+            android.util.Log.d("UpdatesActivity", "companyId: $companyId, businessId: $businessId")
 
             if (companyId.isEmpty()) {
+                android.util.Log.e("UpdatesActivity", "companyId is empty")
                 Toast.makeText(this, "Error: CompanyId no disponible", Toast.LENGTH_SHORT).show()
                 finish()
                 return
             }
 
             val finalBusinessId = if (businessId.isEmpty()) "default" else businessId
+            android.util.Log.d("UpdatesActivity", "finalBusinessId: $finalBusinessId")
 
             adapter = UpdatesAdapter { update ->
                 Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()

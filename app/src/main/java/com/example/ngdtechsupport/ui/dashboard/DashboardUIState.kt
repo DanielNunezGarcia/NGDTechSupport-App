@@ -10,6 +10,7 @@ data class DashboardUiState(
     val userName: String = "",
     val companyName: String = "",
     val companyId: String = "",
+    val businessId: String = "",
     val errorMessage: String? = null
 ) {
     // Propiedades computadas para facilitar el uso

@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
 import com.google.firebase.auth.FirebaseAuth
+import android.util.Log
 
 class ChatActivity : AppCompatActivity() {
 
@@ -34,46 +35,65 @@ class ChatActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        binding = ActivityChatBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-
-        companyId = intent.getStringExtra("companyId") ?: ""
-        businessId = intent.getStringExtra("businessId") ?: ""
-        channelId = intent.getStringExtra("channelId") ?: getDefaultChannelId()
-
-        if (companyId.isEmpty() || channelId.isEmpty()) {
-            Toast.makeText(this, "Error: Datos de chat no disponibles", Toast.LENGTH_SHORT).show()
+        try {
+            binding = ActivityChatBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+        } catch (e: Exception) {
+            Log.e("ChatActivity", "Error inflating layout", e)
             finish()
             return
         }
 
-        setupRecycler()
-        setupSendButton()
-        setupTypingIndicator()
-        setupQuickReplies()
+        try {
+            currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
 
-        chatViewModel.markChatAsRead(companyId, channelId, true)
+            companyId = intent.getStringExtra("companyId") ?: ""
+            businessId = intent.getStringExtra("businessId") ?: ""
+            channelId = intent.getStringExtra("channelId") ?: getDefaultChannelId()
+            Log.d("ChatActivity", "companyId: $companyId, businessId: $businessId, channelId: $channelId")
 
-        chatViewModel.listenMessages(companyId, channelId)
-
-        chatViewModel.listenTyping(companyId, channelId)
-
-
-        
-        chatViewModel.messages.observe(this) { messages ->
-            adapter.submitMessages(messages) {
-                scrollToBottom()
+            if (companyId.isEmpty() || channelId.isEmpty()) {
+                Log.e("ChatActivity", "companyId or channelId is empty")
+                Toast.makeText(this, "Error: Datos de chat no disponibles", Toast.LENGTH_SHORT).show()
+                finish()
+                return
             }
-        }
 
-        chatViewModel.typingUsers.observe(this) { typingMap ->
-            updateTypingIndicator(typingMap)
-        }
+            setupRecycler()
+            setupSendButton()
+            setupTypingIndicator()
+            setupQuickReplies()
 
-        chatViewModel.updateLastRead(companyId, channelId, currentUserId)
+            chatViewModel.markChatAsRead(companyId, channelId, true)
+
+            chatViewModel.listenMessages(companyId, channelId)
+
+            chatViewModel.listenTyping(companyId, channelId)
+
+            chatViewModel.messages.observe(this) { messages ->
+                try {
+                    adapter.submitMessages(messages) {
+                        scrollToBottom()
+                    }
+                } catch (e: Exception) {
+                    Log.e("ChatActivity", "Error in messages observer", e)
+                }
+            }
+
+            chatViewModel.typingUsers.observe(this) { typingMap ->
+                try {
+                    updateTypingIndicator(typingMap)
+                } catch (e: Exception) {
+                    Log.e("ChatActivity", "Error in typingUsers observer", e)
+                }
+            }
+
+            chatViewModel.updateLastRead(companyId, channelId, currentUserId)
+        } catch (e: Exception) {
+            Log.e("ChatActivity", "Error in onCreate", e)
+            Toast.makeText(this, "Error al inicializar chat", Toast.LENGTH_SHORT).show()
+            finish()
+        }
     }
 
     private fun getDefaultChannelId(): String {

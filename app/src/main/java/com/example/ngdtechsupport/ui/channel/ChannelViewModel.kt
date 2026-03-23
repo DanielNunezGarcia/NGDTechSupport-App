@@ -22,12 +22,7 @@ class ChannelViewModel : ViewModel() {
     private val _channelClickEvent = MutableLiveData<ChannelModel?>()
     val channelClickEvent: LiveData<ChannelModel?> = _channelClickEvent
 
-    private val _toastMessage = MutableLiveData<String?>()
-    val toastMessage: LiveData<String?> = _toastMessage
 
-    fun clearToastMessage() {
-        _toastMessage.value = null
-    }
 
     init {
         visibleChannels.addSource(_channels) { list ->
@@ -87,16 +82,21 @@ class ChannelViewModel : ViewModel() {
         memberUid: String
     ) {
         viewModelScope.launch {
-            val success = repository.createPrivateChannel(
-                companyId,
-                channelId,
-                adminUid,
-                memberUid
-            )
-            if (success) {
-                // Canal creado sin mensaje
-            } else {
-                _toastMessage.postValue("Error al crear canal")
+            try {
+                val success = repository.createPrivateChannel(
+                    companyId,
+                    channelId,
+                    adminUid,
+                    memberUid
+                )
+                if (success) {
+                    // Canal creado sin mensaje
+                } else {
+                    // Error al crear canal, no mostrar toast
+                    Log.e("ChannelViewModel", "Failed to create private channel")
+                }
+            } catch (e: Exception) {
+                Log.e("ChannelViewModel", "Error creating private channel: ${e.message}", e)
             }
         }
     }
