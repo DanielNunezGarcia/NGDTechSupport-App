@@ -22,6 +22,9 @@ class ChannelViewModel : ViewModel() {
     private val _channelClickEvent = MutableLiveData<ChannelModel?>()
     val channelClickEvent: LiveData<ChannelModel?> = _channelClickEvent
 
+    private val _privateChannelCreated = MutableLiveData<Boolean>()
+    val privateChannelCreated: LiveData<Boolean> = _privateChannelCreated
+
 
 
     init {
@@ -91,12 +94,15 @@ class ChannelViewModel : ViewModel() {
                 )
                 if (success) {
                     // Canal creado sin mensaje
+                    _privateChannelCreated.postValue(true)
                 } else {
                     // Error al crear canal, no mostrar toast
                     Log.e("ChannelViewModel", "Failed to create private channel")
+                    _privateChannelCreated.postValue(false)
                 }
             } catch (e: Exception) {
                 Log.e("ChannelViewModel", "Error creating private channel: ${e.message}", e)
+                _privateChannelCreated.postValue(false)
             }
         }
     }

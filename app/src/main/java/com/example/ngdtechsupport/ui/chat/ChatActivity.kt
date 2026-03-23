@@ -178,26 +178,28 @@ class ChatActivity : AppCompatActivity() {
 
     private fun setupSendButton() {
         binding.buttonSend.setOnClickListener {
-            val text = binding.editTextMessage.text.toString()
-            if (text.isBlank()) return@setOnClickListener
+            try {
+                val text = binding.editTextMessage.text.toString()
+                if (text.isBlank()) return@setOnClickListener
 
-            chatViewModel.sendMessage(
-                companyId = companyId,
-                channelId = channelId,
-                text = text,
-                senderId = currentUserId,
-                replyToId = replyMessage?.id,
-                replyToText = replyMessage?.message
-            )
+                chatViewModel.sendMessage(
+                    companyId = companyId,
+                    channelId = channelId,
+                    text = text,
+                    senderId = currentUserId,
+                    replyToId = replyMessage?.id,
+                    replyToText = replyMessage?.message
+                )
 
-            chatViewModel.setTyping(companyId, channelId, false)
-            typingRunnable?.let { typingHandler.removeCallbacks(it) }
+                chatViewModel.setTyping(companyId, channelId, false)
+                typingRunnable?.let { typingHandler.removeCallbacks(it) }
 
-            binding.editTextMessage.text?.clear()
-            replyMessage = null
-            binding.layoutReplyPreview.visibility = View.GONE
-            
-
+                binding.editTextMessage.text?.clear()
+                replyMessage = null
+                binding.layoutReplyPreview.visibility = View.GONE
+            } catch (e: Exception) {
+                Log.e("ChatActivity", "Error sending message", e)
+            }
         }
     }
 

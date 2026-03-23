@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import android.widget.Button
+import android.widget.Toast
 import android.content.Intent
 import android.util.Log
 
@@ -12,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.activity.viewModels
+import androidx.lifecycle.Observer
 
 import com.example.ngdtechsupport.ui.channel.ChannelViewModel
 import com.example.ngdtechsupport.ui.auth.LoginActivity
@@ -29,6 +31,7 @@ class DashboardActivity : AppCompatActivity() {
     private var currentCompanyId: String = ""
     private var currentBusinessId: String = ""
     private var currentUserId: String = ""
+    private var currentPrivateChannelId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +51,18 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         channelViewModel = ChannelViewModel()
+        
+        channelViewModel.privateChannelCreated.observe(this, Observer { success ->
+            if (success) {
+                val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
+                intent.putExtra("companyId", currentCompanyId)
+                intent.putExtra("businessId", "")
+                intent.putExtra("channelId", currentPrivateChannelId)
+                startActivity(intent)
+            } else {
+                Log.e("DashboardActivity", "Failed to create private channel")
+            }
+        })
 
         recyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -113,24 +128,43 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         btnChatGlobal.setOnClickListener {
-            if (currentCompanyId.isEmpty()) {
-                return@setOnClickListener
+            try {
+                Log.d("DashboardActivity", "Chat button clicked. currentCompanyId: $currentCompanyId, currentBusinessId: $currentBusinessId")
+                if (currentCompanyId.isEmpty()) {
+                    Log.e("DashboardActivity", "Cannot open chat: currentCompanyId is empty")
+                    return@setOnClickListener
+                }
+                val channelId = if (currentBusinessId.isNotEmpty()) "${currentBusinessId}_support" else "default_support"
+                Log.d("DashboardActivity", "Opening ChatActivity with channelId: $channelId")
+                val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
+                intent.putExtra("companyId", currentCompanyId)
+                intent.putExtra("businessId", currentBusinessId)
+                intent.putExtra("channelId", channelId)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("DashboardActivity", "Error opening chat", e)
             }
-            val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
-            intent.putExtra("companyId", currentCompanyId)
-            intent.putExtra("businessId", currentBusinessId)
-            intent.putExtra("channelId", if (currentBusinessId.isNotEmpty()) "${currentBusinessId}_support" else "default_support")
-            startActivity(intent)
         }
 
         btnUpdatesGlobal.setOnClickListener {
-            if (currentCompanyId.isEmpty()) {
-                return@setOnClickListener
+            try {
+                Log.d("DashboardActivity", "Updates button clicked. currentCompanyId: $currentCompanyId, currentBusinessId: $currentBusinessId")
+                if (currentCompanyId.isEmpty()) {
+                    Log.e("DashboardActivity", "Cannot open updates: currentCompanyId is empty")
+                    return@setOnClickListener
+                }
+                if (currentBusinessId.isEmpty()) {
+                    Log.e("DashboardActivity", "Cannot open updates: currentBusinessId is empty")
+                    Toast.makeText(this, "Error: No hay negocio seleccionado", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                val intent = Intent(this, com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java)
+                intent.putExtra("companyId", currentCompanyId)
+                intent.putExtra("businessId", currentBusinessId)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("DashboardActivity", "Error opening updates", e)
             }
-            val intent = Intent(this, com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java)
-            intent.putExtra("companyId", currentCompanyId)
-            intent.putExtra("businessId", currentBusinessId)
-            startActivity(intent)
         }
 
         btnAiConfig.setOnClickListener {
@@ -140,25 +174,23 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         btnCreatePrivateChannel.setOnClickListener {
-            if (currentCompanyId.isEmpty()) {
-                return@setOnClickListener
-            }
             try {
-                val channelId = "private_${currentUserId}_${System.currentTimeMillis()}"
+                Log.d("DashboardActivity", "Create private channel button clicked. currentCompanyId: $currentCompanyId")
+                if (currentCompanyId.isEmpty()) {
+                    Log.e("DashboardActivity", "Cannot create private channel: currentCompanyId is empty")
+                    return@setOnClickListener
+                }
+                currentPrivateChannelId = "private_${currentUserId}_${System.currentTimeMillis()}"
+                Log.d("DashboardActivity", "Creating private channel with ID: $currentPrivateChannelId")
                 channelViewModel.createPrivateChannel(
                     companyId = currentCompanyId,
-                    channelId = channelId,
+                    channelId = currentPrivateChannelId,
                     adminUid = currentUserId,
                     memberUid = currentUserId
                 )
-                
-                val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
-                intent.putExtra("companyId", currentCompanyId)
-                intent.putExtra("businessId", "")
-                intent.putExtra("channelId", channelId)
-                startActivity(intent)
+                // Navigation will be handled by observer on privateChannelCreated
             } catch (e: Exception) {
-                Log.e("DashboardActivity", "Error creating private channel: ${e.message}", e)
+                Log.e("DashboardActivity", "Error initiating private channel creation: ${e.message}", e)
             }
         }
 

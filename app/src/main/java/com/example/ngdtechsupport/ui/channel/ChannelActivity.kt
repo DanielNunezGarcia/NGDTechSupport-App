@@ -2,6 +2,7 @@ package com.example.ngdtechsupport.ui.channel
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -24,37 +25,47 @@ class ChannelActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_channel)
+        try {
+            setContentView(R.layout.activity_channel)
+            Log.d("ChannelActivity", "onCreate started")
 
-        viewModel = ViewModelProvider(this)[ChannelViewModel::class.java]
+            viewModel = ViewModelProvider(this)[ChannelViewModel::class.java]
 
-        adapter = ChannelAdapter(
-            viewModel = viewModel,
-            companyId = companyId,
-            currentUserId = currentUserId
-        )
+            adapter = ChannelAdapter(
+                viewModel = viewModel,
+                companyId = companyId,
+                currentUserId = currentUserId
+            )
 
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerChannels)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
+            val recyclerView = findViewById<RecyclerView>(R.id.recyclerChannels)
+            recyclerView.layoutManager = LinearLayoutManager(this)
+            recyclerView.adapter = adapter
 
-        viewModel.visibleChannels.observe(this) { list ->
-            adapter.submitList(list)
-        }
-
-        // Observar eventos de click
-        viewModel.channelClickEvent.observe(this) { channel ->
-            channel?.let {
-                val intent = Intent(this, ChatActivity::class.java).apply {
-                    putExtra("companyId", companyId)
-                    putExtra("businessId", it.id)
-                    putExtra("channelId", it.id)
-                }
-                startActivity(intent)
-                viewModel.clearChannelClickEvent()
+            viewModel.visibleChannels.observe(this) { list ->
+                Log.d("ChannelActivity", "Visible channels updated: ${list.size}")
+                adapter.submitList(list)
             }
-        }
 
-        viewModel.loadChannels(companyId)
+            // Observar eventos de click
+            viewModel.channelClickEvent.observe(this) { channel ->
+                channel?.let {
+                    Log.d("ChannelActivity", "Channel clicked: ${it.id}")
+                    val intent = Intent(this, ChatActivity::class.java).apply {
+                        putExtra("companyId", companyId)
+                        putExtra("businessId", it.id)
+                        putExtra("channelId", it.id)
+                    }
+                    startActivity(intent)
+                    viewModel.clearChannelClickEvent()
+                }
+            }
+
+            viewModel.loadChannels(companyId)
+            Log.d("ChannelActivity", "onCreate completed")
+        } catch (e: Exception) {
+            Log.e("ChannelActivity", "Error in onCreate", e)
+            Toast.makeText(this, "Error al cargar canales", Toast.LENGTH_SHORT).show()
+            finish()
+        }
     }
 }

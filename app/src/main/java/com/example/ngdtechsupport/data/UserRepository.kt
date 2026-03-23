@@ -23,6 +23,9 @@ class UserRepository {
             if (adminSnapshot.exists()) {
                 val adminData = adminSnapshot.data
                 Log.d("UserRepository", "Admin data: $adminData")
+                Log.d("UserRepository", "Admin data keys: ${adminData?.keys}")
+                Log.d("UserRepository", "Admin data businessId raw: ${adminData?.get("businessId")}")
+                Log.d("UserRepository", "Admin data business raw: ${adminData?.get("business")}")
                 val adminUser = adminSnapshot.toObject(UserModel::class.java)
                 
                 // Normalizar rol y mapear company a companyId si es necesario
@@ -31,7 +34,9 @@ class UserRepository {
                     companyId = adminData?.get("companyId")?.toString() 
                         ?: adminData?.get("company")?.toString() 
                         ?: adminUser.companyId.ifEmpty { adminUser.company },
-                    businessId = adminData?.get("businessId")?.toString() ?: adminUser.businessId
+                    businessId = adminData?.get("businessId")?.toString() 
+                        ?: adminData?.get("business")?.toString() 
+                        ?: adminUser.businessId
                 )
                 Log.d("UserRepository", "Admin model: $result")
                 result
@@ -46,6 +51,9 @@ class UserRepository {
                 if (userSnapshot.exists()) {
                     val userData = userSnapshot.data
                     Log.d("UserRepository", "User data: $userData")
+                    Log.d("UserRepository", "User data keys: ${userData?.keys}")
+                    Log.d("UserRepository", "User data businessId raw: ${userData?.get("businessId")}")
+                    Log.d("UserRepository", "User data business raw: ${userData?.get("business")}")
                     val user = userSnapshot.toObject(UserModel::class.java)
                     
                     // Normalizar rol y mapear company a companyId si es necesario
@@ -54,7 +62,9 @@ class UserRepository {
                         companyId = userData?.get("companyId")?.toString() 
                             ?: userData?.get("company")?.toString() 
                             ?: user.companyId.ifEmpty { user.company },
-                        businessId = userData?.get("businessId")?.toString() ?: user.businessId
+                        businessId = userData?.get("businessId")?.toString() 
+                            ?: userData?.get("business")?.toString() 
+                            ?: user.businessId
                     )
                     Log.d("UserRepository", "User model: $result")
                     result

@@ -41,7 +41,14 @@ class UpdatesActivity : AppCompatActivity() {
                 return
             }
 
-            val finalBusinessId = if (businessId.isEmpty()) "default" else businessId
+            if (businessId.isEmpty()) {
+                android.util.Log.e("UpdatesActivity", "businessId is empty")
+                Toast.makeText(this, "Error: BusinessId no disponible", Toast.LENGTH_SHORT).show()
+                finish()
+                return
+            }
+
+            val finalBusinessId = businessId
             android.util.Log.d("UpdatesActivity", "finalBusinessId: $finalBusinessId")
 
             adapter = UpdatesAdapter { update ->
