@@ -39,6 +39,7 @@ class ChannelActivity : AppCompatActivity() {
 
             val recyclerView = findViewById<RecyclerView>(R.id.recyclerChannels)
             recyclerView.layoutManager = LinearLayoutManager(this)
+            recyclerView.setHasFixedSize(true)
             recyclerView.adapter = adapter
 
             viewModel.visibleChannels.observe(this) { list ->

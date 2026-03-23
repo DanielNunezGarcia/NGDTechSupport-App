@@ -158,6 +158,7 @@ class ChatActivity : AppCompatActivity() {
         layoutManager.stackFromEnd = true
 
         binding.recyclerViewChat.layoutManager = layoutManager
+        binding.recyclerViewChat.setHasFixedSize(true)
         binding.recyclerViewChat.adapter = adapter
 
         binding.recyclerViewChat.addOnScrollListener(object :

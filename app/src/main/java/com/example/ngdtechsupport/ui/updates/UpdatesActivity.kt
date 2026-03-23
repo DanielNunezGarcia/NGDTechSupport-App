@@ -57,6 +57,7 @@ class UpdatesActivity : AppCompatActivity() {
             }
 
             binding.recyclerUpdates.layoutManager = LinearLayoutManager(this)
+            binding.recyclerUpdates.setHasFixedSize(true)
             binding.recyclerUpdates.adapter = adapter
 
             val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
