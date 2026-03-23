@@ -1,84 +1,95 @@
 {
-  "servers": {
+  "mcpServers": {
     "filesystem": {
       "command": "npx",
-      "args": ["@modelcontextprotocol/server-filesystem"]
+      "args": ["@modelcontextprotocol/server-filesystem", "D:/Proyectos/APP/NGDStudios/NGD_TechSupport"]
     },
     "github": {
       "command": "npx",
       "args": ["@modelcontextprotocol/server-github"]
-    },
-    "terminal": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-shell"]
     }
   },
 
-  "context": {
-  "project_type": "Desarrollo y mantenimiento de aplicaciones Android",
-  "stack": ["Kotlin", "Firebase", "SQL", "OpenCode"],
-  "business_model": [
-    "Desarrollo de apps",
-    "Mantenimiento mensual",
-    "Soporte técnico",
-    "Optimización de apps"
-  ],
-  "priority_rules": [
-    "Errores en producción tienen máxima prioridad",
-    "Tareas de cliente activo tienen prioridad alta",
-    "Optimización es secundaria salvo impacto crítico"
-  ]
-},
-
-  "workflows": {
-    "nueva_funcionalidad": [
-      "Supervisor",
-      "Arquitecto",
-      "Android_dev_01",
-      "Android_dev_02",
-      "Backend",
-      "QA",
-      "QA_Tester",
-      "DevOps"
-    ],
-    "bug_produccion": [
-      "Supervisor",
-      "Soporte",
-      "QA_Tester",
-      "Android_dev_01",
-      "Backend",
-      "QA",
-      "DevOps"
-    ],
-    "soporte_cliente": [
-      "Supervisor",
-      "Soporte",
-      "QA_Tester",
-      "Android_dev_01"
-    ],
-    "optimizacion": [
-      "Supervisor",
-      "Rendimiento",
-      "Android_dev_02",
-      "Backend",
-      "QA"
-    ]
+  "project_context": {
+    "name": "NGD TechSupport",
+    "type": "Android Mobile App with AI Chat",
+    "path": "D:/Proyectos/APP/NGDStudios/NGD_TechSupport",
+    "stack": ["Kotlin", "Firebase Firestore", "SQLite"]
   },
 
-  "execution_rules": {
-  "parallel_execution": [
-    ["Android_dev_01", "Android_dev_02"],
-    ["QA", "QA_Tester"]
-  ],
-  "mandatory_checks": [
-    "QA debe validar antes de deploy",
-    "Seguridad revisa antes de producción",
-    "Rendimiento valida optimizaciones críticas"
-  ],
-  "auto_assign": {
-    "bug": ["Soporte", "QA_Tester"],
-    "feature": ["Arquitecto", "Android_dev_01", "Android_dev_02"],
-    "performance": ["Rendimiento"],
-    "security": ["Seguridad"]
+  "agent_definitions": {
+    "supervisor": {
+      "role": "Coordinador - Asigna tareas y revisa resultados",
+      "can_delegate": true,
+      "files": ["agents/supervisor.json"]
+    },
+    "android_dev_01": {
+      "role": "Desarrollador Android Senior - Kotlin/Java",
+      "files": ["agents/android_dev_01.json"]
+    },
+    "android_dev_02": {
+      "role": "Desarrollador Android Jetpack",
+      "files": ["agents/androd_dev_02.json"]
+    },
+    "backend": {
+      "role": "Backend Firebase/APIs",
+      "files": ["agents/backend.json"]
+    },
+    "ui": {
+      "role": "UI/UX Design",
+      "files": ["agents/ui.json"]
+    },
+    "support": {
+      "role": "Soporte técnico",
+      "files": ["agents/support.json"]
+    },
+    "qa": {
+      "role": "QA Lead",
+      "files": ["agents/qa.json"]
+    },
+    "qa_tester": {
+      "role": "QA Tester",
+      "files": ["agents/qa_tester.json"]
+    },
+    "security": {
+      "role": "Seguridad",
+      "files": ["agents/security.json"]
+    },
+    "performance": {
+      "role": "Rendimiento/Optimización",
+      "files": ["agents/perfomance.json"]
+    },
+    "devops": {
+      "role": "Build/Deploy",
+      "files": ["agents/devops.json"]
+    },
+    "documentation": {
+      "role": "Documentación",
+      "files": ["agents/documentation.json"]
+    },
+    "architect": {
+      "role": "Arquitectura",
+      "files": ["agents/architect.json"]
+    }
+  },
+
+  "execution_config": {
+    "use_opencode_task": true,
+    "subagent_type": "general",
+    "agents_dir": "agents"
+  },
+
+  "workflows": {
+    "bug": ["supervisor", "support", "qa_tester", "android_dev_01", "backend", "qa", "devops"],
+    "feature": ["supervisor", "architect", "android_dev_01", "android_dev_02", "backend", "qa", "devops"],
+    "support": ["supervisor", "support", "qa_tester", "android_dev_01"],
+    "optimization": ["supervisor", "performance", "android_dev_02", "backend", "qa"]
+  },
+
+  "rules": {
+    "always_delegate": "El supervisor debe asignar TODAS las tareas a agentes",
+    "no_direct_work": "No hacer trabajo directo a menos que sea necesario",
+    "verify_build": "Verificar build con ./gradlew.bat assembleDebug después de cambios",
+    "commit_after_fix": "Hacer commit después de cada fix exitoso"
   }
 }
