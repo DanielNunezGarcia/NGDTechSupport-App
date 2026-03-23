@@ -1,5 +1,4 @@
-// Configuración de Firebase para el panel admin
-// Valores de google-services.json
+// Configuración de Firebase para el panel admin - NGD Tech Solutions
 
 const firebaseConfig = {
     apiKey: "AIzaSyApYVdje9tr_HlH_u7CtGN077xhzXgzW1Q",
@@ -17,7 +16,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Habilitar persistencia offline (opcional para admin)
+// Habilitar persistencia offline
 db.enablePersistence({ synchronizeTabs: true })
     .catch((err) => {
         if (err.code === 'failed-precondition') {
