@@ -2,7 +2,7 @@
 // Copiado de app/google-services.json
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBj7SMSi92N9THWlcBcnHgdydySoBMh5W4",
+    apiKey: "AIzaSyApYVdje9tr_HlH_u7CtGN077xhzXgzW1Q",
     authDomain: "ngdtechsupport.firebaseapp.com",
     projectId: "ngdtechsupport",
     storageBucket: "ngdtechsupport.firebasestorage.app",
