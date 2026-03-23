@@ -1,38 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Primary and Secondary Colors -->
-    <color name="primary">#5A75B7</color>
-    <color name="secondary">#7A8DAD</color>
+    <color name="primary">#2F5FAE</color>
+    <color name="secondary">#5E7FB7</color>
     
     <!-- Dashboard Header -->
-    <color name="dashboard_header">#5A75B7</color>
+    <color name="dashboard_header">#2F5FAE</color>
     
     <!-- Status Colors -->
-    <color name="status_development">#90A4AE</color>
-    <color name="status_review">#78909C</color>
-    <color name="status_production">#607D8B</color>
-    <color name="status_maintenance">#5A75B7</color>
-    <color name="status_issue">#C65B6A</color>
-    <color name="status_default">#6E7785</color>
+    <color name="status_development">#9AA8BF</color>
+    <color name="status_review">#8093AF</color>
+    <color name="status_production">#657A9B</color>
+    <color name="status_maintenance">#2F5FAE</color>
+    <color name="status_issue">#6E86AB</color>
+    <color name="status_default">#7B8799</color>
     
     <!-- Chat Colors -->
-    <color name="bubble_sent">#5C86D6</color>
-    <color name="bubble_received">#E6EBF4</color>
-    <color name="bubble_ai">#CFD8E6</color>
-    <color name="bubble_agent">#7A95C8</color>
+    <color name="bubble_sent">#2F5FAE</color>
+    <color name="bubble_received">#E9EEF6</color>
+    <color name="bubble_ai">#D5DEED</color>
+    <color name="bubble_agent">#5E7FB7</color>
     
     <color name="text_bubble_sent">#FFFFFF</color>
-    <color name="text_bubble_received">#212121</color>
-    <color name="text_sender">#5E6A7D</color>
-    <color name="text_time">#7B8697</color>
+    <color name="text_bubble_received">#1F2E44</color>
+    <color name="text_sender">#5B6A80</color>
+    <color name="text_time">#72839C</color>
     
-    <color name="status_read">#7FA0E2</color>
-    <color name="status_delivered">#8C99AD</color>
+    <color name="status_read">#8AA9DF</color>
+    <color name="status_delivered">#95A4BA</color>
     
-    <color name="chat_background">#F7F9FC</color>
+    <color name="chat_background">#F3F6FB</color>
     <color name="input_background">#FFFFFF</color>
-    <color name="reply_preview">#E8EDF7</color>
+    <color name="reply_preview">#E2E9F5</color>
     
     <!-- Error color -->
-    <color name="error_color">#C65B6A</color>
+    <color name="error_color">#6E86AB</color>
+
+    <!-- Neutral base colors -->
+    <color name="surface_white">#FFFFFF</color>
+    <color name="surface_gray">#F2F4F8</color>
+    <color name="text_primary">#1F2E44</color>
 </resources>

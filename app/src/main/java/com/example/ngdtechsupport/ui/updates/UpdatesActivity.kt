@@ -12,6 +12,11 @@ import com.google.firebase.auth.FirebaseAuth
 
 class UpdatesActivity : AppCompatActivity() {
 
+    companion object {
+        private const val DEFAULT_COMPANY_ID = "NGDStudios"
+        private const val DEFAULT_BUSINESS_ID = "restaurante_madrid"
+    }
+
     private lateinit var binding: ActivityUpdatesBinding
     private val viewModel: UpdatesViewModel by viewModels()
     private lateinit var adapter: UpdatesAdapter
@@ -21,8 +26,11 @@ class UpdatesActivity : AppCompatActivity() {
         binding = ActivityUpdatesBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val companyId = intent.getStringExtra("companyId").orEmpty().ifEmpty { "NGDStudios" }
-        val businessId = intent.getStringExtra("businessId").orEmpty().ifEmpty { "restaurante_madrid" }
+        val companyId = intent.getStringExtra("companyId").orEmpty().ifEmpty { DEFAULT_COMPANY_ID }
+        val businessId = intent.getStringExtra("businessId").orEmpty().ifEmpty { DEFAULT_BUSINESS_ID }
+        val userRole = intent.getStringExtra("userRole").orEmpty().ifEmpty { "CLIENT" }.uppercase()
+
+        binding.btnNewUpdate.visibility = if (userRole == "ADMIN") View.VISIBLE else View.GONE
 
         adapter = UpdatesAdapter { update ->
             Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
@@ -48,9 +56,18 @@ class UpdatesActivity : AppCompatActivity() {
             }
         }
 
-        viewModel.listenUpdates(companyId, businessId)
+        runCatching {
+            viewModel.listenUpdates(companyId, businessId)
+        }.onFailure {
+            Toast.makeText(this, "No se pudieron cargar updates", Toast.LENGTH_SHORT).show()
+        }
 
         binding.btnNewUpdate.setOnClickListener {
+            if (userRole != "ADMIN") {
+                Toast.makeText(this, "Solo administradores pueden publicar updates.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val intent = Intent(this, CreateUpdatesActivity::class.java)
             intent.putExtra("companyId", companyId)
             intent.putExtra("businessId", businessId)

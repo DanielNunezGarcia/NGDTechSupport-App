@@ -8,6 +8,7 @@ import com.example.ngdtechsupport.data.AppRepository
 import com.example.ngdtechsupport.data.FirebaseAppRepository
 import com.example.ngdtechsupport.data.UserRepository
 import com.example.ngdtechsupport.data.CompanyRepository
+import com.example.ngdtechsupport.model.BusinessModel
 import com.example.ngdtechsupport.model.UserModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -18,6 +19,11 @@ class DashboardViewModel(
     private val appRepository: AppRepository = FirebaseAppRepository(),
     private val userRepository: UserRepository = UserRepository()
 ) : ViewModel() {
+
+    companion object {
+        private const val DEFAULT_COMPANY_ID = "NGDStudios"
+        private const val DEFAULT_BUSINESS_ID = "restaurante_madrid"
+    }
 
     private val companyRepository = CompanyRepository()
     private val auth = FirebaseAuth.getInstance()
@@ -63,19 +69,9 @@ class DashboardViewModel(
                 val role = user.role.uppercase()
                 val userName = user.name
                 val companyName = user.company
-                var companyId = user.companyId
-                var businessId = user.businessId
+                val companyId = normalizeCompanyId(user.companyId, user.company)
+                val businessId = normalizeBusinessId(user.businessId)
                 Log.d("DashboardViewModel", "User role: $role, companyId: $companyId, businessId: $businessId")
-                
-                // Valores por defecto si están vacíos
-                if (companyId.isEmpty()) {
-                    companyId = "NGDStudios"
-                    Log.w("DashboardViewModel", "companyId was empty, using default: $companyId")
-                }
-                if (businessId.isEmpty()) {
-                    businessId = "restaurante_madrid"
-                    Log.w("DashboardViewModel", "businessId was empty, using default: $businessId")
-                }
 
                 // 2) Según el rol, cargamos diferentes datos usando loadBusinessesForUser
                 val apps = loadBusinessesForUser(user.copy(companyId = companyId, businessId = businessId))
@@ -108,101 +104,30 @@ class DashboardViewModel(
      */
     private suspend fun loadBusinessesForUser(user: UserModel): List<com.example.ngdtechsupport.model.AppModel> {
         val role = user.role.uppercase()
-        val companyId = user.companyId
-        val businessId = user.businessId
+        val companyId = normalizeCompanyId(user.companyId, user.company)
+        val businessId = normalizeBusinessId(user.businessId)
         val uid = auth.currentUser?.uid ?: ""
         Log.d("DashboardViewModel", "loadBusinessesForUser - role: $role, companyId: $companyId, businessId: $businessId")
 
         return when (role) {
             "ADMIN" -> {
                 // ADMIN → puede ver todos los negocios de su compañía
-                if (companyId.isNotEmpty()) {
-                    // Convertir BusinessModel a AppModel
-                    val businesses = companyRepository.getBusinesses(companyId).filter { it.isActive }
-                    businesses.map { business ->
-                        com.example.ngdtechsupport.model.AppModel(
-                            id = business.id,
-                            name = business.name,
-                            clientId = uid,
-                            status = business.status,
-                            progress = business.progress,
-                            version = business.version,
-                            supportType = business.supportType,
-                            lastUpdate = business.lastUpdate,
-                            companyId = companyId
-                        )
-                    }
-                } else {
-                    // Fallback: todas las apps si no tiene companyId
-                    appRepository.getAllApps()
+                val businesses = companyRepository.getBusinesses(companyId).filter { it.isActive }
+                businesses.map { business ->
+                    business.toAppModel(uid = uid, companyId = companyId)
                 }
             }
             "SOPORTE", "CLIENT" -> {
                 // SOPORTE y CLIENT → ven solo su negocio específico
                 Log.d("DashboardViewModel", "SOPORTE/CLIENT branch - companyId: $companyId, businessId: $businessId")
-                if (companyId.isNotEmpty() && businessId.isNotEmpty()) {
-                    Log.d("DashboardViewModel", "Calling getBusiness with companyId: $companyId, businessId: $businessId")
-                    val singleBusiness = companyRepository.getBusiness(companyId, businessId)
-                    Log.d("DashboardViewModel", "getBusiness returned: $singleBusiness")
-
-                    if (singleBusiness != null) {
-                        val appModel = com.example.ngdtechsupport.model.AppModel(
-                            id = singleBusiness.id,
-                            name = singleBusiness.name,
-                            clientId = uid,
-                            status = singleBusiness.status,
-                            progress = singleBusiness.progress,
-                            version = singleBusiness.version,
-                            supportType = singleBusiness.supportType,
-                            lastUpdate = singleBusiness.lastUpdate,
-                            companyId = companyId
-                        )
-                        Log.d("DashboardViewModel", "Created AppModel: $appModel")
-                        listOf(appModel)
-                    } else {
-                        Log.e("DashboardViewModel", "getBusiness returned null for companyId=$companyId, businessId=$businessId. Trying fallback via getBusinesses...")
-                        // Fallback: obtener todos los negocios de la compañía y filtrar por businessId
-                        val allBusinesses = companyRepository.getBusinesses(companyId)
-                        Log.d("DashboardViewModel", "Fallback: found ${allBusinesses.size} businesses for company $companyId")
-                        val filteredBusiness = allBusinesses.find { it.id == businessId }
-                        if (filteredBusiness != null) {
-                            Log.d("DashboardViewModel", "Fallback found business: $filteredBusiness")
-                            val appModel = com.example.ngdtechsupport.model.AppModel(
-                                id = filteredBusiness.id,
-                                name = filteredBusiness.name,
-                                clientId = uid,
-                                status = filteredBusiness.status,
-                                progress = filteredBusiness.progress,
-                                version = filteredBusiness.version,
-                                supportType = filteredBusiness.supportType,
-                                lastUpdate = filteredBusiness.lastUpdate,
-                                companyId = companyId
-                            )
-                            listOf(appModel)
-                        } else {
-                            Log.e("DashboardViewModel", "Fallback: business $businessId not found in company $companyId")
-                            val firstBusiness = allBusinesses.firstOrNull()
-                            if (firstBusiness != null) {
-                                listOf(
-                                    com.example.ngdtechsupport.model.AppModel(
-                                        id = firstBusiness.id,
-                                        name = firstBusiness.name,
-                                        clientId = uid,
-                                        status = firstBusiness.status,
-                                        progress = firstBusiness.progress,
-                                        version = firstBusiness.version,
-                                        supportType = firstBusiness.supportType,
-                                        lastUpdate = firstBusiness.lastUpdate,
-                                        companyId = companyId
-                                    )
-                                )
-                            } else {
-                                emptyList()
-                            }
-                        }
-                    }
+                val resolvedBusiness = findBusinessForClient(companyId, businessId)
+                if (resolvedBusiness != null) {
+                    listOf(resolvedBusiness.toAppModel(uid = uid, companyId = companyId))
                 } else {
-                    Log.e("DashboardViewModel", "companyId or businessId is empty")
+                    Log.e(
+                        "DashboardViewModel",
+                        "No business found for companyId=$companyId and businessId=$businessId"
+                    )
                     emptyList()
                 }
             }
@@ -211,6 +136,70 @@ class DashboardViewModel(
                 appRepository.getAppsForUser(uid)
             }
         }
+    }
+
+    private suspend fun findBusinessForClient(companyId: String, requestedBusinessId: String): BusinessModel? {
+        val normalizedRequested = normalizeBusinessKey(requestedBusinessId)
+
+        val directBusiness = companyRepository.getBusiness(companyId, requestedBusinessId)
+        if (directBusiness != null) return directBusiness
+
+        if (requestedBusinessId != DEFAULT_BUSINESS_ID) {
+            val defaultBusiness = companyRepository.getBusiness(companyId, DEFAULT_BUSINESS_ID)
+            if (defaultBusiness != null) return defaultBusiness
+        }
+
+        val allBusinesses = companyRepository.getBusinesses(companyId)
+        if (allBusinesses.isEmpty()) return null
+
+        val normalizedDefault = normalizeBusinessKey(DEFAULT_BUSINESS_ID)
+
+        return allBusinesses.firstOrNull {
+            normalizeBusinessKey(it.id) == normalizedRequested
+        } ?: allBusinesses.firstOrNull {
+            normalizeBusinessKey(it.name) == normalizedRequested
+        } ?: allBusinesses.firstOrNull {
+            normalizeBusinessKey(it.id) == normalizedDefault
+        } ?: allBusinesses.firstOrNull {
+            normalizeBusinessKey(it.name) == normalizedDefault
+        }
+    }
+
+    private fun BusinessModel.toAppModel(uid: String, companyId: String): com.example.ngdtechsupport.model.AppModel {
+        return com.example.ngdtechsupport.model.AppModel(
+            id = id,
+            name = name,
+            clientId = uid,
+            status = status,
+            progress = progress,
+            version = version,
+            supportType = supportType,
+            lastUpdate = lastUpdate,
+            companyId = companyId
+        )
+    }
+
+    private fun normalizeCompanyId(companyId: String, fallbackCompanyName: String): String {
+        return companyId
+            .trim()
+            .ifBlank { fallbackCompanyName.trim() }
+            .ifBlank { DEFAULT_COMPANY_ID }
+    }
+
+    private fun normalizeBusinessId(businessId: String): String {
+        val trimmed = businessId.trim()
+        if (trimmed.isBlank()) return DEFAULT_BUSINESS_ID
+        if (trimmed.equals(DEFAULT_BUSINESS_ID, ignoreCase = true)) return DEFAULT_BUSINESS_ID
+        if (trimmed.equals("Restaurante Madrid", ignoreCase = true)) return DEFAULT_BUSINESS_ID
+        return if (trimmed.contains(" ")) {
+            trimmed.lowercase().replace(" ", "_")
+        } else {
+            trimmed
+        }
+    }
+
+    private fun normalizeBusinessKey(raw: String): String {
+        return raw.trim().lowercase().replace(" ", "_")
     }
 
     // Función auxiliar para verificar permisos

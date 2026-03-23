@@ -14,6 +14,7 @@ import com.example.ngdtechsupport.databinding.ItemChatMessageBinding
 import com.example.ngdtechsupport.databinding.ItemDateSeparatorBinding
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.max
 
 class ChatAdapter(
     private val currentUserId: String,
@@ -97,7 +98,7 @@ class ChatAdapter(
             val isAgentMessage = message.senderType == ChatMessageModel.SENDER_TYPE_AGENT
             val context = binding.root.context
 
-            binding.textViewMessage.text = message.message
+            binding.textViewMessage.text = formatMessageForReadability(message.message)
 
             val layoutParams = binding.layoutBubble.layoutParams as ViewGroup.MarginLayoutParams
             
@@ -140,11 +141,11 @@ class ChatAdapter(
             when {
                 isAiMessage -> {
                     binding.textViewSender.visibility = View.VISIBLE
-                    binding.textViewSender.text = "🤖 Asistente IA"
+                    binding.textViewSender.text = "Asistente IA"
                 }
                 isAgentMessage -> {
                     binding.textViewSender.visibility = View.VISIBLE
-                    binding.textViewSender.text = "👨‍💼 ${message.senderName}"
+                    binding.textViewSender.text = "Agente ${message.senderName.orEmpty()}".trim()
                 }
                 !isOwnMessage && !message.senderName.isNullOrEmpty() -> {
                     binding.textViewSender.visibility = View.VISIBLE
@@ -187,6 +188,28 @@ class ChatAdapter(
                 onLongClick(message)
                 true
             }
+        }
+
+        private fun formatMessageForReadability(rawMessage: String): String {
+            val compact = rawMessage
+                .replace("\r\n", "\n")
+                .replace(Regex("[ \t]{2,}"), " ")
+                .trim()
+
+            if (compact.length < 120 || compact.contains('\n')) return compact
+
+            val chunks = compact
+                .split(Regex("(?<=[.!?])\\s+"))
+                .filter { it.isNotBlank() }
+
+            if (chunks.size < 2) return compact
+
+            val targetLines = max(2, compact.length / 140)
+            val sentenceGroupSize = max(1, chunks.size / targetLines)
+
+            return chunks
+                .chunked(sentenceGroupSize)
+                .joinToString("\n") { it.joinToString(" ") }
         }
     }
 

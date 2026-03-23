@@ -24,10 +24,10 @@
         android:paddingHorizontal="12dp"
         android:paddingVertical="4dp"
         android:textSize="12sp"
-        android:textColor="#757575"
+        android:textColor="@color/text_sender"
         android:textStyle="italic"
         android:visibility="gone"
-        android:background="#FFFFFF"
+        android:background="@color/surface_white"
         app:layout_constraintBottom_toTopOf="@+id/layoutSend"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
@@ -64,7 +64,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="8dp"
-        android:background="#FFFFFF"
+        android:background="@color/surface_white"
         android:elevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -85,14 +85,15 @@
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
                 android:textSize="12sp"
-                android:text="Respondiendo"/>
+                android:text="Respondiendo"
+                android:textColor="@color/text_primary"/>
 
             <TextView
                 android:id="@+id/textReplyingTo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="13sp"
-                android:textColor="#424242"
+                android:textColor="@color/text_primary"
                 android:maxLines="2"
                 android:ellipsize="end"/>
         </LinearLayout>
@@ -108,9 +109,11 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="🤖 Estado"
+                android:text="Estado"
                 android:textSize="12sp"
+                android:textColor="@color/primary"
                 android:minWidth="0dp"
+                app:rippleColor="@color/reply_preview"
                 android:paddingHorizontal="8dp"/>
 
             <com.google.android.material.button.MaterialButton
@@ -118,9 +121,11 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="🐛 Error"
+                android:text="Error"
                 android:textSize="12sp"
+                android:textColor="@color/primary"
                 android:minWidth="0dp"
+                app:rippleColor="@color/reply_preview"
                 android:paddingHorizontal="8dp"/>
 
             <com.google.android.material.button.MaterialButton
@@ -128,9 +133,11 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="💰 Presupuesto"
+                android:text="Presupuesto"
                 android:textSize="12sp"
+                android:textColor="@color/primary"
                 android:minWidth="0dp"
+                app:rippleColor="@color/reply_preview"
                 android:paddingHorizontal="8dp"/>
 
             <com.google.android.material.button.MaterialButton
@@ -138,9 +145,11 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="👤 Agente"
+                android:text="Agente"
                 android:textSize="12sp"
+                android:textColor="@color/primary"
                 android:minWidth="0dp"
+                app:rippleColor="@color/reply_preview"
                 android:paddingHorizontal="8dp"/>
 
         </LinearLayout>
@@ -153,7 +162,7 @@
             android:layout_gravity="end"
             android:text="Borrar chat"
             android:textSize="12sp"
-            android:textColor="@color/error_color"/>
+            android:textColor="@color/text_sender"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -167,6 +176,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="@color/primary"
                 app:boxCornerRadiusBottomEnd="24dp"
                 app:boxCornerRadiusBottomStart="24dp"
                 app:boxCornerRadiusTopEnd="24dp"
@@ -177,6 +187,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Escribe un mensaje..."
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_sender"
                     android:inputType="textCapSentences|textMultiLine"
                     android:maxLines="4"/>
 

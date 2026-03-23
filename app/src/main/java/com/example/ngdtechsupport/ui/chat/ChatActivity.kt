@@ -15,9 +15,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
+import com.example.ngdtechsupport.ui.auth.LoginActivity
 import com.google.firebase.auth.FirebaseAuth
 
 class ChatActivity : AppCompatActivity() {
+
+    companion object {
+        private const val DEFAULT_COMPANY_ID = "NGDStudios"
+        private const val DEFAULT_BUSINESS_ID = "restaurante_madrid"
+    }
 
     private lateinit var binding: ActivityChatBinding
     private lateinit var adapter: ChatAdapter
@@ -28,6 +34,7 @@ class ChatActivity : AppCompatActivity() {
     private var companyId: String = ""
     private var businessId: String = ""
     private var channelId: String = ""
+    private var userRole: String = "CLIENT"
     private var replyMessage: ChatMessageModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,9 +43,27 @@ class ChatActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
-        companyId = intent.getStringExtra("companyId").orEmpty().ifEmpty { "NGDStudios" }
-        businessId = intent.getStringExtra("businessId").orEmpty().ifEmpty { "restaurante_madrid" }
+        if (currentUserId.isEmpty()) {
+            Toast.makeText(this, "Sesion expirada. Inicia sesion otra vez.", Toast.LENGTH_SHORT).show()
+            startActivity(android.content.Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+
+        companyId = intent.getStringExtra("companyId").orEmpty().ifEmpty { DEFAULT_COMPANY_ID }
+        businessId = intent.getStringExtra("businessId").orEmpty().ifEmpty { DEFAULT_BUSINESS_ID }
         channelId = intent.getStringExtra("channelId").orEmpty().ifEmpty { "${businessId}_support" }
+        userRole = intent.getStringExtra("userRole").orEmpty().ifEmpty { "CLIENT" }.uppercase()
+
+        if (companyId.isBlank() || channelId.isBlank()) {
+            Toast.makeText(this, "No se pudo abrir el chat por datos incompletos.", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        if (userRole == "CLIENT") {
+            binding.btnClearChat.visibility = View.GONE
+        }
 
         setupRecycler()
         setupInputActions()
@@ -47,7 +72,7 @@ class ChatActivity : AppCompatActivity() {
         chatViewModel.listenMessages(companyId, channelId)
         chatViewModel.listenTyping(companyId, channelId)
         chatViewModel.updateLastRead(companyId, channelId, currentUserId)
-        chatViewModel.markChatAsRead(companyId, channelId, true)
+        chatViewModel.markChatAsRead(companyId, channelId, userRole == "ADMIN" || userRole == "SOPORTE")
 
         chatViewModel.messages.observe(this) { messages ->
             adapter.submitMessages(messages) {
@@ -122,8 +147,8 @@ class ChatActivity : AppCompatActivity() {
         val firstVisible = layoutManager.findFirstVisibleItemPosition()
         val lastVisible = layoutManager.findLastVisibleItemPosition()
 
-        binding.fabTopMessage.visibility = if (firstVisible > 2) View.VISIBLE else View.GONE
-        binding.fabNewMessage.visibility = if (lastVisible < total - 2) View.VISIBLE else View.GONE
+        binding.fabTopMessage.visibility = if (firstVisible > 0) View.VISIBLE else View.GONE
+        binding.fabNewMessage.visibility = if (lastVisible in 0 until (total - 1)) View.VISIBLE else View.GONE
     }
 
     private fun setupInputActions() {
@@ -154,6 +179,11 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun sendCurrentMessage() {
+        if (currentUserId.isEmpty()) {
+            Toast.makeText(this, "No se pudo enviar: sesion no valida.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val text = binding.editTextMessage.text?.toString().orEmpty().trim()
         if (text.isEmpty()) return
 
@@ -179,6 +209,11 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun sendQuickMessage(text: String) {
+        if (currentUserId.isEmpty()) {
+            Toast.makeText(this, "No se pudo enviar: sesion no valida.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         chatViewModel.sendMessage(
             companyId = companyId,
             channelId = channelId,

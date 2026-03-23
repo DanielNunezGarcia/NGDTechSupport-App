@@ -8,6 +8,8 @@ import android.util.Log
 class UserRepository {
 
     private val db = FirebaseFirestore.getInstance()
+    private val defaultCompanyId = "NGDStudios"
+    private val defaultBusinessId = "restaurante_madrid"
 
     // Devuelve el usuario y su rol, comprobando primero la colección "admin" y luego "users"
     suspend fun getUser(uid: String): UserModel? {
@@ -26,17 +28,22 @@ class UserRepository {
                 Log.d("UserRepository", "Admin data keys: ${adminData?.keys}")
                 Log.d("UserRepository", "Admin data businessId raw: ${adminData?.get("businessId")}")
                 Log.d("UserRepository", "Admin data business raw: ${adminData?.get("business")}")
-                val adminUser = adminSnapshot.toObject(UserModel::class.java)
-                
-                // Normalizar rol y mapear company a companyId si es necesario
-                val result = adminUser?.copy(
+                val adminUser = adminSnapshot.toObject(UserModel::class.java) ?: UserModel()
+
+                // Normalizar rol y mapear company/business con fallback seguro
+                val result = adminUser.copy(
                     role = normalizeRole(adminData?.get("role")?.toString() ?: adminUser.role),
-                    companyId = adminData?.get("companyId")?.toString() 
-                        ?: adminData?.get("company")?.toString() 
-                        ?: adminUser.companyId.ifEmpty { adminUser.company },
-                    businessId = adminData?.get("businessId")?.toString() 
-                        ?: adminData?.get("business")?.toString() 
-                        ?: adminUser.businessId
+                    companyId = resolveCompanyId(
+                        primary = adminData?.get("companyId")?.toString(),
+                        alternative = adminData?.get("company")?.toString(),
+                        modelCompanyId = adminUser.companyId,
+                        modelCompany = adminUser.company
+                    ),
+                    businessId = resolveBusinessId(
+                        primary = adminData?.get("businessId")?.toString(),
+                        alternative = adminData?.get("business")?.toString(),
+                        modelBusinessId = adminUser.businessId
+                    )
                 )
                 Log.d("UserRepository", "Admin model: $result")
                 result
@@ -54,17 +61,22 @@ class UserRepository {
                     Log.d("UserRepository", "User data keys: ${userData?.keys}")
                     Log.d("UserRepository", "User data businessId raw: ${userData?.get("businessId")}")
                     Log.d("UserRepository", "User data business raw: ${userData?.get("business")}")
-                    val user = userSnapshot.toObject(UserModel::class.java)
-                    
-                    // Normalizar rol y mapear company a companyId si es necesario
-                    val result = user?.copy(
+                    val user = userSnapshot.toObject(UserModel::class.java) ?: UserModel()
+
+                    // Normalizar rol y mapear company/business con fallback seguro
+                    val result = user.copy(
                         role = normalizeRole(userData?.get("role")?.toString() ?: user.role),
-                        companyId = userData?.get("companyId")?.toString() 
-                            ?: userData?.get("company")?.toString() 
-                            ?: user.companyId.ifEmpty { user.company },
-                        businessId = userData?.get("businessId")?.toString() 
-                            ?: userData?.get("business")?.toString() 
-                            ?: user.businessId
+                        companyId = resolveCompanyId(
+                            primary = userData?.get("companyId")?.toString(),
+                            alternative = userData?.get("company")?.toString(),
+                            modelCompanyId = user.companyId,
+                            modelCompany = user.company
+                        ),
+                        businessId = resolveBusinessId(
+                            primary = userData?.get("businessId")?.toString(),
+                            alternative = userData?.get("business")?.toString(),
+                            modelBusinessId = user.businessId
+                        )
                     )
                     Log.d("UserRepository", "User model: $result")
                     result
@@ -74,16 +86,59 @@ class UserRepository {
                 }
             }
         } catch (e: Exception) {
-            // Log del error para debugging (en producción usar Log o un sistema de logging)
             Log.e("UserRepository", "Error getting user: ${e.message}", e)
-            e.printStackTrace()
-            // Si es un error de permisos, lo relanzamos para que el ViewModel lo maneje
+
             if (e.message?.contains("permission") == true || 
                 e.message?.contains("PERMISSION_DENIED") == true) {
                 throw Exception("Error de permisos: Verifica las reglas de seguridad de Firestore. UID: $uid", e)
             }
-            null
+
+            // No ocultamos errores críticos de red/datos.
+            throw Exception("No se pudo obtener el usuario desde Firestore. UID: $uid", e)
         }
+    }
+
+    private fun resolveCompanyId(
+        primary: String?,
+        alternative: String?,
+        modelCompanyId: String,
+        modelCompany: String
+    ): String {
+        val resolved = primary
+            .orEmpty()
+            .ifBlank { alternative.orEmpty() }
+            .ifBlank { modelCompanyId }
+            .ifBlank { modelCompany }
+
+        return normalizeCompanyId(resolved).ifBlank { defaultCompanyId }
+    }
+
+    private fun resolveBusinessId(
+        primary: String?,
+        alternative: String?,
+        modelBusinessId: String
+    ): String {
+        val resolved = primary
+            .orEmpty()
+            .ifBlank { alternative.orEmpty() }
+            .ifBlank { modelBusinessId }
+
+        return normalizeBusinessId(resolved).ifBlank { defaultBusinessId }
+    }
+
+    private fun normalizeCompanyId(raw: String): String {
+        return raw.trim().ifBlank { defaultCompanyId }
+    }
+
+    private fun normalizeBusinessId(raw: String): String {
+        val trimmed = raw.trim()
+        if (trimmed.isBlank()) return defaultBusinessId
+        if (trimmed.equals(defaultBusinessId, ignoreCase = true)) return defaultBusinessId
+        if (trimmed.equals("Restaurante Madrid", ignoreCase = true)) return defaultBusinessId
+        if (trimmed.contains(" ")) {
+            return trimmed.lowercase().replace(" ", "_")
+        }
+        return trimmed
     }
 
     /**

@@ -3,6 +3,7 @@ package com.example.ngdtechsupport.data.repository
 import android.util.Log
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.tasks.await
 import com.example.ngdtechsupport.model.ChannelMember
@@ -46,10 +47,19 @@ class ChannelRepository {
             return false
         }
         return try {
-            val membersMap = mapOf(
-                adminUid to ChannelMember(role = "admin"),
-                memberUid to ChannelMember(role = "member")
+            val membersMap = mutableMapOf(
+                adminUid to ChannelMember(role = "admin")
             )
+            if (memberUid != adminUid) {
+                membersMap[memberUid] = ChannelMember(role = "member")
+            }
+
+            val unreadCountMap = mutableMapOf(
+                adminUid to 0L
+            )
+            if (memberUid != adminUid) {
+                unreadCountMap[memberUid] = 0L
+            }
             
             val channelData = ChannelModel(
                 id = channelId,
@@ -59,17 +69,14 @@ class ChannelRepository {
                 pinned = false,
                 members = membersMap,
                 mutedUsers = emptyMap(),
-                unreadCount = mapOf(
-                    adminUid to 0L,
-                    memberUid to 0L
-                )
+                unreadCount = unreadCountMap
             )
 
             firestore.collection("companies")
                 .document(companyId)
                 .collection("channels")
                 .document(channelId)
-                .set(channelData)
+                .set(channelData, SetOptions.merge())
                 .await()
             
             true

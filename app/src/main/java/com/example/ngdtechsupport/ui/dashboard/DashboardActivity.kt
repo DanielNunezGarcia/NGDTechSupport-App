@@ -20,13 +20,19 @@ import com.google.firebase.messaging.FirebaseMessaging
 
 class DashboardActivity : AppCompatActivity() {
 
+    companion object {
+        private const val DEFAULT_COMPANY_ID = "NGDStudios"
+        private const val DEFAULT_BUSINESS_ID = "restaurante_madrid"
+    }
+
     private val viewModel: DashboardViewModel by viewModels()
-    private lateinit var channelViewModel: ChannelViewModel
+    private val channelViewModel: ChannelViewModel by viewModels()
     private lateinit var adapter: AppAdapter
 
     private var currentUserId: String = ""
     private var currentCompanyId: String = ""
     private var currentBusinessId: String = ""
+    private var currentUserRole: String = "CLIENT"
     private var privateChannelId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,8 +57,8 @@ class DashboardActivity : AppCompatActivity() {
             finish()
             return
         }
-
-        channelViewModel = ChannelViewModel()
+        currentCompanyId = DEFAULT_COMPANY_ID
+        currentBusinessId = DEFAULT_BUSINESS_ID
 
         rvApps.layoutManager = LinearLayoutManager(this)
         rvApps.setHasFixedSize(true)
@@ -89,17 +95,18 @@ class DashboardActivity : AppCompatActivity() {
             }
 
             tvRole.text = "Rol: ${state.userRole.ifEmpty { "CLIENT" }}"
+            currentUserRole = state.userRole.ifEmpty { "CLIENT" }
             tvUserInfo.text = if (state.companyName.isNotEmpty()) {
                 "${state.userName} - ${state.companyName}"
             } else {
                 state.userName
             }
 
-            currentCompanyId = state.companyId.ifEmpty { "NGDStudios" }
+            currentCompanyId = state.companyId.ifEmpty { DEFAULT_COMPANY_ID }
             currentBusinessId = when {
                 state.apps.isNotEmpty() -> state.apps.first().id
                 state.businessId.isNotEmpty() -> state.businessId
-                else -> "restaurante_madrid"
+                else -> DEFAULT_BUSINESS_ID
             }
 
             btnAiConfig.visibility = if (state.userRole == "ADMIN") View.VISIBLE else View.GONE
@@ -110,6 +117,7 @@ class DashboardActivity : AppCompatActivity() {
                 val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
                 intent.putExtra("companyId", currentCompanyId)
                 intent.putExtra("businessId", currentBusinessId)
+                intent.putExtra("userRole", currentUserRole)
                 intent.putExtra("channelId", privateChannelId)
                 startActivity(intent)
                 channelViewModel.clearPrivateChannelState()
@@ -117,40 +125,57 @@ class DashboardActivity : AppCompatActivity() {
         }
 
         btnChat.setOnClickListener {
+            if (!isSessionValid()) return@setOnClickListener
             val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
-            intent.putExtra("companyId", currentCompanyId.ifEmpty { "NGDStudios" })
-            intent.putExtra("businessId", currentBusinessId.ifEmpty { "restaurante_madrid" })
-            intent.putExtra("channelId", "${currentBusinessId.ifEmpty { "restaurante_madrid" }}_support")
+            val safeCompanyId = currentCompanyId.ifEmpty { DEFAULT_COMPANY_ID }
+            val safeBusinessId = currentBusinessId.ifEmpty { DEFAULT_BUSINESS_ID }
+            intent.putExtra("companyId", safeCompanyId)
+            intent.putExtra("businessId", safeBusinessId)
+            intent.putExtra("userRole", currentUserRole)
+            intent.putExtra("channelId", "${safeBusinessId}_support")
             startActivity(intent)
         }
 
         btnUpdates.setOnClickListener {
-            val intent = Intent(this, com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java)
-            intent.putExtra("companyId", currentCompanyId.ifEmpty { "NGDStudios" })
-            intent.putExtra("businessId", currentBusinessId.ifEmpty { "restaurante_madrid" })
-            startActivity(intent)
+            if (!isSessionValid()) return@setOnClickListener
+            runCatching {
+                val intent = Intent(this, com.example.ngdtechsupport.ui.updates.UpdatesActivity::class.java)
+                intent.putExtra("companyId", currentCompanyId.ifEmpty { DEFAULT_COMPANY_ID })
+                intent.putExtra("businessId", currentBusinessId.ifEmpty { DEFAULT_BUSINESS_ID })
+                intent.putExtra("userRole", currentUserRole)
+                startActivity(intent)
+            }.onFailure {
+                Toast.makeText(this, "No se pudo abrir Updates", Toast.LENGTH_SHORT).show()
+            }
         }
 
         btnChannels.setOnClickListener {
+            if (!isSessionValid()) return@setOnClickListener
             val intent = Intent(this, ChannelActivity::class.java)
-            intent.putExtra("companyId", currentCompanyId.ifEmpty { "NGDStudios" })
+            intent.putExtra("companyId", currentCompanyId.ifEmpty { DEFAULT_COMPANY_ID })
             startActivity(intent)
         }
 
         btnCreatePrivateChannel.setOnClickListener {
-            val companyId = currentCompanyId.ifEmpty { "NGDStudios" }
+            if (!isSessionValid()) return@setOnClickListener
+            val companyId = currentCompanyId.ifEmpty { DEFAULT_COMPANY_ID }
             privateChannelId = "private_$currentUserId"
-            channelViewModel.createPrivateChannel(
-                companyId = companyId,
-                channelId = privateChannelId,
-                adminUid = currentUserId,
-                memberUid = currentUserId
-            )
+            runCatching {
+                channelViewModel.createPrivateChannel(
+                    companyId = companyId,
+                    channelId = privateChannelId,
+                    adminUid = currentUserId,
+                    memberUid = currentUserId
+                )
+            }.onFailure {
+                Toast.makeText(this, "No se pudo crear el canal privado", Toast.LENGTH_SHORT).show()
+            }
         }
 
         btnAiConfig.setOnClickListener {
+            if (!isSessionValid()) return@setOnClickListener
             val intent = Intent(this, com.example.ngdtechsupport.ui.admin.AiConfigActivity::class.java)
-            intent.putExtra("companyId", currentCompanyId.ifEmpty { "NGDStudios" })
+            intent.putExtra("companyId", currentCompanyId.ifEmpty { DEFAULT_COMPANY_ID })
             startActivity(intent)
         }
 
@@ -172,5 +197,14 @@ class DashboardActivity : AppCompatActivity() {
                 .document(uid)
                 .set(mapOf("fcmToken" to token), com.google.firebase.firestore.SetOptions.merge())
         }
+    }
+
+    private fun isSessionValid(): Boolean {
+        if (currentUserId.isNotEmpty()) return true
+
+        Toast.makeText(this, "Sesion invalida. Inicia sesion de nuevo.", Toast.LENGTH_SHORT).show()
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+        return false
     }
 }
