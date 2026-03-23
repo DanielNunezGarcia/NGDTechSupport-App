@@ -58,16 +58,20 @@ class ChatActivity : AppCompatActivity() {
         chatViewModel.markChatAsRead(companyId, channelId, true)
 
         chatViewModel.listenMessages(companyId, channelId)
-        
+
         chatViewModel.listenTyping(companyId, channelId)
 
+        if (chatViewModel.messages.value?.isNotEmpty() == true) {
+            binding.recyclerViewChat.post {
+                binding.recyclerViewChat.smoothScrollToPosition(chatViewModel.messages.value!!.size - 1)
+            }
+        }
+        
         chatViewModel.messages.observe(this) { messages ->
-            val itemCount = adapter.itemCount
-            adapter.submitMessages(messages) {
-                if (messages.isNotEmpty()) {
-                    binding.recyclerViewChat.post {
-                        binding.recyclerViewChat.smoothScrollToPosition(messages.size - 1)
-                    }
+            adapter.submitMessages(messages)
+            if (messages.isNotEmpty()) {
+                binding.recyclerViewChat.post {
+                    binding.recyclerViewChat.smoothScrollToPosition(messages.size - 1)
                 }
             }
         }
@@ -179,6 +183,12 @@ class ChatActivity : AppCompatActivity() {
             binding.editTextMessage.text?.clear()
             replyMessage = null
             binding.layoutReplyPreview.visibility = View.GONE
+            
+            chatViewModel.messages.value?.let { messages ->
+                binding.recyclerViewChat.post {
+                    binding.recyclerViewChat.smoothScrollToPosition(messages.size - 1)
+                }
+            }
         }
     }
 
@@ -214,6 +224,12 @@ class ChatActivity : AppCompatActivity() {
             replyToId = null,
             replyToText = null
         )
+        
+        chatViewModel.messages.value?.let { messages ->
+            binding.recyclerViewChat.post {
+                binding.recyclerViewChat.smoothScrollToPosition(messages.size - 1)
+            }
+        }
     }
 
     private fun scrollToBottom() {

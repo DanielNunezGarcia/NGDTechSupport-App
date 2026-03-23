@@ -67,6 +67,8 @@ class DashboardActivity : AppCompatActivity() {
         val btnAiConfig = findViewById<Button>(R.id.btnAiConfig)
         val btnCreatePrivateChannel = findViewById<Button>(R.id.btnCreatePrivateChannel)
 
+        btnAiConfig.visibility = View.GONE
+
         viewModel.uiState.observe(this) { state ->
             if (state.isLoading) {
                 textView.text = "Cargando..."

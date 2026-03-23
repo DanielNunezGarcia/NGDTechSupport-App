@@ -5,6 +5,7 @@ import com.example.ngdtechsupport.data.model.ChannelModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.tasks.await
+import com.example.ngdtechsupport.model.ChannelMember
 
 class ChannelRepository {
 
@@ -40,17 +41,20 @@ class ChannelRepository {
         memberUid: String
     ): Boolean {
         return try {
-            val channelData = hashMapOf(
-                "name" to "Canal Privado",
-                "createdAt" to Timestamp.now(),
-                "isArchived" to false,
-                "pinned" to false,
-                "members" to mapOf(
-                    adminUid to mapOf("role" to "admin"),
-                    memberUid to mapOf("role" to "member")
-                ),
-                "mutedUsers" to emptyMap<String, Boolean>(),
-                "unreadCount" to mapOf(
+            val membersMap = mapOf(
+                adminUid to ChannelMember(role = "admin"),
+                memberUid to ChannelMember(role = "member")
+            )
+            
+            val channelData = ChannelModel(
+                id = channelId,
+                name = "Canal Privado",
+                createdAt = Timestamp.now(),
+                isArchived = false,
+                pinned = false,
+                members = membersMap,
+                mutedUsers = emptyMap(),
+                unreadCount = mapOf(
                     adminUid to 0L,
                     memberUid to 0L
                 )

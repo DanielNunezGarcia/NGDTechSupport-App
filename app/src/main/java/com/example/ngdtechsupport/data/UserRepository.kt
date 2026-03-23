@@ -26,7 +26,8 @@ class UserRepository {
                     role = normalizeRole(adminData?.get("role")?.toString() ?: adminUser.role),
                     companyId = adminData?.get("companyId")?.toString() 
                         ?: adminData?.get("company")?.toString() 
-                        ?: adminUser.companyId.ifEmpty { adminUser.company }
+                        ?: adminUser.companyId.ifEmpty { adminUser.company },
+                    businessId = adminData?.get("businessId")?.toString() ?: adminUser.businessId
                 )
             } else {
                 // 2. Si no es admin, miramos en "users"
@@ -44,7 +45,8 @@ class UserRepository {
                         role = normalizeRole(userData?.get("role")?.toString() ?: user.role),
                         companyId = userData?.get("companyId")?.toString() 
                             ?: userData?.get("company")?.toString() 
-                            ?: user.companyId.ifEmpty { user.company }
+                            ?: user.companyId.ifEmpty { user.company },
+                        businessId = userData?.get("businessId")?.toString() ?: user.businessId
                     )
                 } else {
                     null

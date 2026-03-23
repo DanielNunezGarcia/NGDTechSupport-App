@@ -94,7 +94,7 @@ class ChannelViewModel : ViewModel() {
                 memberUid
             )
             if (success) {
-                _toastMessage.postValue("Canal privado creado")
+                // Canal creado sin mensaje
             } else {
                 _toastMessage.postValue("Error al crear canal")
             }

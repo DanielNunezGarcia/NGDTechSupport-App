@@ -101,6 +101,8 @@ class UpdatesRepository {
         businessId: String,
         onResult: (List<UpdateModel>) -> Unit
     ) {
+        android.util.Log.d("UpdatesRepository", "listenUpdates: companyId=$companyId, businessId=$businessId")
+
         val updatesRef = firestore.collection("companies")
             .document(companyId)
             .collection("businesses")
@@ -108,16 +110,19 @@ class UpdatesRepository {
             .collection("updates")
 
         updatesRef
-            .orderBy("pinned", Query.Direction.DESCENDING)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    android.util.Log.e("UpdatesRepository", "Error: ${error.message}")
+                    android.util.Log.e("UpdatesRepository", "Error fetching updates: ${error.message}")
+                    android.util.Log.e("UpdatesRepository", "Error code: ${error.code}")
                     onResult(emptyList())
                     return@addSnapshotListener
                 }
 
+                android.util.Log.d("UpdatesRepository", "Snapshot size: ${snapshot?.documents?.size ?: 0}")
+
                 val updates = snapshot?.documents?.map { doc ->
+                    android.util.Log.d("UpdatesRepository", "Doc: ${doc.id} - ${doc.getString("title")}")
                     UpdateModel(
                         id = doc.id,
                         title = doc.getString("title") ?: "",
@@ -125,11 +130,13 @@ class UpdatesRepository {
                         type = doc.getString("type") ?: "",
                         version = doc.getString("version") ?: "",
                         createdAt = doc.getTimestamp("createdAt")
-                            ?.toDate()?.time ?: 0L,
-                        createdBy = doc.getString("createdBy") ?: ""
+                            ?.toDate()?.time ?: doc.getLong("createdAt") ?: 0L,
+                        createdBy = doc.getString("createdBy") ?: "",
+                        pinned = doc.getBoolean("pinned") ?: false
                     )
                 } ?: emptyList()
 
+                android.util.Log.d("UpdatesRepository", "Parsed updates: ${updates.size}")
                 onResult(updates)
             }
     }
