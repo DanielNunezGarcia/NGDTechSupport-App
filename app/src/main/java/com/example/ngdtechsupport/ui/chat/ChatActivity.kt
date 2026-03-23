@@ -61,18 +61,11 @@ class ChatActivity : AppCompatActivity() {
 
         chatViewModel.listenTyping(companyId, channelId)
 
-        if (chatViewModel.messages.value?.isNotEmpty() == true) {
-            binding.recyclerViewChat.post {
-                binding.recyclerViewChat.smoothScrollToPosition(chatViewModel.messages.value!!.size - 1)
-            }
-        }
+
         
         chatViewModel.messages.observe(this) { messages ->
-            adapter.submitMessages(messages)
-            if (messages.isNotEmpty()) {
-                binding.recyclerViewChat.post {
-                    binding.recyclerViewChat.smoothScrollToPosition(messages.size - 1)
-                }
+            adapter.submitMessages(messages) {
+                scrollToBottom()
             }
         }
 
@@ -103,7 +96,7 @@ class ChatActivity : AppCompatActivity() {
                 typingRunnable = Runnable {
                     chatViewModel.setTyping(companyId, channelId, false)
                 }
-                typingHandler.postDelayed(typingRunnable!!, typingDelay)
+                typingRunnable?.let { typingHandler.postDelayed(it, typingDelay) }
             }
             
             override fun afterTextChanged(s: Editable?) {}
@@ -116,8 +109,8 @@ class ChatActivity : AppCompatActivity() {
             return
         }
         
-        val names = typingMap.values.mapNotNull {
-            (it as? Map<*, *>)?.get("name") as? String
+        val names = typingMap.values.mapNotNull { value ->
+            (value as? Map<*, *>)?.get("name") as? String
         }
         
         val text = when {
@@ -184,11 +177,7 @@ class ChatActivity : AppCompatActivity() {
             replyMessage = null
             binding.layoutReplyPreview.visibility = View.GONE
             
-            chatViewModel.messages.value?.let { messages ->
-                binding.recyclerViewChat.post {
-                    binding.recyclerViewChat.smoothScrollToPosition(messages.size - 1)
-                }
-            }
+
         }
     }
 
@@ -225,11 +214,7 @@ class ChatActivity : AppCompatActivity() {
             replyToText = null
         )
         
-        chatViewModel.messages.value?.let { messages ->
-            binding.recyclerViewChat.post {
-                binding.recyclerViewChat.smoothScrollToPosition(messages.size - 1)
-            }
-        }
+
     }
 
     private fun scrollToBottom() {
