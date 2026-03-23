@@ -20,42 +20,59 @@ class UpdatesActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        binding = ActivityUpdatesBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        val companyId = intent.getStringExtra("companyId") ?: ""
-        val businessId = intent.getStringExtra("businessId") ?: ""
-
-        if (companyId.isEmpty()) {
-            Toast.makeText(this, "Error: CompanyId no disponible", Toast.LENGTH_SHORT).show()
+        try {
+            binding = ActivityUpdatesBinding.inflate(layoutInflater)
+            setContentView(binding.root)
+        } catch (e: Exception) {
+            android.util.Log.e("UpdatesActivity", "Error inflating layout", e)
             finish()
             return
         }
 
-        val finalBusinessId = if (businessId.isEmpty()) "default" else businessId
+        try {
+            val companyId = intent.getStringExtra("companyId") ?: ""
+            val businessId = intent.getStringExtra("businessId") ?: ""
 
-        adapter = UpdatesAdapter { update ->
-            Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
-        }
-
-        binding.recyclerUpdates.layoutManager = LinearLayoutManager(this)
-        binding.recyclerUpdates.adapter = adapter
-
-        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-        viewModel.markUpdatesRead(currentUserId)
-
-        viewModel.updates.observe(this) { updates ->
-            if (updates.isEmpty()) {
-                binding.tvEmpty.visibility = View.VISIBLE
-                binding.recyclerUpdates.visibility = View.GONE
-            } else {
-                binding.tvEmpty.visibility = View.GONE
-                binding.recyclerUpdates.visibility = View.VISIBLE
-                adapter.submitList(updates)
+            if (companyId.isEmpty()) {
+                Toast.makeText(this, "Error: CompanyId no disponible", Toast.LENGTH_SHORT).show()
+                finish()
+                return
             }
-        }
 
-        viewModel.listenUpdates(companyId, finalBusinessId)
+            val finalBusinessId = if (businessId.isEmpty()) "default" else businessId
+
+            adapter = UpdatesAdapter { update ->
+                Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
+            }
+
+            binding.recyclerUpdates.layoutManager = LinearLayoutManager(this)
+            binding.recyclerUpdates.adapter = adapter
+
+            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+            if (currentUserId.isNotEmpty()) {
+                viewModel.markUpdatesRead(currentUserId)
+            }
+
+            viewModel.updates.observe(this) { updates ->
+                try {
+                    if (updates.isEmpty()) {
+                        binding.tvEmpty.visibility = View.VISIBLE
+                        binding.recyclerUpdates.visibility = View.GONE
+                    } else {
+                        binding.tvEmpty.visibility = View.GONE
+                        binding.recyclerUpdates.visibility = View.VISIBLE
+                        adapter.submitList(updates)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("UpdatesActivity", "Error in updates observer", e)
+                }
+            }
+
+            viewModel.listenUpdates(companyId, finalBusinessId)
+        } catch (e: Exception) {
+            android.util.Log.e("UpdatesActivity", "Error in onCreate", e)
+            Toast.makeText(this, "Error al cargar novedades", Toast.LENGTH_SHORT).show()
+            finish()
+        }
     }
 }

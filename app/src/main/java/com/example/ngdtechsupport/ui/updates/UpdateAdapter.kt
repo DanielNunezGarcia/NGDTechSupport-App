@@ -33,31 +33,45 @@ class UpdatesAdapter(
         private val type: TextView = itemView.findViewById(R.id.tvUpdateType)
 
         fun bind(update: UpdateModel) {
-            title.text = update.title
-            description.text = update.description
+            try {
+                title.text = update.title
+                description.text = update.description
 
-            val formatter = SimpleDateFormat("dd MMM yyyy 'a las' HH:mm", Locale.getDefault())
-            date.text = "Actualizado: ${formatter.format(Date(update.createdAt))}"
+                val formatter = SimpleDateFormat("dd MMM yyyy 'a las' HH:mm", Locale.getDefault())
+                date.text = "Actualizado: ${formatter.format(Date(update.createdAt))}"
 
-            if (update.type.isNotEmpty()) {
-                type.visibility = View.VISIBLE
-                type.text = update.type
-                type.setBackgroundResource(getTypeBackground(update.type))
-            } else {
+                if (update.type.isNotEmpty()) {
+                    type.visibility = View.VISIBLE
+                    type.text = update.type
+                    type.setBackgroundResource(getTypeBackground(update.type))
+                } else {
+                    type.visibility = View.GONE
+                }
+
+                itemView.setOnClickListener {
+                    onItemClick(update)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("UpdatesAdapter", "Error binding update", e)
+                // En caso de error, mostrar valores por defecto
+                title.text = update.title
+                description.text = update.description
+                date.text = "Fecha no disponible"
                 type.visibility = View.GONE
-            }
-
-            itemView.setOnClickListener {
-                onItemClick(update)
             }
         }
 
         private fun getTypeBackground(type: String): Int {
-            return when (type.lowercase()) {
-                "nuevo" -> R.drawable.bg_badge_new
-                "actualizacion" -> R.drawable.bg_badge_update
-                "importante" -> R.drawable.bg_badge_important
-                else -> R.drawable.bg_badge
+            return try {
+                when (type.lowercase()) {
+                    "nuevo" -> R.drawable.bg_badge_new
+                    "actualizacion" -> R.drawable.bg_badge_update
+                    "importante" -> R.drawable.bg_badge_important
+                    else -> R.drawable.bg_badge
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("UpdatesAdapter", "Error getting type background", e)
+                R.drawable.bg_badge
             }
         }
     }

@@ -46,7 +46,7 @@
             android:name=".ui.activity.AppDetailActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.updates.CreateUpdateActivity"
+            android:name=".ui.updates.CreateUpdatesActivity"
             android:exported="false" />
         <activity
             android:name=".ai.AiChatActivity"
