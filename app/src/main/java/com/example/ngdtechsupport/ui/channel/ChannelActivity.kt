@@ -18,7 +18,7 @@ class ChannelActivity : AppCompatActivity() {
     private lateinit var viewModel: ChannelViewModel
     private lateinit var adapter: ChannelAdapter
 
-    private val companyId = "NGDStudios"
+    private lateinit var companyId: String
     private val currentUserId: String by lazy {
         FirebaseAuth.getInstance().currentUser?.uid ?: ""
     }
@@ -28,6 +28,8 @@ class ChannelActivity : AppCompatActivity() {
         try {
             setContentView(R.layout.activity_channel)
             Log.d("ChannelActivity", "onCreate started")
+
+            companyId = intent.getStringExtra("companyId").orEmpty().ifEmpty { "NGDStudios" }
 
             viewModel = ViewModelProvider(this)[ChannelViewModel::class.java]
 
@@ -58,7 +60,7 @@ class ChannelActivity : AppCompatActivity() {
                         Log.d("ChannelActivity", "Channel clicked: ${it.id}")
                         val intent = Intent(this, ChatActivity::class.java).apply {
                             putExtra("companyId", companyId)
-                            putExtra("businessId", it.id)
+                            putExtra("businessId", "")
                             putExtra("channelId", it.id)
                         }
                         startActivity(intent)

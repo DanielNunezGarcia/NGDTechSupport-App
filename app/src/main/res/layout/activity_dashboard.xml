@@ -69,7 +69,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="⚙️ Configuración IA"
-        android:backgroundTint="#9C27B0"
+        android:backgroundTint="@color/dashboard_header"
         android:layout_marginBottom="8dp"/>
 
     <Button
@@ -101,7 +101,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Crear Canal Privado"
-        android:backgroundTint="#2196F3"
+        android:backgroundTint="@color/dashboard_header"
         android:layout_marginTop="8dp"/>
 
 </LinearLayout>

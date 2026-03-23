@@ -39,10 +39,23 @@
         android:visibility="gone"
         app:srcCompat="@android:drawable/arrow_down_float"
         app:fabSize="mini"
-        app:backgroundTint="#2196F3"
+        app:backgroundTint="@color/dashboard_header"
         app:tint="#FFFFFF"
         android:layout_margin="16dp"
         app:layout_constraintBottom_toTopOf="@+id/layoutSend"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabTopMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:srcCompat="@android:drawable/arrow_up_float"
+        app:fabSize="mini"
+        app:backgroundTint="@color/dashboard_header"
+        app:tint="#FFFFFF"
+        android:layout_margin="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/fabNewMessage"
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <LinearLayout
@@ -132,6 +145,16 @@
 
         </LinearLayout>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClearChat"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_gravity="end"
+            android:text="Borrar chat"
+            android:textSize="12sp"
+            android:textColor="@color/error_color"/>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -166,7 +189,7 @@
                 android:layout_marginStart="8dp"
                 app:srcCompat="@android:drawable/ic_menu_send"
                 app:fabSize="normal"
-                app:backgroundTint="#4CAF50"
+                app:backgroundTint="@color/dashboard_header"
                 app:tint="#FFFFFF"/>
 
         </LinearLayout>

@@ -25,6 +25,10 @@ class ChannelViewModel : ViewModel() {
     private val _privateChannelCreated = MutableLiveData<Boolean>()
     val privateChannelCreated: LiveData<Boolean> = _privateChannelCreated
 
+    fun clearPrivateChannelState() {
+        _privateChannelCreated.value = false
+    }
+
 
 
     init {

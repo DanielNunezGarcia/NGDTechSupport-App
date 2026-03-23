@@ -104,24 +104,32 @@ class ChatAdapter(
             when {
                 isOwnMessage -> {
                     binding.layoutBubble.setBackgroundResource(R.drawable.bg_bubble_sent)
+                    binding.textViewMessage.setTextColor(ContextCompat.getColor(context, R.color.text_bubble_sent))
+                    binding.textViewTime.setTextColor(ContextCompat.getColor(context, R.color.text_bubble_sent))
                     binding.layoutBubble.gravity = Gravity.END
                     layoutParams.marginStart = 100
                     layoutParams.marginEnd = 8
                 }
                 isAiMessage -> {
                     binding.layoutBubble.setBackgroundResource(R.drawable.bg_bubble_ai)
+                    binding.textViewMessage.setTextColor(ContextCompat.getColor(context, R.color.text_bubble_received))
+                    binding.textViewTime.setTextColor(ContextCompat.getColor(context, R.color.text_time))
                     binding.layoutBubble.gravity = Gravity.START
                     layoutParams.marginStart = 8
                     layoutParams.marginEnd = 100
                 }
                 isAgentMessage -> {
                     binding.layoutBubble.setBackgroundResource(R.drawable.bg_bubble_agent)
+                    binding.textViewMessage.setTextColor(ContextCompat.getColor(context, R.color.text_bubble_sent))
+                    binding.textViewTime.setTextColor(ContextCompat.getColor(context, R.color.text_bubble_sent))
                     binding.layoutBubble.gravity = Gravity.START
                     layoutParams.marginStart = 8
                     layoutParams.marginEnd = 100
                 }
                 else -> {
                     binding.layoutBubble.setBackgroundResource(R.drawable.bg_bubble_received)
+                    binding.textViewMessage.setTextColor(ContextCompat.getColor(context, R.color.text_bubble_received))
+                    binding.textViewTime.setTextColor(ContextCompat.getColor(context, R.color.text_time))
                     binding.layoutBubble.gravity = Gravity.START
                     layoutParams.marginStart = 8
                     layoutParams.marginEnd = 100

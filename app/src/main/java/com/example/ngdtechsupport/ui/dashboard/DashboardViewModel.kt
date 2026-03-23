@@ -181,7 +181,24 @@ class DashboardViewModel(
                             listOf(appModel)
                         } else {
                             Log.e("DashboardViewModel", "Fallback: business $businessId not found in company $companyId")
-                            emptyList()
+                            val firstBusiness = allBusinesses.firstOrNull()
+                            if (firstBusiness != null) {
+                                listOf(
+                                    com.example.ngdtechsupport.model.AppModel(
+                                        id = firstBusiness.id,
+                                        name = firstBusiness.name,
+                                        clientId = uid,
+                                        status = firstBusiness.status,
+                                        progress = firstBusiness.progress,
+                                        version = firstBusiness.version,
+                                        supportType = firstBusiness.supportType,
+                                        lastUpdate = firstBusiness.lastUpdate,
+                                        companyId = companyId
+                                    )
+                                )
+                            } else {
+                                emptyList()
+                            }
                         }
                     }
                 } else {

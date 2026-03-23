@@ -4,6 +4,7 @@ import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.utils.SecurityValidator
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.FieldValue
@@ -370,6 +371,72 @@ class ChatRepository {
             .document(channelId)
             .update("isArchived", archived)
             .await()
+    }
+
+    suspend fun editMessage(
+        companyId: String,
+        channelId: String,
+        messageId: String,
+        newText: String
+    ) {
+        val sanitizedText = SecurityValidator.sanitizeInput(newText)
+        if (!SecurityValidator.isValidMessage(sanitizedText)) {
+            throw IllegalArgumentException("Mensaje inválido")
+        }
+
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .collection("messages")
+            .document(messageId)
+            .update(
+                mapOf(
+                    "message" to sanitizedText,
+                    "edited" to true,
+                    "editedAt" to com.google.firebase.Timestamp.now()
+                )
+            )
+            .await()
+    }
+
+    suspend fun deleteMessage(
+        companyId: String,
+        channelId: String,
+        messageId: String
+    ) {
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .collection("messages")
+            .document(messageId)
+            .delete()
+            .await()
+    }
+
+    suspend fun clearChat(
+        companyId: String,
+        channelId: String
+    ) {
+        val messagesSnapshot = firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .collection("messages")
+            .get()
+            .await()
+
+        if (messagesSnapshot.isEmpty) return
+
+        val batch: WriteBatch = firestore.batch()
+        messagesSnapshot.documents.forEach { doc ->
+            batch.delete(doc.reference)
+        }
+        batch.commit().await()
     }
 
     suspend fun sendAiMessage(

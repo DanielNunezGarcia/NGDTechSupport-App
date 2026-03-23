@@ -35,6 +35,9 @@ class ChatViewModel : ViewModel() {
     private val _typingUsers = MutableLiveData<Map<String, Any>>()
     val typingUsers: LiveData<Map<String, Any>> = _typingUsers
 
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
     private var typingListenerCleanup: (() -> Unit)? = null
 
     fun listenMessages(companyId: String, channelId: String) {
@@ -72,18 +75,22 @@ class ChatViewModel : ViewModel() {
         replyToText: String?
     ) {
         viewModelScope.launch {
-            chatRepository.sendMessage(
-                companyId,
-                channelId,
-                text,
-                senderId,
-                replyToId,
-                replyToText
-            )
-            
-            chatRepository.setTyping(companyId, channelId, senderId, "", false)
+            try {
+                chatRepository.sendMessage(
+                    companyId,
+                    channelId,
+                    text,
+                    senderId,
+                    replyToId,
+                    replyToText
+                )
 
-            processMessageWithAi(companyId, channelId, text)
+                chatRepository.setTyping(companyId, channelId, senderId, "", false)
+
+                processMessageWithAi(companyId, channelId, text)
+            } catch (e: Exception) {
+                _error.postValue(e.message ?: "No se pudo enviar el mensaje")
+            }
         }
     }
 
@@ -173,6 +180,52 @@ class ChatViewModel : ViewModel() {
         viewModelScope.launch {
             chatRepository.markChatAsRead(companyId, channelId, isAdmin)
         }
+    }
+
+    fun editMessage(
+        companyId: String,
+        channelId: String,
+        messageId: String,
+        newText: String
+    ) {
+        viewModelScope.launch {
+            try {
+                chatRepository.editMessage(companyId, channelId, messageId, newText)
+            } catch (e: Exception) {
+                _error.postValue(e.message ?: "No se pudo editar el mensaje")
+            }
+        }
+    }
+
+    fun deleteMessage(
+        companyId: String,
+        channelId: String,
+        messageId: String
+    ) {
+        viewModelScope.launch {
+            try {
+                chatRepository.deleteMessage(companyId, channelId, messageId)
+            } catch (e: Exception) {
+                _error.postValue(e.message ?: "No se pudo borrar el mensaje")
+            }
+        }
+    }
+
+    fun clearChat(
+        companyId: String,
+        channelId: String
+    ) {
+        viewModelScope.launch {
+            try {
+                chatRepository.clearChat(companyId, channelId)
+            } catch (e: Exception) {
+                _error.postValue(e.message ?: "No se pudo borrar el chat")
+            }
+        }
+    }
+
+    fun clearError() {
+        _error.value = null
     }
 
     override fun onCleared() {
