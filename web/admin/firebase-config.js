@@ -1,5 +1,5 @@
 // Configuración de Firebase para el panel admin
-// Copiado de app/google-services.json
+// Valores de google-services.json
 
 const firebaseConfig = {
     apiKey: "AIzaSyApYVdje9tr_HlH_u7CtGN077xhzXgzW1Q",
@@ -26,6 +26,3 @@ db.enablePersistence({ synchronizeTabs: true })
             console.warn('Persistence not available in this browser');
         }
     });
-
-// Configurar idioma de Firestore
-db.useEmulator("localhost", 8080); // Descomenta para usar emulador
