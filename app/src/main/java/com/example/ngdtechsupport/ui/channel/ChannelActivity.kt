@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,10 +14,17 @@ import com.google.firebase.auth.FirebaseAuth
 
 class ChannelActivity : AppCompatActivity() {
 
+    companion object {
+        private const val DEFAULT_COMPANY_ID = "NGDStudios"
+        private const val DEFAULT_BUSINESS_ID = "restaurante_madrid"
+    }
+
     private lateinit var viewModel: ChannelViewModel
     private lateinit var adapter: ChannelAdapter
 
     private lateinit var companyId: String
+    private lateinit var businessId: String
+    private var userRole: String = "CLIENT"
     private val currentUserId: String by lazy {
         FirebaseAuth.getInstance().currentUser?.uid ?: ""
     }
@@ -29,7 +35,10 @@ class ChannelActivity : AppCompatActivity() {
             setContentView(R.layout.activity_channel)
             Log.d("ChannelActivity", "onCreate started")
 
-            companyId = intent.getStringExtra("companyId").orEmpty().ifEmpty { "NGDStudios" }
+            companyId = intent.getStringExtra("companyId").orEmpty().ifEmpty { DEFAULT_COMPANY_ID }
+            businessId = intent.getStringExtra("businessId").orEmpty().ifEmpty { DEFAULT_BUSINESS_ID }
+            userRole = intent.getStringExtra("userRole").orEmpty().ifEmpty { "CLIENT" }.uppercase()
+            Log.d("ChannelActivity", "Resolved scope companyId=$companyId businessId=$businessId role=$userRole")
 
             viewModel = ViewModelProvider(this)[ChannelViewModel::class.java]
 
@@ -60,7 +69,8 @@ class ChannelActivity : AppCompatActivity() {
                         Log.d("ChannelActivity", "Channel clicked: ${it.id}")
                         val intent = Intent(this, ChatActivity::class.java).apply {
                             putExtra("companyId", companyId)
-                            putExtra("businessId", "")
+                            putExtra("businessId", businessId)
+                            putExtra("userRole", userRole)
                             putExtra("channelId", it.id)
                         }
                         startActivity(intent)
@@ -77,6 +87,13 @@ class ChannelActivity : AppCompatActivity() {
             Log.e("ChannelActivity", "Error in onCreate", e)
             Toast.makeText(this, "Error al cargar canales", Toast.LENGTH_SHORT).show()
             finish()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::viewModel.isInitialized && ::companyId.isInitialized && companyId.isNotBlank()) {
+            viewModel.loadChannels(companyId)
         }
     }
 }

@@ -21,6 +21,7 @@ class DashboardViewModel(
 ) : ViewModel() {
 
     companion object {
+        private const val TAG = "DashboardViewModel"
         private const val DEFAULT_COMPANY_ID = "NGDStudios"
         private const val DEFAULT_BUSINESS_ID = "restaurante_madrid"
     }
@@ -36,10 +37,10 @@ class DashboardViewModel(
 
     fun loadAppsForCurrentUser() {
         val uid = auth.currentUser?.uid
-        Log.d("DashboardViewModel", "loadAppsForCurrentUser called with uid: $uid")
+        Log.d(TAG, "loadAppsForCurrentUser called with uid: $uid")
 
         if (uid == null) {
-            Log.e("DashboardViewModel", "User not authenticated")
+            Log.e(TAG, "User not authenticated")
             _uiState.value = DashboardUiState(
                 isLoading = false,
                 errorMessage = "Usuario no autenticado"
@@ -55,10 +56,10 @@ class DashboardViewModel(
             try {
                 // 1) Obtener el usuario y su información
                 val user = userRepository.getUser(uid)
-                Log.d("DashboardViewModel", "User obtained: $user")
+                Log.d(TAG, "User obtained: $user")
                 
                 if (user == null) {
-                    Log.e("DashboardViewModel", "User is null for uid: $uid")
+                    Log.e(TAG, "User is null for uid: $uid")
                     _uiState.value = DashboardUiState(
                         isLoading = false,
                         errorMessage = "Usuario no encontrado. UID: $uid. Verifica que el documento exista en la colección 'users' o 'admin'."
@@ -71,11 +72,11 @@ class DashboardViewModel(
                 val companyName = user.company
                 val companyId = normalizeCompanyId(user.companyId, user.company)
                 val businessId = normalizeBusinessId(user.businessId)
-                Log.d("DashboardViewModel", "User role: $role, companyId: $companyId, businessId: $businessId")
+                Log.d(TAG, "Resolved user scope role=$role companyId=$companyId businessId=$businessId")
 
                 // 2) Según el rol, cargamos diferentes datos usando loadBusinessesForUser
                 val apps = loadBusinessesForUser(user.copy(companyId = companyId, businessId = businessId))
-                Log.d("DashboardViewModel", "Loaded ${apps.size} apps for user")
+                Log.d(TAG, "Loaded ${apps.size} apps for user")
 
                 // 3) Actualizar estado de UI con toda la información
                 _uiState.value = DashboardUiState(
@@ -83,13 +84,13 @@ class DashboardViewModel(
                     apps = apps,
                     userRole = role,
                     userName = userName,
-                    companyName = companyName,
+                    companyName = companyName.ifBlank { DEFAULT_COMPANY_ID },
                     companyId = companyId,
                     businessId = businessId,
                     errorMessage = null
                 )
             } catch (e: Exception) {
-                Log.e("DashboardViewModel", "Exception in loadAppsForCurrentUser", e)
+                Log.e(TAG, "Exception in loadAppsForCurrentUser", e)
                 _uiState.value = DashboardUiState(
                     isLoading = false,
                     errorMessage = "Error al cargar las aplicaciones: ${e.message}"
@@ -107,7 +108,7 @@ class DashboardViewModel(
         val companyId = normalizeCompanyId(user.companyId, user.company)
         val businessId = normalizeBusinessId(user.businessId)
         val uid = auth.currentUser?.uid ?: ""
-        Log.d("DashboardViewModel", "loadBusinessesForUser - role: $role, companyId: $companyId, businessId: $businessId")
+        Log.d(TAG, "loadBusinessesForUser role=$role companyId=$companyId businessId=$businessId")
 
         return when (role) {
             "ADMIN" -> {
@@ -119,16 +120,23 @@ class DashboardViewModel(
             }
             "SOPORTE", "CLIENT" -> {
                 // SOPORTE y CLIENT → ven solo su negocio específico
-                Log.d("DashboardViewModel", "SOPORTE/CLIENT branch - companyId: $companyId, businessId: $businessId")
+                Log.d(TAG, "CLIENT/SOPORTE scope companyId=$companyId businessId=$businessId")
                 val resolvedBusiness = findBusinessForClient(companyId, businessId)
                 if (resolvedBusiness != null) {
                     listOf(resolvedBusiness.toAppModel(uid = uid, companyId = companyId))
                 } else {
-                    Log.e(
-                        "DashboardViewModel",
-                        "No business found for companyId=$companyId and businessId=$businessId"
-                    )
-                    emptyList()
+                    Log.e(TAG, "No business found for companyId=$companyId and businessId=$businessId")
+                    if (companyId != DEFAULT_COMPANY_ID) {
+                        Log.w(TAG, "Trying global fallback companyId=$DEFAULT_COMPANY_ID businessId=$DEFAULT_BUSINESS_ID")
+                        val fallbackBusiness = findBusinessForClient(DEFAULT_COMPANY_ID, DEFAULT_BUSINESS_ID)
+                        if (fallbackBusiness != null) {
+                            listOf(fallbackBusiness.toAppModel(uid = uid, companyId = DEFAULT_COMPANY_ID))
+                        } else {
+                            emptyList()
+                        }
+                    } else {
+                        emptyList()
+                    }
                 }
             }
             else -> {
@@ -141,12 +149,20 @@ class DashboardViewModel(
     private suspend fun findBusinessForClient(companyId: String, requestedBusinessId: String): BusinessModel? {
         val normalizedRequested = normalizeBusinessKey(requestedBusinessId)
 
+        Log.d(TAG, "findBusinessForClient companyId=$companyId requestedBusinessId=$requestedBusinessId")
+
         val directBusiness = companyRepository.getBusiness(companyId, requestedBusinessId)
-        if (directBusiness != null) return directBusiness
+        if (directBusiness != null) {
+            Log.d(TAG, "Direct business hit by id=${directBusiness.id}")
+            return directBusiness
+        }
 
         if (requestedBusinessId != DEFAULT_BUSINESS_ID) {
             val defaultBusiness = companyRepository.getBusiness(companyId, DEFAULT_BUSINESS_ID)
-            if (defaultBusiness != null) return defaultBusiness
+            if (defaultBusiness != null) {
+                Log.w(TAG, "Business fallback used to default id=$DEFAULT_BUSINESS_ID")
+                return defaultBusiness
+            }
         }
 
         val allBusinesses = companyRepository.getBusinesses(companyId)
@@ -180,10 +196,14 @@ class DashboardViewModel(
     }
 
     private fun normalizeCompanyId(companyId: String, fallbackCompanyName: String): String {
-        return companyId
+        val raw = companyId
             .trim()
             .ifBlank { fallbackCompanyName.trim() }
             .ifBlank { DEFAULT_COMPANY_ID }
+
+        if (raw.equals(DEFAULT_COMPANY_ID, ignoreCase = true)) return DEFAULT_COMPANY_ID
+
+        return sanitizeFirestoreId(raw).ifBlank { DEFAULT_COMPANY_ID }
     }
 
     private fun normalizeBusinessId(businessId: String): String {
@@ -191,15 +211,25 @@ class DashboardViewModel(
         if (trimmed.isBlank()) return DEFAULT_BUSINESS_ID
         if (trimmed.equals(DEFAULT_BUSINESS_ID, ignoreCase = true)) return DEFAULT_BUSINESS_ID
         if (trimmed.equals("Restaurante Madrid", ignoreCase = true)) return DEFAULT_BUSINESS_ID
-        return if (trimmed.contains(" ")) {
+        if (trimmed.equals("restaurante-madrid", ignoreCase = true)) return DEFAULT_BUSINESS_ID
+        val normalized = if (trimmed.contains(" ")) {
             trimmed.lowercase().replace(" ", "_")
         } else {
             trimmed
         }
+        return sanitizeFirestoreId(normalized).ifBlank { DEFAULT_BUSINESS_ID }
     }
 
     private fun normalizeBusinessKey(raw: String): String {
         return raw.trim().lowercase().replace(" ", "_")
+    }
+
+    private fun sanitizeFirestoreId(raw: String): String {
+        return raw
+            .trim()
+            .replace("/", "_")
+            .replace("#", "_")
+            .replace("?", "_")
     }
 
     // Función auxiliar para verificar permisos

@@ -12,6 +12,10 @@ class ChannelRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
 
+    private fun isSafeFirestoreId(value: String): Boolean {
+        return value.isNotBlank() && !value.contains('/')
+    }
+
     fun listenChannels(
         companyId: String,
         onResult: (List<ChannelModel>) -> Unit
@@ -46,6 +50,11 @@ class ChannelRepository {
             Log.e("ChannelRepository", "Invalid parameters: companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid")
             return false
         }
+        if (!isSafeFirestoreId(companyId) || !isSafeFirestoreId(channelId)) {
+            Log.e("ChannelRepository", "Unsafe Firestore ids: companyId=$companyId, channelId=$channelId")
+            return false
+        }
+
         return try {
             val membersMap = mutableMapOf(
                 adminUid to ChannelMember(role = "admin")
@@ -69,7 +78,9 @@ class ChannelRepository {
                 pinned = false,
                 members = membersMap,
                 mutedUsers = emptyMap(),
-                unreadCount = unreadCountMap
+                unreadCount = unreadCountMap,
+                lastMessage = "",
+                lastMessageAt = ""
             )
 
             firestore.collection("companies")

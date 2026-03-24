@@ -25,9 +25,6 @@ class AiConfigViewModel : ViewModel() {
     private val _aiEnabled = MutableLiveData<Boolean>(false)
     val aiEnabled: LiveData<Boolean> = _aiEnabled
 
-    private val _autoGreeting = MutableLiveData<Boolean>(false)
-    val autoGreeting: LiveData<Boolean> = _autoGreeting
-
     private val _greetingMessages = MutableLiveData<List<String>>(emptyList())
     val greetingMessages: LiveData<List<String>> = _greetingMessages
 
@@ -68,7 +65,6 @@ class AiConfigViewModel : ViewModel() {
 
                 if (document.exists()) {
                     _aiEnabled.value = document.getBoolean("aiEnabled") ?: false
-                    _autoGreeting.value = document.getBoolean("autoGreeting") ?: false
                     _greetingMessages.value = (document.get("greetingMessages") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
                     _quickReplies.value = (document.get("quickReplies") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
                     _escalationKeywords.value = (document.get("escalationKeywords") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
@@ -99,7 +95,7 @@ class AiConfigViewModel : ViewModel() {
             try {
                 val configData = hashMapOf(
                     "aiEnabled" to (_aiEnabled.value ?: false),
-                    "autoGreeting" to (_autoGreeting.value ?: false),
+                    "autoGreeting" to true,
                     "greetingMessages" to (_greetingMessages.value ?: emptyList<String>()),
                     "quickReplies" to (_quickReplies.value ?: emptyList<String>()),
                     "escalationKeywords" to (_escalationKeywords.value ?: emptyList<String>()),
@@ -127,10 +123,6 @@ class AiConfigViewModel : ViewModel() {
 
     fun setAiEnabled(enabled: Boolean) {
         _aiEnabled.value = enabled
-    }
-
-    fun setAutoGreeting(enabled: Boolean) {
-        _autoGreeting.value = enabled
     }
 
     fun setGreetingMessages(messages: List<String>) {

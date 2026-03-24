@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/surface_white"
+    android:background="@color/surface_soft_blue"
     android:padding="16dp">
 
     <!-- Cabecera -->
@@ -14,16 +14,18 @@
         android:text="Panel de Soporte Técnico"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="@color/text_primary"
-        android:paddingBottom="16dp" />
+        android:textColor="@color/dashboard_header"
+        android:paddingBottom="12dp" />
 
     <TextView
         android:id="@+id/tvUserInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_surface_card"
         android:padding="16dp"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:layout_marginBottom="6dp"
         android:textColor="@color/text_primary" />
 
     <TextView
@@ -33,7 +35,7 @@
         android:text="Rol:"
         android:textSize="14sp"
         android:textColor="@color/text_sender"
-        android:paddingBottom="8dp" />
+        android:paddingBottom="12dp" />
 
     <!-- Botones principales -->
     <LinearLayout
@@ -46,51 +48,57 @@
         <Button
             android:id="@+id/btnChat"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="Chat"
-            android:backgroundTint="@color/dashboard_header"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:background="@drawable/bg_button_primary"
             android:textColor="@color/surface_white" />
 
         <Button
             android:id="@+id/btnUpdates"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:text="Updates"
-            android:backgroundTint="@color/dashboard_header"
-            android:textColor="@color/surface_white" />
+            android:textAllCaps="false"
+            android:background="@drawable/bg_button_secondary"
+            android:textColor="@color/dashboard_header" />
 
         <Button
             android:id="@+id/btnChannels"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:text="Canales"
-            android:backgroundTint="@color/dashboard_header"
-            android:textColor="@color/surface_white" />
+            android:textAllCaps="false"
+            android:background="@drawable/bg_button_secondary"
+            android:textColor="@color/dashboard_header" />
     </LinearLayout>
 
     <!-- Botón Config IA (solo para ADMIN) -->
     <Button
         android:id="@+id/btnAiConfig"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="46dp"
         android:text="Configuración IA"
-        android:backgroundTint="@color/dashboard_header"
-        android:textColor="@color/surface_white"
+        android:textAllCaps="false"
+        android:background="@drawable/bg_button_secondary"
+        android:textColor="@color/dashboard_header"
         android:layout_marginBottom="8dp"/>
 
     <Button
         android:id="@+id/btnLogout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="46dp"
         android:text="Cerrar sesión"
-        android:backgroundTint="@color/surface_gray"
+        android:textAllCaps="false"
+        android:background="@drawable/bg_button_tertiary"
         android:textColor="@color/text_primary"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="12dp" />
 
     <!-- Texto que usas ahora mismo para mostrar las apps -->
     <TextView
@@ -98,7 +106,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Cargando..."
-        android:padding="8dp"
+        android:background="@drawable/bg_surface_card"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp"
         android:textColor="@color/text_primary"
         android:textStyle="bold" />
 
@@ -108,14 +118,18 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:paddingTop="8dp" />
+        android:background="@drawable/bg_surface_card"
+        android:clipToPadding="false"
+        android:padding="8dp" />
 
     <Button
         android:id="@+id/btnCreatePrivateChannel"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:text="Crear Canal Privado"
-        android:backgroundTint="@color/dashboard_header"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:background="@drawable/bg_button_primary"
         android:textColor="@color/surface_white"
         android:layout_marginTop="8dp"/>
 

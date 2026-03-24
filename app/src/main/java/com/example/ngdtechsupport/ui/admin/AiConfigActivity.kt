@@ -1,7 +1,6 @@
 package com.example.ngdtechsupport.ui.admin
 
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -58,7 +57,6 @@ class AiConfigActivity : AppCompatActivity() {
                     .filter { it.isNotBlank() }
 
                 viewModel.setAiEnabled(binding.switchAiEnabled.isChecked)
-                viewModel.setAutoGreeting(binding.switchAutoWelcome.isChecked)
                 viewModel.setAutoTransferEnabled(binding.switchAutoEscalation.isChecked)
                 viewModel.setGreetingMessages(welcomeMessages)
                 viewModel.setQuickReplies(quickReplies)
@@ -98,14 +96,6 @@ class AiConfigActivity : AppCompatActivity() {
                 binding.switchAiEnabled.isChecked = enabled
             } catch (e: Exception) {
                 android.util.Log.e("AiConfigActivity", "Error in aiEnabled observer", e)
-            }
-        }
-
-        viewModel.autoGreeting.observe(this) { enabled ->
-            try {
-                binding.switchAutoWelcome.isChecked = enabled
-            } catch (e: Exception) {
-                android.util.Log.e("AiConfigActivity", "Error in autoGreeting observer", e)
             }
         }
 

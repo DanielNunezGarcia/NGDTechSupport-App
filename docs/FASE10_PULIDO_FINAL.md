@@ -4,6 +4,14 @@
 
 La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experiencia de usuario y refinar detalles técnicos para garantizar una aplicación robusta y eficiente.
 
+## Cómo probar IA en tiempo real
+
+1. Desde Admin abre **Configuración IA**, activa `IA Habilitada`, carga al menos 3 mensajes distintos en **Mensajes de Bienvenida** y guarda.
+2. Abre un chat como cliente: al entrar debe enviarse automáticamente una bienvenida de IA.
+3. Cierra y vuelve a abrir el chat varias veces: la bienvenida debe cambiar de forma aleatoria (no siempre el mismo texto).
+4. Envía un mensaje de prueba (por ejemplo: "Tengo un problema con mi app") y verifica que la respuesta de IA llegue en segundos.
+5. Confirma que el texto de IA sea legible y natural, sin símbolos raros (`**`, `//`, `!!` repetidos).
+
 ---
 
 ## 1. Optimización de Rendimiento

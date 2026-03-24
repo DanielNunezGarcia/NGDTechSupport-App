@@ -2,6 +2,7 @@ package com.example.ngdtechsupport.ui.updates
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -13,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth
 class UpdatesActivity : AppCompatActivity() {
 
     companion object {
+        private const val TAG = "UpdatesActivity"
         private const val DEFAULT_COMPANY_ID = "NGDStudios"
         private const val DEFAULT_BUSINESS_ID = "restaurante_madrid"
     }
@@ -26,11 +28,14 @@ class UpdatesActivity : AppCompatActivity() {
         binding = ActivityUpdatesBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val companyId = intent.getStringExtra("companyId").orEmpty().ifEmpty { DEFAULT_COMPANY_ID }
-        val businessId = intent.getStringExtra("businessId").orEmpty().ifEmpty { DEFAULT_BUSINESS_ID }
+        val companyId = resolveCompanyId(intent.getStringExtra("companyId"))
+        val businessId = resolveBusinessId(intent.getStringExtra("businessId"))
         val userRole = intent.getStringExtra("userRole").orEmpty().ifEmpty { "CLIENT" }.uppercase()
+        Log.d(TAG, "Opening updates with companyId=$companyId businessId=$businessId role=$userRole")
 
         binding.btnNewUpdate.visibility = if (userRole == "ADMIN") View.VISIBLE else View.GONE
+        binding.progressBar.visibility = View.VISIBLE
+        binding.tvEmpty.visibility = View.GONE
 
         adapter = UpdatesAdapter { update ->
             Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
@@ -43,9 +48,12 @@ class UpdatesActivity : AppCompatActivity() {
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
         if (currentUserId.isNotEmpty()) {
             viewModel.markUpdatesRead(currentUserId)
+        } else {
+            Log.w(TAG, "No current user when opening updates; markUpdatesRead skipped")
         }
 
         viewModel.updates.observe(this) { updates ->
+            binding.progressBar.visibility = View.GONE
             if (updates.isEmpty()) {
                 binding.tvEmpty.visibility = View.VISIBLE
                 binding.recyclerUpdates.visibility = View.GONE
@@ -56,11 +64,19 @@ class UpdatesActivity : AppCompatActivity() {
             }
         }
 
-        runCatching {
-            viewModel.listenUpdates(companyId, businessId)
-        }.onFailure {
-            Toast.makeText(this, "No se pudieron cargar updates", Toast.LENGTH_SHORT).show()
+        viewModel.error.observe(this) { errorMessage ->
+            if (errorMessage.isNullOrBlank()) return@observe
+            binding.progressBar.visibility = View.GONE
+            Log.e(TAG, "Error loading updates: $errorMessage")
+            Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+            if (adapter.currentList.isEmpty()) {
+                binding.tvEmpty.visibility = View.VISIBLE
+                binding.recyclerUpdates.visibility = View.GONE
+            }
+            viewModel.clearError()
         }
+
+        viewModel.listenUpdates(companyId, businessId)
 
         binding.btnNewUpdate.setOnClickListener {
             if (userRole != "ADMIN") {
@@ -73,5 +89,41 @@ class UpdatesActivity : AppCompatActivity() {
             intent.putExtra("businessId", businessId)
             startActivity(intent)
         }
+    }
+
+    private fun resolveCompanyId(raw: String?): String {
+        val normalized = raw
+            .orEmpty()
+            .trim()
+            .ifBlank { DEFAULT_COMPANY_ID }
+            .replace("/", "_")
+            .replace("#", "_")
+            .replace("?", "_")
+
+        return if (normalized.equals(DEFAULT_COMPANY_ID, ignoreCase = true)) {
+            DEFAULT_COMPANY_ID
+        } else {
+            normalized
+        }
+    }
+
+    private fun resolveBusinessId(raw: String?): String {
+        val base = raw.orEmpty().trim()
+        if (base.isBlank()) return DEFAULT_BUSINESS_ID
+        if (base.equals(DEFAULT_BUSINESS_ID, ignoreCase = true)) return DEFAULT_BUSINESS_ID
+        if (base.equals("Restaurante Madrid", ignoreCase = true)) return DEFAULT_BUSINESS_ID
+        if (base.equals("restaurante-madrid", ignoreCase = true)) return DEFAULT_BUSINESS_ID
+
+        val normalized = if (base.contains(" ")) {
+            base.lowercase().replace(" ", "_")
+        } else {
+            base
+        }
+
+        return normalized
+            .replace("/", "_")
+            .replace("#", "_")
+            .replace("?", "_")
+            .ifBlank { DEFAULT_BUSINESS_ID }
     }
 }

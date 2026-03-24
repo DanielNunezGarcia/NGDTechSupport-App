@@ -1,19 +1,27 @@
 package com.example.ngdtechsupport.ui.chat
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.repository.ChatRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.ngdtechsupport.ai.AiResponseHelper
+import com.example.ngdtechsupport.utils.SecurityValidator
 import com.google.firebase.Timestamp
+import java.security.SecureRandom
 
 class ChatViewModel : ViewModel() {
+
+    companion object {
+        private const val TAG = "ChatViewModel"
+    }
 
     private val chatRepository = ChatRepository()
     private val channelRepository = com.example.ngdtechsupport.data.repository.ChannelRepository()
@@ -28,6 +36,7 @@ class ChatViewModel : ViewModel() {
         get() = FirebaseAuth.getInstance().currentUser?.displayName ?: "Usuario"
 
     private val currentList = mutableListOf<ChatMessageModel>()
+    private val random = SecureRandom()
 
     private val _channels = MutableLiveData<List<ChannelModel>>()
     val channels: LiveData<List<ChannelModel>> = _channels
@@ -74,6 +83,11 @@ class ChatViewModel : ViewModel() {
         replyToId: String?,
         replyToText: String?
     ) {
+        if (companyId.isBlank() || channelId.isBlank() || senderId.isBlank()) {
+            _error.postValue("No se pudo enviar el mensaje por datos incompletos")
+            return
+        }
+
         viewModelScope.launch {
             try {
                 chatRepository.sendMessage(
@@ -96,23 +110,67 @@ class ChatViewModel : ViewModel() {
 
     fun processMessageWithAi(companyId: String, channelId: String, userMessage: String) {
         viewModelScope.launch {
-            val aiResponse = AiResponseHelper.getResponse(userMessage)
+            try {
+                val aiResponse = AiResponseHelper.getResponse(userMessage)
 
-            val aiMessage = ChatMessageModel(
-                id = "",
-                message = aiResponse,
-                senderId = "ai_assistant",
-                senderName = "Asistente IA",
-                senderType = ChatMessageModel.SENDER_TYPE_AI,
-                timestamp = Timestamp.now(),
-                status = "sent"
-            )
+                val aiMessage = ChatMessageModel(
+                    id = "",
+                    message = aiResponse,
+                    senderId = "ai_assistant",
+                    senderName = "Asistente IA",
+                    senderType = ChatMessageModel.SENDER_TYPE_AI,
+                    timestamp = Timestamp.now(),
+                    status = "sent"
+                )
 
-            val currentMessages = _messages.value?.toMutableList() ?: mutableListOf()
-            currentMessages.add(aiMessage)
-            _messages.postValue(currentMessages)
+                val currentMessages = _messages.value?.toMutableList() ?: mutableListOf()
+                currentMessages.add(aiMessage)
+                _messages.postValue(currentMessages)
 
-            chatRepository.sendAiMessage(companyId, channelId, aiMessage)
+                chatRepository.sendAiMessage(companyId, channelId, aiMessage)
+            } catch (_: Exception) {
+                _error.postValue("No se pudo procesar la respuesta automatica")
+            }
+        }
+    }
+
+    fun sendWelcomeMessageOnOpen(companyId: String, channelId: String) {
+        viewModelScope.launch {
+            try {
+                val configSnapshot = FirebaseFirestore.getInstance()
+                    .collection("companies")
+                    .document(companyId)
+                    .collection("ai_config")
+                    .document("settings")
+                    .get()
+                    .await()
+
+                val aiEnabled = configSnapshot.getBoolean("aiEnabled") ?: true
+                if (!aiEnabled) return@launch
+
+                val welcomeMessages = (configSnapshot.get("greetingMessages") as? List<*>)
+                    ?.filterIsInstance<String>()
+                    ?.map { SecurityValidator.sanitizeInput(it).trim() }
+                    ?.filter { it.isNotBlank() }
+                    ?.ifEmpty { null }
+                    ?: listOf("Hola, bienvenido a NGD Tech Solutions. ¿En qué puedo ayudarte hoy?")
+
+                val selectedMessage = welcomeMessages[random.nextInt(welcomeMessages.size)]
+
+                val welcomeAiMessage = ChatMessageModel(
+                    id = "",
+                    message = selectedMessage,
+                    senderId = "ai_assistant",
+                    senderName = "Asistente IA",
+                    senderType = ChatMessageModel.SENDER_TYPE_AI,
+                    timestamp = Timestamp.now(),
+                    status = "sent"
+                )
+
+                chatRepository.sendAiMessage(companyId, channelId, welcomeAiMessage)
+            } catch (e: Exception) {
+                Log.w(TAG, "No se pudo enviar la bienvenida automática", e)
+            }
         }
     }
 
@@ -188,6 +246,11 @@ class ChatViewModel : ViewModel() {
         messageId: String,
         newText: String
     ) {
+        if (companyId.isBlank() || channelId.isBlank() || messageId.isBlank() || newText.isBlank()) {
+            _error.postValue("No se pudo editar el mensaje")
+            return
+        }
+
         viewModelScope.launch {
             try {
                 chatRepository.editMessage(companyId, channelId, messageId, newText)
@@ -202,6 +265,11 @@ class ChatViewModel : ViewModel() {
         channelId: String,
         messageId: String
     ) {
+        if (companyId.isBlank() || channelId.isBlank() || messageId.isBlank()) {
+            _error.postValue("No se pudo borrar el mensaje")
+            return
+        }
+
         viewModelScope.launch {
             try {
                 chatRepository.deleteMessage(companyId, channelId, messageId)
@@ -215,6 +283,11 @@ class ChatViewModel : ViewModel() {
         companyId: String,
         channelId: String
     ) {
+        if (companyId.isBlank() || channelId.isBlank()) {
+            _error.postValue("No se pudo borrar el chat")
+            return
+        }
+
         viewModelScope.launch {
             try {
                 chatRepository.clearChat(companyId, channelId)

@@ -16,21 +16,25 @@ object AiResponseHelper {
 
     private fun cleanResponse(response: String): String {
         var clean = response
-            .replace("**", "")
-            .replace("##", "")
-            .replace("~~", "")
-            .replace("`", "")
-            .replace("/", " ")
-            .replace("!!", "!")
-            .replace("??", "?")
-            .replace("*", "")
-            .replace("_", "")
+            .replace(Regex("[*_`~]+"), "")
+            .replace(Regex("#{1,6}\\s*"), "")
+            .replace(Regex("/{2,}"), " ")
             .replace("•", "-")
 
-        clean = clean.replace(Regex("[^\\p{L}\\p{N}\\s\\.,;:!¿?()\"'-]"), "")
-        clean = clean.replace(Regex("[ \t]{2,}"), " ")
-        clean = clean.replace(Regex("\n{3,}"), "\n\n")
-        return clean.trim()
+        clean = clean.replace(Regex("[^\\p{L}\\p{N}\\s\\.,;:!¿?()\"'\\-\\n]"), "")
+        clean = clean.replace(Regex("[!?]{2,}")) { it.value.take(1) }
+        clean = clean.replace(Regex("([.,;:]){2,}")) { it.value.take(1) }
+        clean = clean.replace(Regex("\\s+([.,;:!?])"), "$1")
+        clean = clean.replace(Regex("([¿¡])\\s+"), "$1")
+        clean = clean.replace(Regex("[ \\t]{2,}"), " ")
+        clean = clean.replace(Regex("\\n{3,}"), "\n\n")
+        clean = clean.trim()
+
+        if (clean.isNotEmpty() && clean.last() !in listOf('.', '!', '?')) {
+            clean += "."
+        }
+
+        return clean
     }
 
     private fun getPredefinedResponse(message: String): String {
@@ -47,17 +51,17 @@ object AiResponseHelper {
 
             message.contains("error") || message.contains("problema") || message.contains("bug") || message.contains("no funciona") || message.contains("falla") -> {
                 lastTopic = "error"
-                "Entendido. Para ayudarte mejor necesito 1) que funcion falla, 2) mensaje de error exacto, 3) cuando empezo."
+                "Entendido. Para ayudarte mejor necesito: 1) qué función falla, 2) mensaje de error exacto, 3) cuándo empezó."
             }
 
             message.contains("presupuesto") || message.contains("precio") || message.contains("coste") || message.contains("costo") || message.contains("cotizacion") || message.contains("cotización") || message.contains("solicitar") -> {
                 lastTopic = "presupuesto"
-                "Perfecto. Para presupuesto necesito tipo de proyecto, funcionalidades principales, plazo y si ya tienes diseno."
+                "Perfecto. Para prepararte un presupuesto necesito tipo de proyecto, funcionalidades principales, plazo y si ya tienes diseño."
             }
 
             message.contains("plazo") || message.contains("fecha") || message.contains("cuando") || message.contains("cuándo") || message.contains("tiempo") || message.contains("entrega") || message.contains("deadline") -> {
                 if (lastTopic == "presupuesto") {
-                    "Perfecto, anoto el plazo. Tambien dime funcionalidades principales y tipo de proyecto para cerrarte la estimacion."
+                    "Perfecto, anoto el plazo. También dime funcionalidades principales y tipo de proyecto para cerrarte la estimación."
                 } else {
                     "Dime para que proyecto necesitas ese plazo y te ayudo a planificarlo."
                 }

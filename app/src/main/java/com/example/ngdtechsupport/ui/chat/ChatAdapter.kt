@@ -18,7 +18,7 @@ import kotlin.math.max
 
 class ChatAdapter(
     private val currentUserId: String,
-    private val onLongClick: (ChatMessageModel) -> Unit = {}
+    private val onLongClick: (View, ChatMessageModel) -> Unit = { _, _ -> }
 ) : ListAdapter<ChatItem, RecyclerView.ViewHolder>(ChatDiffCallback()) {
 
     companion object {
@@ -185,7 +185,7 @@ class ChatAdapter(
             }
 
             binding.root.setOnLongClickListener {
-                onLongClick(message)
+                onLongClick(it, message)
                 true
             }
         }

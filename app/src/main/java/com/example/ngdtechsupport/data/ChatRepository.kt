@@ -1,5 +1,6 @@
 package com.example.ngdtechsupport.data.repository
 
+import android.util.Log
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.utils.SecurityValidator
@@ -8,6 +9,7 @@ import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 class ChatRepository {
@@ -15,6 +17,12 @@ class ChatRepository {
     private val firestore = FirebaseFirestore.getInstance()
 
     private var lastVisible: DocumentSnapshot? = null
+
+    private fun requireValidPath(companyId: String, channelId: String) {
+        if (companyId.isBlank() || channelId.isBlank() || companyId.contains('/') || channelId.contains('/')) {
+            throw IllegalArgumentException("Ruta de chat invalida")
+        }
+    }
 
     fun loadInitialMessages(
         companyId: String,
@@ -81,6 +89,11 @@ class ChatRepository {
         replyToId: String?,
         replyToText: String?
     ) {
+        requireValidPath(companyId, channelId)
+        if (senderId.isBlank()) {
+            throw IllegalArgumentException("No se pudo enviar: remitente invalido")
+        }
+
         val sanitizedText = SecurityValidator.sanitizeInput(text)
         
         if (!SecurityValidator.isValidMessage(sanitizedText)) {
@@ -114,12 +127,26 @@ class ChatRepository {
             .collection("channels")
             .document(channelId)
 
-        channelRef.update(
-            mapOf(
-                "lastMessage" to sanitizedText,
-                "lastMessageAt" to System.currentTimeMillis()
-            )
-        ).await()
+        try {
+            channelRef.update(
+                mapOf(
+                    "lastMessage" to sanitizedText,
+                    "lastMessageAt" to System.currentTimeMillis()
+                )
+            ).await()
+        } catch (_: Exception) {
+            channelRef.set(
+                mapOf(
+                    "id" to channelId,
+                    "name" to "Canal",
+                    "isArchived" to false,
+                    "pinned" to false,
+                    "lastMessage" to sanitizedText,
+                    "lastMessageAt" to System.currentTimeMillis()
+                ),
+                SetOptions.merge()
+            ).await()
+        }
 
         // Incrementar contador al enviar mensaje
         if (senderId.contains("admin")) {
@@ -239,6 +266,7 @@ class ChatRepository {
         channelId: String,
         isAdmin: Boolean
     ) {
+        requireValidPath(companyId, channelId)
 
         val channelRef = firestore
             .collection("companies")
@@ -246,13 +274,14 @@ class ChatRepository {
             .collection("channels")
             .document(channelId)
 
-        if (isAdmin) {
-
-            channelRef.update("unread_admin", 0)
-
-        } else {
-
-            channelRef.update("unread_client", 0)
+        try {
+            if (isAdmin) {
+                channelRef.update("unread_admin", 0).await()
+            } else {
+                channelRef.update("unread_client", 0).await()
+            }
+        } catch (e: Exception) {
+            Log.w("ChatRepository", "markChatAsRead skipped: ${e.message}")
         }
     }
 
@@ -294,6 +323,8 @@ class ChatRepository {
         userName: String,
         isTyping: Boolean
     ) {
+        if (companyId.isBlank() || channelId.isBlank() || userId.isBlank()) return
+
         val channelRef = firestore
             .collection("companies")
             .document(companyId)
@@ -303,7 +334,7 @@ class ChatRepository {
         if (isTyping) {
             channelRef.update(
                 "typing.$userId", mapOf(
-                    "name" to userName,
+                    "name" to userName.ifBlank { "Usuario" },
                     "timestamp" to System.currentTimeMillis()
                 )
             )
@@ -379,6 +410,11 @@ class ChatRepository {
         messageId: String,
         newText: String
     ) {
+        requireValidPath(companyId, channelId)
+        if (messageId.isBlank()) {
+            throw IllegalArgumentException("Mensaje invalido")
+        }
+
         val sanitizedText = SecurityValidator.sanitizeInput(newText)
         if (!SecurityValidator.isValidMessage(sanitizedText)) {
             throw IllegalArgumentException("Mensaje inválido")
@@ -406,6 +442,11 @@ class ChatRepository {
         channelId: String,
         messageId: String
     ) {
+        requireValidPath(companyId, channelId)
+        if (messageId.isBlank()) {
+            throw IllegalArgumentException("Mensaje invalido")
+        }
+
         firestore
             .collection("companies")
             .document(companyId)
@@ -421,6 +462,8 @@ class ChatRepository {
         companyId: String,
         channelId: String
     ) {
+        requireValidPath(companyId, channelId)
+
         val messagesSnapshot = firestore
             .collection("companies")
             .document(companyId)
@@ -430,13 +473,31 @@ class ChatRepository {
             .get()
             .await()
 
-        if (messagesSnapshot.isEmpty) return
-
-        val batch: WriteBatch = firestore.batch()
-        messagesSnapshot.documents.forEach { doc ->
-            batch.delete(doc.reference)
+        if (!messagesSnapshot.isEmpty) {
+            messagesSnapshot.documents.chunked(450).forEach { chunk ->
+                val batch: WriteBatch = firestore.batch()
+                chunk.forEach { doc ->
+                    batch.delete(doc.reference)
+                }
+                batch.commit().await()
+            }
         }
-        batch.commit().await()
+
+        firestore
+            .collection("companies")
+            .document(companyId)
+            .collection("channels")
+            .document(channelId)
+            .set(
+                mapOf(
+                    "lastMessage" to "",
+                    "lastMessageAt" to "",
+                    "unread_admin" to 0,
+                    "unread_client" to 0
+                ),
+                SetOptions.merge()
+            )
+            .await()
     }
 
     suspend fun sendAiMessage(
@@ -444,6 +505,8 @@ class ChatRepository {
         channelId: String,
         message: ChatMessageModel
     ) {
+        requireValidPath(companyId, channelId)
+
         val sanitizedMessage = SecurityValidator.sanitizeInput(message.message)
         
         if (!SecurityValidator.isValidMessage(sanitizedMessage)) {

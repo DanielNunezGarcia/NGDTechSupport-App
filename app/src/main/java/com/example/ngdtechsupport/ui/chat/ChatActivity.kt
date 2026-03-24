@@ -36,6 +36,7 @@ class ChatActivity : AppCompatActivity() {
     private var channelId: String = ""
     private var userRole: String = "CLIENT"
     private var replyMessage: ChatMessageModel? = null
+    private var pendingAutoScrollToBottom: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,9 +75,16 @@ class ChatActivity : AppCompatActivity() {
         chatViewModel.updateLastRead(companyId, channelId, currentUserId)
         chatViewModel.markChatAsRead(companyId, channelId, userRole == "ADMIN" || userRole == "SOPORTE")
 
+        if (savedInstanceState == null && userRole == "CLIENT") {
+            chatViewModel.sendWelcomeMessageOnOpen(companyId, channelId)
+        }
+
         chatViewModel.messages.observe(this) { messages ->
             adapter.submitMessages(messages) {
-                scrollToBottom()
+                if (pendingAutoScrollToBottom) {
+                    scrollToBottom()
+                    pendingAutoScrollToBottom = false
+                }
                 updateScrollButtons()
             }
         }
@@ -110,8 +118,8 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun setupRecycler() {
-        adapter = ChatAdapter(currentUserId) { message ->
-            showMessageOptions(message)
+        adapter = ChatAdapter(currentUserId) { anchor, message ->
+            showMessageOptions(anchor, message)
         }
 
         layoutManager = LinearLayoutManager(this)
@@ -134,6 +142,8 @@ class ChatActivity : AppCompatActivity() {
         binding.fabTopMessage.setOnClickListener {
             binding.recyclerViewChat.smoothScrollToPosition(0)
         }
+
+        binding.recyclerViewChat.post { updateScrollButtons() }
     }
 
     private fun updateScrollButtons() {
@@ -157,6 +167,10 @@ class ChatActivity : AppCompatActivity() {
         }
 
         binding.btnClearChat.setOnClickListener {
+            if (companyId.isBlank() || channelId.isBlank()) {
+                Toast.makeText(this, "No se pudo borrar: chat invalido.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             AlertDialog.Builder(this)
                 .setTitle("Borrar chat")
                 .setMessage("Se borraran todos los mensajes de este chat.")
@@ -199,6 +213,8 @@ class ChatActivity : AppCompatActivity() {
         binding.editTextMessage.text?.clear()
         replyMessage = null
         binding.layoutReplyPreview.visibility = View.GONE
+        pendingAutoScrollToBottom = true
+        scrollToBottom()
     }
 
     private fun setupQuickReplies() {
@@ -222,38 +238,69 @@ class ChatActivity : AppCompatActivity() {
             replyToId = null,
             replyToText = null
         )
+        pendingAutoScrollToBottom = true
+        scrollToBottom()
     }
 
-    private fun showMessageOptions(message: ChatMessageModel) {
-        val popup = PopupMenu(this, binding.buttonSend)
-        popup.menu.add("Responder")
-        if (message.senderId == currentUserId) {
-            popup.menu.add("Editar mensaje")
-            popup.menu.add("Borrar mensaje")
+    private fun showMessageOptions(anchorView: View, message: ChatMessageModel) {
+        if (message.id.isBlank()) {
+            Toast.makeText(this, "El mensaje aun no esta disponible.", Toast.LENGTH_SHORT).show()
+            return
         }
-        popup.setOnMenuItemClickListener { item ->
-            when (item.title.toString()) {
-                "Responder" -> {
-                    replyMessage = message
-                    binding.layoutReplyPreview.visibility = View.VISIBLE
-                    binding.textReplyingTo.text = "Respondiendo a: ${message.message}"
-                    true
-                }
-                "Editar mensaje" -> {
-                    showEditMessageDialog(message)
-                    true
-                }
-                "Borrar mensaje" -> {
-                    chatViewModel.deleteMessage(companyId, channelId, message.id)
-                    true
-                }
-                else -> false
+
+        runCatching {
+            val popup = PopupMenu(this, anchorView)
+            popup.menu.add("Responder")
+            if (message.senderId == currentUserId) {
+                popup.menu.add("Editar mensaje")
+                popup.menu.add("Borrar mensaje")
             }
+            popup.setOnMenuItemClickListener { item ->
+                when (item.title.toString()) {
+                    "Responder" -> {
+                        replyMessage = message
+                        binding.layoutReplyPreview.visibility = View.VISIBLE
+                        binding.textReplyingTo.text = "Respondiendo a: ${message.message}"
+                        true
+                    }
+                    "Editar mensaje" -> {
+                        showEditMessageDialog(message)
+                        true
+                    }
+                    "Borrar mensaje" -> {
+                        showDeleteMessageDialog(message)
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
+        }.onFailure {
+            Toast.makeText(this, "No se pudieron abrir las acciones del mensaje.", Toast.LENGTH_SHORT).show()
         }
-        popup.show()
+    }
+
+    private fun showDeleteMessageDialog(message: ChatMessageModel) {
+        AlertDialog.Builder(this)
+            .setTitle("Borrar mensaje")
+            .setMessage("Este mensaje se eliminara de forma permanente.")
+            .setPositiveButton("Borrar") { _, _ ->
+                if (message.id.isBlank()) {
+                    Toast.makeText(this, "No se pudo borrar el mensaje.", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                chatViewModel.deleteMessage(companyId, channelId, message.id)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun showEditMessageDialog(message: ChatMessageModel) {
+        if (message.id.isBlank()) {
+            Toast.makeText(this, "No se pudo editar el mensaje.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val input = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
             setText(message.message)
@@ -267,6 +314,7 @@ class ChatActivity : AppCompatActivity() {
                 val newText = input.text?.toString().orEmpty().trim()
                 if (newText.isNotEmpty()) {
                     chatViewModel.editMessage(companyId, channelId, message.id, newText)
+                    pendingAutoScrollToBottom = true
                 }
             }
             .setNegativeButton("Cancelar", null)

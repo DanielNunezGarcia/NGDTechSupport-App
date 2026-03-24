@@ -2,11 +2,17 @@ package com.example.ngdtechsupport.data
 
 import com.example.ngdtechsupport.model.UpdateModel
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
+import android.util.Log
 
 class UpdatesRepository {
+
+    companion object {
+        private const val TAG = "UpdatesRepository"
+    }
 
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
@@ -27,14 +33,7 @@ class UpdatesRepository {
             .await()
 
         return snapshot.documents.map { doc ->
-            UpdateModel(
-                id = doc.id,
-                title = doc.getString("title") ?: "",
-                description = doc.getString("description") ?: "",
-                type = doc.getString("type") ?: "",
-                createdAt = doc.getTimestamp("createdAt") ?.toDate()?.time ?: 0L,
-                createdBy = doc.getString("createdBy") ?: ""
-            )
+            doc.toUpdateModel()
         }
     }
 
@@ -99,9 +98,10 @@ class UpdatesRepository {
     fun listenUpdates(
         companyId: String,
         businessId: String,
-        onResult: (List<UpdateModel>) -> Unit
+        onResult: (List<UpdateModel>) -> Unit,
+        onError: (Throwable) -> Unit
     ): com.google.firebase.firestore.ListenerRegistration {
-        android.util.Log.d("UpdatesRepository", "listenUpdates: companyId=$companyId, businessId=$businessId")
+        Log.d(TAG, "listenUpdates: companyId=$companyId, businessId=$businessId")
 
         val updatesRef = firestore.collection("companies")
             .document(companyId)
@@ -109,36 +109,93 @@ class UpdatesRepository {
             .document(businessId)
             .collection("updates")
 
-        return updatesRef
+        var fallbackRegistration: com.google.firebase.firestore.ListenerRegistration? = null
+        var fallbackAttached = false
+
+        val orderedRegistration = updatesRef
+            .orderBy("pinned", Query.Direction.DESCENDING)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    android.util.Log.e("UpdatesRepository", "Error fetching updates: ${error.message}")
-                    android.util.Log.e("UpdatesRepository", "Error code: ${error.code}")
-                    onResult(emptyList())
+                    Log.e(TAG, "Error fetching updates (ordered query): ${error.message}", error)
+
+                    val code = (error as? FirebaseFirestoreException)?.code
+                    if (code == FirebaseFirestoreException.Code.FAILED_PRECONDITION ||
+                        code == FirebaseFirestoreException.Code.INVALID_ARGUMENT
+                    ) {
+                        if (!fallbackAttached) {
+                            Log.w(TAG, "Falling back to non-ordered updates query due to missing index/type issue")
+                            fallbackAttached = true
+                            fallbackRegistration = listenUpdatesFallback(updatesRef, onResult, onError)
+                        }
+                    } else {
+                        onError(error)
+                    }
                     return@addSnapshotListener
                 }
 
-                android.util.Log.d("UpdatesRepository", "Snapshot size: ${snapshot?.documents?.size ?: 0}")
+                Log.d(TAG, "Ordered updates snapshot size: ${snapshot?.documents?.size ?: 0}")
 
                 val updates = snapshot?.documents?.map { doc ->
-                    android.util.Log.d("UpdatesRepository", "Doc: ${doc.id} - ${doc.getString("title")}")
-                    UpdateModel(
-                        id = doc.id,
-                        title = doc.getString("title") ?: "",
-                        description = doc.getString("description") ?: "",
-                        type = doc.getString("type") ?: "",
-                        version = doc.getString("version") ?: "",
-                        createdAt = doc.getTimestamp("createdAt")
-                            ?.toDate()?.time ?: doc.getLong("createdAt") ?: 0L,
-                        createdBy = doc.getString("createdBy") ?: "",
-                        pinned = doc.getBoolean("pinned") ?: false
-                    )
+                    doc.toUpdateModel().also {
+                        Log.d(TAG, "Update parsed: id=${it.id}, title=${it.title}")
+                    }
                 } ?: emptyList()
 
-                android.util.Log.d("UpdatesRepository", "Parsed updates: ${updates.size}")
+                Log.d(TAG, "Parsed updates count: ${updates.size}")
                 onResult(updates)
             }
+
+        return com.google.firebase.firestore.ListenerRegistration {
+            orderedRegistration.remove()
+            fallbackRegistration?.remove()
+        }
+    }
+
+    private fun listenUpdatesFallback(
+        updatesRef: com.google.firebase.firestore.CollectionReference,
+        onResult: (List<UpdateModel>) -> Unit,
+        onError: (Throwable) -> Unit
+    ): com.google.firebase.firestore.ListenerRegistration {
+        return updatesRef
+            .addSnapshotListener { snapshot, fallbackError ->
+                if (fallbackError != null) {
+                    Log.e(TAG, "Error fetching updates (fallback query): ${fallbackError.message}", fallbackError)
+                    onError(fallbackError)
+                    return@addSnapshotListener
+                }
+
+                val updates = snapshot?.documents
+                    ?.map { it.toUpdateModel() }
+                    ?.sortedWith(
+                        compareByDescending<UpdateModel> { it.pinned }
+                            .thenByDescending { it.createdAt }
+                    )
+                    .orEmpty()
+
+                Log.d(TAG, "Fallback updates parsed count: ${updates.size}")
+                onResult(updates)
+            }
+    }
+
+    private fun com.google.firebase.firestore.DocumentSnapshot.toUpdateModel(): UpdateModel {
+        return UpdateModel(
+            id = id,
+            title = getString("title") ?: "",
+            description = getString("description") ?: "",
+            type = getString("type") ?: "",
+            version = getString("version") ?: "",
+            createdAt = getTimestamp("createdAt")
+                ?.toDate()
+                ?.time
+                ?: getLong("createdAt")
+                ?: 0L,
+            createdBy = getString("createdBy") ?: "",
+            status = getString("status") ?: "",
+            isActive = getBoolean("isActive") ?: true,
+            priority = getLong("priority")?.toInt() ?: 1,
+            pinned = getBoolean("pinned") ?: false
+        )
     }
 
     // Eliminar el Update

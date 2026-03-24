@@ -8,9 +8,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.repository.ChannelRepository
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class ChannelViewModel : ViewModel() {
+
+    data class PrivateChannelCreationResult(
+        val created: Boolean,
+        val channelId: String = "",
+        val errorMessage: String = ""
+    )
 
     private val repository = ChannelRepository()
 
@@ -22,22 +29,37 @@ class ChannelViewModel : ViewModel() {
     private val _channelClickEvent = MutableLiveData<ChannelModel?>()
     val channelClickEvent: LiveData<ChannelModel?> = _channelClickEvent
 
-    private val _privateChannelCreated = MutableLiveData<Boolean>()
-    val privateChannelCreated: LiveData<Boolean> = _privateChannelCreated
+    private val _privateChannelCreated = MutableLiveData<PrivateChannelCreationResult?>()
+    val privateChannelCreated: LiveData<PrivateChannelCreationResult?> = _privateChannelCreated
+
+    private val currentUserId: String
+        get() = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
 
     fun clearPrivateChannelState() {
-        _privateChannelCreated.value = false
+        _privateChannelCreated.value = null
     }
 
 
 
     init {
         visibleChannels.addSource(_channels) { list ->
-            visibleChannels.value = list.filter { !it.isArchived }
+            val uid = currentUserId
+            visibleChannels.value = list.filter { channel ->
+                if (channel.isArchived) {
+                    false
+                } else {
+                    val members = channel.members
+                    members.isEmpty() || uid.isBlank() || members.containsKey(uid)
+                }
+            }
         }
     }
 
     fun loadChannels(companyId: String) {
+        if (companyId.isBlank()) {
+            _channels.postValue(emptyList())
+            return
+        }
         repository.listenChannels(companyId) { list ->
             _channels.postValue(list)
         }
@@ -91,7 +113,12 @@ class ChannelViewModel : ViewModel() {
         Log.d("ChannelViewModel", "createPrivateChannel called with companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid")
         if (companyId.isEmpty() || channelId.isEmpty() || adminUid.isEmpty() || memberUid.isEmpty()) {
             Log.e("ChannelViewModel", "Invalid parameters: companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid")
-            _privateChannelCreated.postValue(false)
+            _privateChannelCreated.postValue(
+                PrivateChannelCreationResult(
+                    created = false,
+                    errorMessage = "Datos incompletos para crear canal privado"
+                )
+            )
             return
         }
         viewModelScope.launch {
@@ -104,14 +131,26 @@ class ChannelViewModel : ViewModel() {
                 )
                 if (success) {
                     Log.d("ChannelViewModel", "Private channel created successfully")
-                    _privateChannelCreated.postValue(true)
+                    _privateChannelCreated.postValue(
+                        PrivateChannelCreationResult(created = true, channelId = channelId)
+                    )
                 } else {
                     Log.e("ChannelViewModel", "Failed to create private channel")
-                    _privateChannelCreated.postValue(false)
+                    _privateChannelCreated.postValue(
+                        PrivateChannelCreationResult(
+                            created = false,
+                            errorMessage = "No se pudo guardar el canal privado"
+                        )
+                    )
                 }
             } catch (e: Exception) {
                 Log.e("ChannelViewModel", "Error creating private channel: ${e.message}", e)
-                _privateChannelCreated.postValue(false)
+                _privateChannelCreated.postValue(
+                    PrivateChannelCreationResult(
+                        created = false,
+                        errorMessage = "Error inesperado al crear el canal privado"
+                    )
+                )
             }
         }
     }
