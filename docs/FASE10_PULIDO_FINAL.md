@@ -19,8 +19,8 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 ### 1.1 Android App
 
 #### RecyclerView Optimization
-- [x] Implementar DiffUtil en ChatAdapter y ChannelAdapter
-- [ ] Usar `setHasFixedSize(true)` donde aplique
+- [x] Implementar DiffUtil en ChatAdapter y UpdatesAdapter
+- [x] Usar `setHasFixedSize(true)` donde aplique
 - [ ] Implementar ViewHolder pooling
 - [ ] Considerar `setItemViewCacheSize()` para mejor cache
 
@@ -69,7 +69,7 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 - [ ] Usar `Property Animation` sobre `View Animation`
 
 #### Estados de UI
-- [x] Mensajes diferenciados por color (IA morado, agente azul, usuario verde)
+- [x] Mensajes diferenciados por color (paleta azul/blanco/gris)
 - [ ] Implementar skeletons para carga
 - [ ] Estados vacíos con ilustraciones
 - [ ] Estados de error con retry
@@ -93,7 +93,7 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 
 ### Android
 - [ ] LeakCanary para detección de memory leaks
-- [ ] Limpiar listeners en onDestroy
+- [x] Limpiar listeners en onDestroy/onCleared en pantallas críticas
 - [ ] Usar WeakReferences donde sea necesario
 - [ ] Bitmaps: recycle() cuando no se usen
 
@@ -186,10 +186,24 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 - [ ] CDN configurado (Netlify lo hace)
 
 ### General
-- [ ] Documentación actualizada
+- [x] Documentación actualizada
 - [ ] README actualizado
 - [ ] Tests pasando
-- [ ] Code review completado
+- [x] Code review completado (flujo supervisor + agentes)
+
+---
+
+## 9.1 Avances funcionales implementados (FASE 10)
+
+- [x] Estabilidad de navegación en Admin y Cliente (chat/updates/canales)
+- [x] Canal privado persistente y accesible desde sección de Canales
+- [x] Auto-scroll robusto al final del chat al enviar mensajes y quick replies
+- [x] Controles de navegación en chat: ir arriba / ir abajo
+- [x] Acciones de chat: editar mensaje, borrar mensaje y borrar chat
+- [x] Bienvenida automática aleatoria en apertura de chat (cliente)
+- [x] Config IA simplificada (sin switch de Auto-Bienvenida)
+- [x] Respuestas IA limpiadas de símbolos no deseados
+- [x] Paleta visual unificada en azul/blanco/gris
 
 ---
 
