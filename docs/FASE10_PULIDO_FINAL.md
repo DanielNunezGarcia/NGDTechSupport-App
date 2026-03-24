@@ -123,7 +123,7 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 
 ### Android
 - [x] Reglas de Firestore implementadas
-- [ ] ProGuard/R8 para ofuscar código
+- [x] ProGuard/R8 para ofuscar código
 - [ ] No almacenar secrets en código
 - [ ] Certificate pinning (opcional)
 
@@ -175,9 +175,9 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 ### Android APK
 - [x] Build exitoso sin errores
 - [ ] APK firmado con keystore de release
-- [ ] ProGuard habilitado
-- [ ] Versión de código y nombre incrementados
-- [ ] Changelog actualizado
+- [x] ProGuard habilitado
+- [x] Versión de código y nombre incrementados
+- [x] Changelog actualizado
 
 ### Web Admin
 - [x] Deploy en Netlify exitoso
@@ -212,8 +212,8 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 1. **Performance**: Implementar pagination en ChannelAdapter
 2. **UX**: Añadir estados vacíos en listas
 3. **Testing**: Configurar unit tests básicos
-4. **Security**: Configurar ProGuard para release
-5. **Monitoring**: Integrar Firebase Performance
+4. **Release**: Firmar APK con keystore de producción
+5. **Monitoring**: Integrar Firebase Performance + Crashlytics
 
 ---
 
