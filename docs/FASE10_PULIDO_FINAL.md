@@ -187,7 +187,7 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 
 ### General
 - [x] Documentación actualizada
-- [ ] README actualizado
+- [x] README actualizado
 - [ ] Tests pasando
 - [x] Code review completado (flujo supervisor + agentes)
 
