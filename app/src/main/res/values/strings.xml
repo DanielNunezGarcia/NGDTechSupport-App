@@ -1,4 +1,27 @@
 <resources>
     <string name="AdAppID">ca-app-pub-XXXXXXXXXXXXXXXX~XXXXXXXXXX</string>
     <string name="app_name">NGD TechSupport</string>
+    <string name="updates_empty_message">Aun no hay novedades publicadas para este proyecto.</string>
+    <string name="updates_error_message">No pudimos cargar las novedades. Revisa tu conexion e intentalo de nuevo.</string>
+    <string name="updates_retry">Reintentar</string>
+
+    <string name="cd_chat_scroll_bottom">Ir al ultimo mensaje</string>
+    <string name="cd_chat_scroll_top">Ir al primer mensaje</string>
+    <string name="cd_chat_send_message">Enviar mensaje</string>
+    <string name="cd_chat_quick_status">Enviar mensaje rapido: consultar estado</string>
+    <string name="cd_chat_quick_error">Enviar mensaje rapido: reportar problema</string>
+    <string name="cd_chat_quick_quote">Enviar mensaje rapido: solicitar presupuesto</string>
+    <string name="cd_chat_quick_agent">Enviar mensaje rapido: hablar con agente</string>
+
+    <string name="cd_dashboard_chat">Abrir chat de soporte</string>
+    <string name="cd_dashboard_updates">Abrir novedades</string>
+    <string name="cd_dashboard_channels">Abrir canales</string>
+    <string name="cd_dashboard_ai_config">Abrir configuracion de IA</string>
+    <string name="cd_dashboard_logout">Cerrar sesion</string>
+    <string name="cd_dashboard_create_private_channel">Crear canal privado</string>
+
+    <string name="cd_channel_muted">Canal silenciado</string>
+    <string name="cd_channel_pinned">Canal fijado</string>
+    <string name="cd_channel_unread_generic">Mensajes sin leer</string>
+    <string name="cd_channel_unread">Mensajes sin leer: %1$d</string>
 </resources>

@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.databinding.ActivityUpdatesBinding
 import com.google.firebase.auth.FirebaseAuth
 
@@ -22,20 +24,23 @@ class UpdatesActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUpdatesBinding
     private val viewModel: UpdatesViewModel by viewModels()
     private lateinit var adapter: UpdatesAdapter
+    private lateinit var companyId: String
+    private lateinit var businessId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityUpdatesBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val companyId = resolveCompanyId(intent.getStringExtra("companyId"))
-        val businessId = resolveBusinessId(intent.getStringExtra("businessId"))
+        companyId = resolveCompanyId(intent.getStringExtra("companyId"))
+        businessId = resolveBusinessId(intent.getStringExtra("businessId"))
         val userRole = intent.getStringExtra("userRole").orEmpty().ifEmpty { "CLIENT" }.uppercase()
         Log.d(TAG, "Opening updates with companyId=$companyId businessId=$businessId role=$userRole")
 
         binding.btnNewUpdate.visibility = if (userRole == "ADMIN") View.VISIBLE else View.GONE
         binding.progressBar.visibility = View.VISIBLE
         binding.tvEmpty.visibility = View.GONE
+        binding.btnRetryUpdates.visibility = View.GONE
 
         adapter = UpdatesAdapter { update ->
             Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
@@ -43,6 +48,10 @@ class UpdatesActivity : AppCompatActivity() {
 
         binding.recyclerUpdates.layoutManager = LinearLayoutManager(this)
         binding.recyclerUpdates.setHasFixedSize(true)
+        binding.recyclerUpdates.setItemViewCacheSize(12)
+        binding.recyclerUpdates.setRecycledViewPool(RecyclerView.RecycledViewPool().apply {
+            setMaxRecycledViews(0, 20)
+        })
         binding.recyclerUpdates.adapter = adapter
 
         val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
@@ -54,7 +63,9 @@ class UpdatesActivity : AppCompatActivity() {
 
         viewModel.updates.observe(this) { updates ->
             binding.progressBar.visibility = View.GONE
+            binding.btnRetryUpdates.visibility = View.GONE
             if (updates.isEmpty()) {
+                binding.tvEmpty.text = getString(R.string.updates_empty_message)
                 binding.tvEmpty.visibility = View.VISIBLE
                 binding.recyclerUpdates.visibility = View.GONE
             } else {
@@ -69,14 +80,20 @@ class UpdatesActivity : AppCompatActivity() {
             binding.progressBar.visibility = View.GONE
             Log.e(TAG, "Error loading updates: $errorMessage")
             Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+            binding.btnRetryUpdates.visibility = View.VISIBLE
             if (adapter.currentList.isEmpty()) {
+                binding.tvEmpty.text = getString(R.string.updates_error_message)
                 binding.tvEmpty.visibility = View.VISIBLE
                 binding.recyclerUpdates.visibility = View.GONE
             }
             viewModel.clearError()
         }
 
-        viewModel.listenUpdates(companyId, businessId)
+        binding.btnRetryUpdates.setOnClickListener {
+            retryLoadUpdates()
+        }
+
+        retryLoadUpdates()
 
         binding.btnNewUpdate.setOnClickListener {
             if (userRole != "ADMIN") {
@@ -89,6 +106,16 @@ class UpdatesActivity : AppCompatActivity() {
             intent.putExtra("businessId", businessId)
             startActivity(intent)
         }
+    }
+
+    private fun retryLoadUpdates() {
+        binding.progressBar.visibility = View.VISIBLE
+        binding.btnRetryUpdates.visibility = View.GONE
+        binding.tvEmpty.visibility = View.GONE
+        if (adapter.currentList.isEmpty()) {
+            binding.recyclerUpdates.visibility = View.GONE
+        }
+        viewModel.listenUpdates(companyId, businessId)
     }
 
     private fun resolveCompanyId(raw: String?): String {

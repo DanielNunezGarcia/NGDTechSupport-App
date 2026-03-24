@@ -34,11 +34,21 @@
         android:id="@+id/tvEmpty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="No hay novedades todavía"
+        android:text="@string/updates_empty_message"
         android:textSize="16sp"
         android:textColor="#757575"
         android:layout_gravity="center"
         android:layout_marginTop="48dp"
+        android:visibility="gone"/>
+
+    <Button
+        android:id="@+id/btnRetryUpdates"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="12dp"
+        android:text="@string/updates_retry"
+        android:backgroundTint="@color/dashboard_header"
         android:visibility="gone"/>
 
     <androidx.recyclerview.widget.RecyclerView

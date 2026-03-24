@@ -127,6 +127,11 @@ class ChatActivity : AppCompatActivity() {
 
         binding.recyclerViewChat.layoutManager = layoutManager
         binding.recyclerViewChat.setHasFixedSize(true)
+        binding.recyclerViewChat.setItemViewCacheSize(20)
+        binding.recyclerViewChat.setRecycledViewPool(RecyclerView.RecycledViewPool().apply {
+            setMaxRecycledViews(1, 30)
+            setMaxRecycledViews(2, 10)
+        })
         binding.recyclerViewChat.adapter = adapter
 
         binding.recyclerViewChat.addOnScrollListener(object : RecyclerView.OnScrollListener() {

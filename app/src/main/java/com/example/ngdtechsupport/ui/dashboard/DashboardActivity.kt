@@ -64,6 +64,10 @@ class DashboardActivity : AppCompatActivity() {
 
         rvApps.layoutManager = LinearLayoutManager(this)
         rvApps.setHasFixedSize(true)
+        rvApps.setItemViewCacheSize(10)
+        rvApps.setRecycledViewPool(RecyclerView.RecycledViewPool().apply {
+            setMaxRecycledViews(0, 16)
+        })
 
         adapter = AppAdapter(emptyList()) { app, companyId ->
             val intent = Intent(this, com.example.ngdtechsupport.ui.activity.AppDetailActivity::class.java)

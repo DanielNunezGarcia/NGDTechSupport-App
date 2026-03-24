@@ -35,6 +35,8 @@ class ChannelAdapter(
             if (unread > 0) {
                 binding.textUnread.visibility = View.VISIBLE
                 binding.textUnread.text = unread.toString()
+                binding.textUnread.contentDescription =
+                    binding.root.context.getString(R.string.cd_channel_unread, unread)
             } else {
                 binding.textUnread.visibility = View.GONE
             }

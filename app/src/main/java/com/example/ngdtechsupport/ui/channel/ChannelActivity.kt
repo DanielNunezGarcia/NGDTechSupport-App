@@ -51,6 +51,10 @@ class ChannelActivity : AppCompatActivity() {
             val recyclerView = findViewById<RecyclerView>(R.id.recyclerChannels)
             recyclerView.layoutManager = LinearLayoutManager(this)
             recyclerView.setHasFixedSize(true)
+            recyclerView.setItemViewCacheSize(12)
+            recyclerView.setRecycledViewPool(RecyclerView.RecycledViewPool().apply {
+                setMaxRecycledViews(0, 20)
+            })
             recyclerView.adapter = adapter
 
             viewModel.visibleChannels.observe(this) { list ->
