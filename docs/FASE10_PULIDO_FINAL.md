@@ -32,7 +32,7 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 
 #### Database Queries
 - [ ] Indexar campos frecuentemente consultados en Firestore
-- [ ] Implementar paginación para listas grandes
+- [x] Implementar paginación para listas grandes
 - [ ] Usar Firestore offline persistence
 - [ ] Optimizar consultas con selectores de campos
 
@@ -70,7 +70,7 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 
 #### Estados de UI
 - [x] Mensajes diferenciados por color (paleta azul/blanco/gris)
-- [ ] Implementar skeletons para carga
+- [x] Implementar skeletons para carga
 - [x] Estados vacíos con copy claro
 - [x] Estados de error con retry
 
@@ -124,7 +124,7 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 ### Android
 - [x] Reglas de Firestore implementadas
 - [x] ProGuard/R8 para ofuscar código
-- [ ] No almacenar secrets en código
+- [x] No almacenar secrets en código (firma release vía variables de entorno/CI)
 - [ ] Certificate pinning (opcional)
 
 ### Web
@@ -136,7 +136,12 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 ### Firebase
 - [x] Rules restrictivas
 - [ ] No exponer keys en código público
-- [ ] Usar App Check (opcional)
+- [x] Usar App Check (opcional)
+
+#### App Check (implementacion base)
+- Android debug: se instala `DebugAppCheckProviderFactory` automaticamente para desarrollo local.
+- Android release: se instala `PlayIntegrityAppCheckProviderFactory` para validacion en produccion.
+- Fallback debug documentado: ejecutar app en debug, copiar token de App Check desde Logcat y registrarlo en Firebase Console > App Check > Manage debug tokens.
 
 ---
 
@@ -160,8 +165,8 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 ## 7. Monitoring
 
 ### Android
-- [ ] Firebase Performance Monitoring
-- [ ] Crashlytics
+- [x] Firebase Performance Monitoring (SDK + plugin + build OK)
+- [x] Crashlytics (SDK + plugin + build OK)
 - [ ] Analytics de eventos
 
 ### Web
@@ -173,8 +178,9 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 ## 8. Checklist de Pulido Final
 
 ### Android APK
-- [x] Build exitoso sin errores
-- [ ] APK firmado con keystore de release
+- [x] Build de release exitoso (`./gradlew.bat assembleRelease`)
+- [x] Estrategia de firma release por CI configurada (variables `SIGNING_*`, sin secretos en repo)
+- [ ] APK firmado con keystore de release de producción (requiere secretos en CI)
 - [x] ProGuard habilitado
 - [x] Versión de código y nombre incrementados
 - [x] Changelog actualizado
@@ -188,7 +194,7 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 ### General
 - [x] Documentación actualizada
 - [x] README actualizado
-- [ ] Tests pasando (verificacion 2026-03-24: unit tests OK; connected tests sin dispositivo)
+- [x] Tests pasando (unit tests + connectedAndroidTest ejecutados)
 - [x] Code review completado (flujo supervisor + agentes)
 
 ---
@@ -209,11 +215,11 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 
 ## 9. Tareas Inmediatas Pendientes
 
-1. **Performance**: Implementar pagination en ChannelAdapter
-2. **UX**: Añadir estados vacíos en listas
-3. **Testing**: Configurar unit tests básicos
-4. **Release**: Firmar APK con keystore de producción
-5. **Monitoring**: Integrar Firebase Performance + Crashlytics
+1. **Performance**: Validar índices Firestore para consultas paginadas en canales
+2. **Testing**: Ampliar cobertura de unit/instrumentation tests (más casos)
+3. **Release**: Firmar APK con keystore de producción
+4. **Release**: Cargar secretos `SIGNING_*` en CI y generar APK/AAB de producción firmado
+5. **Monitoring**: Instrumentar eventos de Analytics para panel operativo
 
 ---
 
@@ -233,7 +239,10 @@ La fase de pulido final se enfoca en optimizar el rendimiento, mejorar la experi
 ## 11. Verificacion FASE 10 (2026-03-24)
 
 - [x] `./gradlew.bat testDebugUnitTest` -> `BUILD SUCCESSFUL` (unit tests ejecutados correctamente)
-- [ ] `./gradlew.bat connectedAndroidTest` -> fallo por entorno: `No connected devices!`
+- [x] `adb devices` (SDK local: `C:\Users\danie\AppData\Local\Android\Sdk\platform-tools\adb`) -> `emulator-5554\tdevice`
+- [x] `./gradlew.bat connectedAndroidTest` -> `BUILD SUCCESSFUL in 1m 39s` (1 test instrumentation en `NGDTechSupport(AVD) - 16`, `Finished 1 tests`)
+- [x] `./gradlew.bat assembleDebug` -> `BUILD SUCCESSFUL` (integración Crashlytics + Performance compila en debug)
+- [x] `./gradlew.bat assembleRelease` -> `BUILD SUCCESSFUL` (integración Crashlytics + Performance compila en release)
 
 ---
 

@@ -8,6 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import android.widget.Button
+import android.widget.ProgressBar
+import android.widget.TextView
 import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.ui.chat.ChatActivity
 import com.google.firebase.auth.FirebaseAuth
@@ -21,6 +24,11 @@ class ChannelActivity : AppCompatActivity() {
 
     private lateinit var viewModel: ChannelViewModel
     private lateinit var adapter: ChannelAdapter
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var initialLoading: ProgressBar
+    private lateinit var loadingMore: ProgressBar
+    private lateinit var btnLoadMore: Button
+    private lateinit var emptyView: TextView
 
     private lateinit var companyId: String
     private lateinit var businessId: String
@@ -48,7 +56,12 @@ class ChannelActivity : AppCompatActivity() {
                 currentUserId = currentUserId
             )
 
-            val recyclerView = findViewById<RecyclerView>(R.id.recyclerChannels)
+            recyclerView = findViewById(R.id.recyclerChannels)
+            initialLoading = findViewById(R.id.progressChannelsInitial)
+            loadingMore = findViewById(R.id.progressChannelsLoadMore)
+            btnLoadMore = findViewById(R.id.btnLoadMoreChannels)
+            emptyView = findViewById(R.id.tvChannelsEmpty)
+
             recyclerView.layoutManager = LinearLayoutManager(this)
             recyclerView.setHasFixedSize(true)
             recyclerView.setItemViewCacheSize(12)
@@ -61,10 +74,60 @@ class ChannelActivity : AppCompatActivity() {
                 try {
                     Log.d("ChannelActivity", "Visible channels updated: ${list.size}")
                     adapter.submitList(list)
+                    emptyView.visibility = if (list.isEmpty() && viewModel.isInitialLoading.value != true) {
+                        android.view.View.VISIBLE
+                    } else {
+                        android.view.View.GONE
+                    }
                 } catch (e: Exception) {
                     Log.e("ChannelActivity", "Error in visibleChannels observer", e)
                 }
             }
+
+            viewModel.isInitialLoading.observe(this) { loading ->
+                initialLoading.visibility = if (loading) android.view.View.VISIBLE else android.view.View.GONE
+                if (loading) {
+                    emptyView.visibility = android.view.View.GONE
+                    recyclerView.visibility = android.view.View.GONE
+                } else {
+                    recyclerView.visibility = android.view.View.VISIBLE
+                    val shouldShowEmpty = adapter.itemCount == 0
+                    emptyView.visibility = if (shouldShowEmpty) android.view.View.VISIBLE else android.view.View.GONE
+                }
+            }
+
+            viewModel.isLoadingMore.observe(this) { loading ->
+                loadingMore.visibility = if (loading) android.view.View.VISIBLE else android.view.View.GONE
+                updateLoadMoreButtonVisibility()
+            }
+
+            viewModel.canLoadMore.observe(this) {
+                updateLoadMoreButtonVisibility()
+            }
+
+            viewModel.error.observe(this) { errorMessage ->
+                if (errorMessage.isNullOrBlank()) return@observe
+                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+                viewModel.clearError()
+            }
+
+            btnLoadMore.setOnClickListener {
+                viewModel.loadMoreChannels()
+            }
+
+            recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    super.onScrolled(recyclerView, dx, dy)
+                    if (dy <= 0) return
+
+                    val manager = recyclerView.layoutManager as? LinearLayoutManager ?: return
+                    val totalItems = manager.itemCount
+                    val lastVisibleItem = manager.findLastVisibleItemPosition()
+                    if (totalItems > 0 && lastVisibleItem >= totalItems - 4) {
+                        viewModel.loadMoreChannels()
+                    }
+                }
+            })
 
             // Observar eventos de click
             viewModel.channelClickEvent.observe(this) { channel ->
@@ -96,8 +159,21 @@ class ChannelActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (::viewModel.isInitialized && ::companyId.isInitialized && companyId.isNotBlank()) {
+        if (
+            ::viewModel.isInitialized &&
+            ::companyId.isInitialized &&
+            ::adapter.isInitialized &&
+            companyId.isNotBlank() &&
+            adapter.itemCount == 0
+        ) {
             viewModel.loadChannels(companyId)
         }
+    }
+
+    private fun updateLoadMoreButtonVisibility() {
+        if (!::viewModel.isInitialized || !::btnLoadMore.isInitialized) return
+
+        val shouldShow = viewModel.canLoadMore.value == true && viewModel.isLoadingMore.value != true
+        btnLoadMore.visibility = if (shouldShow) android.view.View.VISIBLE else android.view.View.GONE
     }
 }

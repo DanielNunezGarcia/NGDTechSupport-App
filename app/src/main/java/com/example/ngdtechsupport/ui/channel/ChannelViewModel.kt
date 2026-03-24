@@ -9,9 +9,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.repository.ChannelRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import kotlinx.coroutines.launch
 
 class ChannelViewModel : ViewModel() {
+
+    companion object {
+        private const val CHANNELS_PAGE_SIZE = 20
+    }
 
     data class PrivateChannelCreationResult(
         val created: Boolean,
@@ -21,8 +26,20 @@ class ChannelViewModel : ViewModel() {
 
     private val repository = ChannelRepository()
 
-    private val _channels = MutableLiveData<List<ChannelModel>>()
+    private val _channels = MutableLiveData<List<ChannelModel>>(emptyList())
     val channels: LiveData<List<ChannelModel>> = _channels
+
+    private val _isInitialLoading = MutableLiveData(false)
+    val isInitialLoading: LiveData<Boolean> = _isInitialLoading
+
+    private val _isLoadingMore = MutableLiveData(false)
+    val isLoadingMore: LiveData<Boolean> = _isLoadingMore
+
+    private val _canLoadMore = MutableLiveData(false)
+    val canLoadMore: LiveData<Boolean> = _canLoadMore
+
+    private val _error = MutableLiveData<String?>(null)
+    val error: LiveData<String?> = _error
 
     val visibleChannels = MediatorLiveData<List<ChannelModel>>()
 
@@ -31,6 +48,9 @@ class ChannelViewModel : ViewModel() {
 
     private val _privateChannelCreated = MutableLiveData<PrivateChannelCreationResult?>()
     val privateChannelCreated: LiveData<PrivateChannelCreationResult?> = _privateChannelCreated
+
+    private var currentCompanyId: String = ""
+    private var lastVisibleChannel: DocumentSnapshot? = null
 
     private val currentUserId: String
         get() = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
@@ -58,10 +78,74 @@ class ChannelViewModel : ViewModel() {
     fun loadChannels(companyId: String) {
         if (companyId.isBlank()) {
             _channels.postValue(emptyList())
+            _canLoadMore.postValue(false)
             return
         }
-        repository.listenChannels(companyId) { list ->
-            _channels.postValue(list)
+
+        currentCompanyId = companyId
+        lastVisibleChannel = null
+        _error.value = null
+        _canLoadMore.value = true
+        _isInitialLoading.value = true
+        loadChannelsPage(reset = true)
+    }
+
+    fun loadMoreChannels() {
+        val companyId = currentCompanyId
+        if (companyId.isBlank()) return
+        if (_isInitialLoading.value == true || _isLoadingMore.value == true) return
+        if (_canLoadMore.value != true) return
+
+        _isLoadingMore.value = true
+        loadChannelsPage(reset = false)
+    }
+
+    fun clearError() {
+        _error.value = null
+    }
+
+    private fun loadChannelsPage(reset: Boolean) {
+        val companyId = currentCompanyId
+        if (companyId.isBlank()) {
+            _isInitialLoading.postValue(false)
+            _isLoadingMore.postValue(false)
+            _canLoadMore.postValue(false)
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val page = repository.getChannelsPage(
+                    companyId = companyId,
+                    pageSize = CHANNELS_PAGE_SIZE,
+                    lastVisible = if (reset) null else lastVisibleChannel
+                )
+
+                val current = if (reset) {
+                    emptyList()
+                } else {
+                    _channels.value.orEmpty()
+                }
+
+                val merged = if (reset) {
+                    page.channels
+                } else {
+                    val existingIds = current.map { it.id }.toHashSet()
+                    current + page.channels.filterNot { existingIds.contains(it.id) }
+                }
+
+                lastVisibleChannel = page.lastVisible
+                _channels.postValue(merged)
+                _canLoadMore.postValue(page.hasMore && page.lastVisible != null)
+                _error.postValue(null)
+            } catch (e: Exception) {
+                Log.e("ChannelViewModel", "Error loading channels page", e)
+                _error.postValue("No se pudieron cargar los canales. ${e.message.orEmpty()}")
+                _canLoadMore.postValue(false)
+            } finally {
+                _isInitialLoading.postValue(false)
+                _isLoadingMore.postValue(false)
+            }
         }
     }
 

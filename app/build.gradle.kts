@@ -2,6 +2,30 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
+    id("com.google.firebase.firebase-perf")
+}
+
+val releaseSigningStoreFile = (providers.gradleProperty("SIGNING_STORE_FILE").orNull
+    ?: System.getenv("SIGNING_STORE_FILE"))?.takeIf { it.isNotBlank() }
+val releaseSigningStorePassword = (providers.gradleProperty("SIGNING_STORE_PASSWORD").orNull
+    ?: System.getenv("SIGNING_STORE_PASSWORD"))?.takeIf { it.isNotBlank() }
+val releaseSigningKeyAlias = (providers.gradleProperty("SIGNING_KEY_ALIAS").orNull
+    ?: System.getenv("SIGNING_KEY_ALIAS"))?.takeIf { it.isNotBlank() }
+val releaseSigningKeyPassword = (providers.gradleProperty("SIGNING_KEY_PASSWORD").orNull
+    ?: System.getenv("SIGNING_KEY_PASSWORD"))?.takeIf { it.isNotBlank() }
+
+val hasReleaseSigning = listOf(
+    releaseSigningStoreFile,
+    releaseSigningStorePassword,
+    releaseSigningKeyAlias,
+    releaseSigningKeyPassword
+).all { it != null }
+
+if (!hasReleaseSigning) {
+    logger.warn(
+        "Release signing credentials are incomplete. Falling back to debug signing for release builds. Configure CI signing vars for production artifacts."
+    )
 }
 
 android {
@@ -17,10 +41,29 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            if (hasReleaseSigning) {
+                storeFile = file(releaseSigningStoreFile!!)
+                storePassword = releaseSigningStorePassword
+                keyAlias = releaseSigningKeyAlias
+                keyPassword = releaseSigningKeyPassword
+            } else {
+                initWith(getByName("debug"))
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            buildConfigField("boolean", "ENABLE_FIREBASE_MONITORING", "false")
+        }
+
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
+            buildConfigField("boolean", "ENABLE_FIREBASE_MONITORING", "true")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -34,6 +77,7 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         viewBinding = true
     }
 
@@ -57,6 +101,10 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-messaging:24.0.3")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation("com.google.firebase:firebase-appcheck-debug")
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    implementation("com.google.firebase:firebase-perf-ktx")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

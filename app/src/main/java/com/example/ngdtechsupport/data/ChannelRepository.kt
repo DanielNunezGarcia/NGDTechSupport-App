@@ -2,13 +2,22 @@ package com.example.ngdtechsupport.data.repository
 
 import android.util.Log
 import com.example.ngdtechsupport.data.model.ChannelModel
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.tasks.await
 import com.example.ngdtechsupport.model.ChannelMember
 
 class ChannelRepository {
+
+    data class ChannelsPage(
+        val channels: List<ChannelModel>,
+        val lastVisible: DocumentSnapshot?,
+        val hasMore: Boolean
+    )
 
     private val firestore = FirebaseFirestore.getInstance()
 
@@ -37,6 +46,44 @@ class ChannelRepository {
                     onResult(list)
                 }
             }
+    }
+
+    suspend fun getChannelsPage(
+        companyId: String,
+        pageSize: Int,
+        lastVisible: DocumentSnapshot?
+    ): ChannelsPage {
+        if (companyId.isBlank() || pageSize <= 0) {
+            return ChannelsPage(emptyList(), null, false)
+        }
+
+        return try {
+            var query: Query = firestore.collection("companies")
+                .document(companyId)
+                .collection("channels")
+                .orderBy(FieldPath.documentId())
+                .limit(pageSize.toLong())
+
+            if (lastVisible != null) {
+                query = query.startAfter(lastVisible)
+            }
+
+            val snapshot = query.get().await()
+            val channels = snapshot.documents.mapNotNull { doc ->
+                doc.toObject(ChannelModel::class.java)?.let { model ->
+                    if (model.id.isBlank()) model.copy(id = doc.id) else model
+                }
+            }
+
+            ChannelsPage(
+                channels = channels,
+                lastVisible = snapshot.documents.lastOrNull(),
+                hasMore = snapshot.size() == pageSize
+            )
+        } catch (e: Exception) {
+            Log.e("ChannelRepository", "Error loading channels page: ${e.message}", e)
+            ChannelsPage(emptyList(), lastVisible, false)
+        }
     }
 
     suspend fun createPrivateChannel(

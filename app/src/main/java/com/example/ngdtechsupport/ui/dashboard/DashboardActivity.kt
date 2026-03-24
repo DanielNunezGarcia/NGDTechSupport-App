@@ -44,6 +44,7 @@ class DashboardActivity : AppCompatActivity() {
         val tvRole = findViewById<TextView>(R.id.tvRole)
         val tvUserInfo = findViewById<TextView>(R.id.tvUserInfo)
         val rvApps = findViewById<RecyclerView>(R.id.rvApps)
+        val skeletonDashboard = findViewById<View>(R.id.skeletonDashboard)
 
         val btnChat = findViewById<Button>(R.id.btnChat)
         val btnUpdates = findViewById<Button>(R.id.btnUpdates)
@@ -77,6 +78,8 @@ class DashboardActivity : AppCompatActivity() {
             startActivity(intent)
         }
         rvApps.adapter = adapter
+        skeletonDashboard.visibility = View.VISIBLE
+        rvApps.visibility = View.GONE
 
         btnAiConfig.visibility = View.GONE
 
@@ -86,18 +89,26 @@ class DashboardActivity : AppCompatActivity() {
             when {
                 state.isLoading -> {
                     tvApps.text = "Cargando..."
+                    skeletonDashboard.visibility = View.VISIBLE
+                    rvApps.visibility = View.GONE
                     adapter.updateApps(emptyList())
                 }
                 state.hasError -> {
                     tvApps.text = state.errorMessage ?: "Error"
+                    skeletonDashboard.visibility = View.GONE
+                    rvApps.visibility = View.VISIBLE
                     adapter.updateApps(emptyList())
                 }
                 state.apps.isEmpty() -> {
                     tvApps.text = "No tienes apps asignadas"
+                    skeletonDashboard.visibility = View.GONE
+                    rvApps.visibility = View.VISIBLE
                     adapter.updateApps(emptyList())
                 }
                 else -> {
                     tvApps.text = "Tus aplicaciones:"
+                    skeletonDashboard.visibility = View.GONE
+                    rvApps.visibility = View.VISIBLE
                     adapter.updateApps(state.apps)
                 }
             }

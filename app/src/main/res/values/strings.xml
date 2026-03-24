@@ -24,4 +24,6 @@
     <string name="cd_channel_pinned">Canal fijado</string>
     <string name="cd_channel_unread_generic">Mensajes sin leer</string>
     <string name="cd_channel_unread">Mensajes sin leer: %1$d</string>
+    <string name="channels_empty">No hay canales disponibles.</string>
+    <string name="channels_load_more">Cargar mas canales</string>
 </resources>

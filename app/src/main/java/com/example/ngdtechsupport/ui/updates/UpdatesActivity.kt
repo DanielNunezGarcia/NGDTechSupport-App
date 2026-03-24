@@ -26,11 +26,13 @@ class UpdatesActivity : AppCompatActivity() {
     private lateinit var adapter: UpdatesAdapter
     private lateinit var companyId: String
     private lateinit var businessId: String
+    private lateinit var skeletonUpdatesView: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityUpdatesBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        skeletonUpdatesView = findViewById(R.id.skeletonUpdates)
 
         companyId = resolveCompanyId(intent.getStringExtra("companyId"))
         businessId = resolveBusinessId(intent.getStringExtra("businessId"))
@@ -38,9 +40,7 @@ class UpdatesActivity : AppCompatActivity() {
         Log.d(TAG, "Opening updates with companyId=$companyId businessId=$businessId role=$userRole")
 
         binding.btnNewUpdate.visibility = if (userRole == "ADMIN") View.VISIBLE else View.GONE
-        binding.progressBar.visibility = View.VISIBLE
-        binding.tvEmpty.visibility = View.GONE
-        binding.btnRetryUpdates.visibility = View.GONE
+        showLoadingSkeleton()
 
         adapter = UpdatesAdapter { update ->
             Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
@@ -62,6 +62,7 @@ class UpdatesActivity : AppCompatActivity() {
         }
 
         viewModel.updates.observe(this) { updates ->
+            hideLoadingSkeleton()
             binding.progressBar.visibility = View.GONE
             binding.btnRetryUpdates.visibility = View.GONE
             if (updates.isEmpty()) {
@@ -77,6 +78,7 @@ class UpdatesActivity : AppCompatActivity() {
 
         viewModel.error.observe(this) { errorMessage ->
             if (errorMessage.isNullOrBlank()) return@observe
+            hideLoadingSkeleton()
             binding.progressBar.visibility = View.GONE
             Log.e(TAG, "Error loading updates: $errorMessage")
             Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
@@ -109,13 +111,25 @@ class UpdatesActivity : AppCompatActivity() {
     }
 
     private fun retryLoadUpdates() {
-        binding.progressBar.visibility = View.VISIBLE
+        showLoadingSkeleton()
+        binding.progressBar.visibility = View.GONE
         binding.btnRetryUpdates.visibility = View.GONE
         binding.tvEmpty.visibility = View.GONE
         if (adapter.currentList.isEmpty()) {
             binding.recyclerUpdates.visibility = View.GONE
         }
         viewModel.listenUpdates(companyId, businessId)
+    }
+
+    private fun showLoadingSkeleton() {
+        skeletonUpdatesView.visibility = View.VISIBLE
+        binding.tvEmpty.visibility = View.GONE
+        binding.btnRetryUpdates.visibility = View.GONE
+        binding.recyclerUpdates.visibility = View.GONE
+    }
+
+    private fun hideLoadingSkeleton() {
+        skeletonUpdatesView.visibility = View.GONE
     }
 
     private fun resolveCompanyId(raw: String?): String {
