@@ -31,8 +31,8 @@ object SecurityValidator {
             "onerror=",
             "onload=",
             "eval(",
-            "DROP TABLE",
-            "DELETE FROM",
+            "drop table",
+            "delete from",
             "--",
             "/*",
             "*/"
@@ -44,9 +44,9 @@ object SecurityValidator {
     
     fun sanitizeInput(input: String): String {
         return input
+            .replace("&", "&amp;")
             .replace("<", "&lt;")
             .replace(">", "&gt;")
-            .replace("&", "&amp;")
             .replace("\"", "&quot;")
             .replace("'", "&#39;")
             .trim()

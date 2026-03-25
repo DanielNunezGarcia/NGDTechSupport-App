@@ -6,14 +6,31 @@ plugins {
     id("com.google.firebase.firebase-perf")
 }
 
-val releaseSigningStoreFile = (providers.gradleProperty("SIGNING_STORE_FILE").orNull
-    ?: System.getenv("SIGNING_STORE_FILE"))?.takeIf { it.isNotBlank() }
-val releaseSigningStorePassword = (providers.gradleProperty("SIGNING_STORE_PASSWORD").orNull
-    ?: System.getenv("SIGNING_STORE_PASSWORD"))?.takeIf { it.isNotBlank() }
-val releaseSigningKeyAlias = (providers.gradleProperty("SIGNING_KEY_ALIAS").orNull
-    ?: System.getenv("SIGNING_KEY_ALIAS"))?.takeIf { it.isNotBlank() }
-val releaseSigningKeyPassword = (providers.gradleProperty("SIGNING_KEY_PASSWORD").orNull
-    ?: System.getenv("SIGNING_KEY_PASSWORD"))?.takeIf { it.isNotBlank() }
+fun loadLocalProperties(): Map<String, String> {
+    val props = mutableMapOf<String, String>()
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.readLines()
+            .filter { it.contains("=") && !it.trim().startsWith("#") }
+            .forEach { line ->
+                val parts = line.split("=", limit = 2)
+                props[parts[0].trim()] = parts[1].trim()
+            }
+    }
+    return props
+}
+
+val localProps = loadLocalProperties()
+
+fun resolveProperty(name: String): String? =
+    providers.gradleProperty(name).orNull
+        ?: System.getenv(name)
+        ?: localProps[name]?.takeIf { it.isNotBlank() }
+
+val releaseSigningStoreFile = resolveProperty("SIGNING_STORE_FILE")?.takeIf { it.isNotBlank() }
+val releaseSigningStorePassword = resolveProperty("SIGNING_STORE_PASSWORD")?.takeIf { it.isNotBlank() }
+val releaseSigningKeyAlias = resolveProperty("SIGNING_KEY_ALIAS")?.takeIf { it.isNotBlank() }
+val releaseSigningKeyPassword = resolveProperty("SIGNING_KEY_PASSWORD")?.takeIf { it.isNotBlank() }
 
 val hasReleaseSigning = listOf(
     releaseSigningStoreFile,
@@ -44,7 +61,7 @@ android {
     signingConfigs {
         create("release") {
             if (hasReleaseSigning) {
-                storeFile = file(releaseSigningStoreFile!!)
+                storeFile = rootProject.file(releaseSigningStoreFile!!)
                 storePassword = releaseSigningStorePassword
                 keyAlias = releaseSigningKeyAlias
                 keyPassword = releaseSigningKeyPassword
