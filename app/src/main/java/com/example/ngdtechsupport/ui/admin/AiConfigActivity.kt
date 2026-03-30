@@ -22,6 +22,7 @@ class AiConfigActivity : AppCompatActivity() {
 
             val companyId = intent.getStringExtra("companyId") ?: "NGDStudios"
 
+            hideWelcomeMessagesSection()
             loadConfig(companyId)
             setupSaveButton(companyId)
             observeViewModel()
@@ -35,6 +36,21 @@ class AiConfigActivity : AppCompatActivity() {
     private fun setupToolbar() {
         binding.toolbar.setNavigationOnClickListener {
             onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
+    private fun hideWelcomeMessagesSection() {
+        // Hide welcome messages section as it's now automatic
+        // Welcome messages are configured in Firestore directly
+        // The app will use default messages if none are configured
+        try {
+            // Find and hide the welcome messages section
+            // This is a workaround since we can't easily hide sections in the layout
+            // We'll set a default message and disable editing
+            binding.etWelcomeMessages.isEnabled = false
+            binding.etWelcomeMessages.alpha = 0.5f
+        } catch (e: Exception) {
+            // Ignore if the view doesn't exist
         }
     }
 

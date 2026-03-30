@@ -35,6 +35,7 @@
     
     <!-- Error color -->
     <color name="error_color">#7A90B1</color>
+    <color name="red_500">#E53935</color>
 
     <!-- Neutral base colors -->
     <color name="surface_white">#FFFFFF</color>

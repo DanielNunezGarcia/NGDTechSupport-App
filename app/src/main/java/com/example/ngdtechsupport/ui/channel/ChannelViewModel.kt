@@ -72,7 +72,7 @@ class ChannelViewModel : ViewModel() {
                     false
                 } else {
                     val members = channel.members
-                    members.isEmpty() || uid.isBlank() || members.containsKey(uid)
+                    members.isNullOrEmpty() || uid.isBlank() || members.containsKey(uid)
                 }
             }
         }
@@ -218,9 +218,11 @@ class ChannelViewModel : ViewModel() {
         companyId: String,
         channelId: String,
         adminUid: String,
-        memberUid: String
+        memberUid: String,
+        name: String = "Canal Privado",
+        description: String = ""
     ) {
-        Log.d("ChannelViewModel", "createPrivateChannel called with companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid")
+        Log.d("ChannelViewModel", "createPrivateChannel called with companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid, name=$name, description=$description")
         if (companyId.isEmpty() || channelId.isEmpty() || adminUid.isEmpty() || memberUid.isEmpty()) {
             Log.e("ChannelViewModel", "Invalid parameters: companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid")
             _privateChannelCreated.postValue(
@@ -237,7 +239,9 @@ class ChannelViewModel : ViewModel() {
                     companyId,
                     channelId,
                     adminUid,
-                    memberUid
+                    memberUid,
+                    name,
+                    description
                 )
                 if (success) {
                     Log.d("ChannelViewModel", "Private channel created successfully")

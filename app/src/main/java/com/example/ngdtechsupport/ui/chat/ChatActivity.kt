@@ -46,6 +46,8 @@ class ChatActivity : AppCompatActivity() {
         setContentView(binding.root)
         AnalyticsHelper.screenView("ChatActivity")
 
+        setupToolbar()
+
         currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
         if (currentUserId.isEmpty()) {
             Toast.makeText(this, "Sesion expirada. Inicia sesion otra vez.", Toast.LENGTH_SHORT).show()
@@ -229,10 +231,18 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun setupQuickReplies() {
-        binding.btnQuick1.setOnClickListener { sendQuickMessage("Quiero consultar el estado de mi proyecto") }
-        binding.btnQuick2.setOnClickListener { sendQuickMessage("Tengo un problema en mi aplicacion") }
-        binding.btnQuick3.setOnClickListener { sendQuickMessage("Quiero solicitar un presupuesto") }
-        binding.btnQuick4.setOnClickListener { sendQuickMessage("Quiero hablar con un agente") }
+        binding.btnQuick1.setOnClickListener { 
+            sendQuickMessage("Quiero consultar el estado de mi proyecto") 
+        }
+        binding.btnQuick2.setOnClickListener { 
+            sendQuickMessage("• Tengo un problema en mi aplicación\n• Descripción del error:\n• Pasos para reproducir:") 
+        }
+        binding.btnQuick3.setOnClickListener { 
+            sendQuickMessage("• Quiero solicitar un presupuesto\n• Tipo de proyecto:\n• Presupuesto aproximado:") 
+        }
+        binding.btnQuick4.setOnClickListener { 
+            sendQuickMessage("Quiero hablar con un agente") 
+        }
     }
 
     private fun sendQuickMessage(text: String) {
@@ -353,6 +363,12 @@ class ChatActivity : AppCompatActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+    }
+
+    private fun setupToolbar() {
+        binding.toolbar.setNavigationOnClickListener {
+            onBackPressed()
+        }
     }
 
     override fun onDestroy() {

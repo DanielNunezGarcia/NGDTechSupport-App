@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/surface_panel">
+
+    <!-- Top Bar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/dashboard_header"
+        app:navigationIconTint="@color/surface_white"
+        app:title="Crear Canal Privado"
+        app:titleTextColor="@color/surface_white"
+        app:navigationIcon="@drawable/ic_arrow_back" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Channel Name -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nombre del Canal"
+                android:textSize="16sp"
+                android:textColor="@color/text_sender"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etChannelName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Ej: Soporte Técnico"
+                android:inputType="text"
+                android:maxLines="1"
+                android:background="@drawable/edit_text_background"
+                android:padding="12dp" />
+
+            <!-- Channel Description -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Descripción (Opcional)"
+                android:textSize="16sp"
+                android:textColor="@color/text_sender"
+                android:textStyle="bold"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/etChannelDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Describe el propósito de este canal..."
+                android:inputType="textMultiLine"
+                android:minLines="3"
+                android:gravity="top"
+                android:background="@drawable/edit_text_background"
+                android:padding="12dp" />
+
+            <!-- Channel Type -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tipo de Canal"
+                android:textSize="16sp"
+                android:textColor="@color/text_sender"
+                android:textStyle="bold"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="8dp" />
+
+            <RadioGroup
+                android:id="@+id/rgChannelType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/rbPrivate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Privado (Solo tú y el agente)"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/rbSupport"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Soporte (Tú y el equipo de soporte)" />
+
+            </RadioGroup>
+
+            <!-- Create Button -->
+            <Button
+                android:id="@+id/btnCreateChannel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Crear Canal"
+                android:layout_marginTop="30dp"
+                android:backgroundTint="@color/dashboard_header"
+                android:textColor="@color/surface_white" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

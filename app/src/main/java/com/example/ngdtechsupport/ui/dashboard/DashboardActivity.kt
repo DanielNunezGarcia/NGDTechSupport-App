@@ -211,18 +211,12 @@ class DashboardActivity : AppCompatActivity() {
         btnCreatePrivateChannel.setOnClickListener {
             if (!isSessionValid()) return@setOnClickListener
             val companyId = resolveCompanyId(currentCompanyId)
-            val privateChannelId = "private_$currentUserId"
-            runCatching {
-                channelViewModel.createPrivateChannel(
-                    companyId = companyId,
-                    channelId = privateChannelId,
-                    adminUid = currentUserId,
-                    memberUid = currentUserId
-                )
-            }.onFailure {
-                Log.e(TAG, "Failed to create private channel", it)
-                Toast.makeText(this, "No se pudo crear el canal privado", Toast.LENGTH_SHORT).show()
-            }
+            val businessId = resolveBusinessId(currentBusinessId)
+            val intent = Intent(this, com.example.ngdtechsupport.ui.channel.CreatePrivateChannelActivity::class.java)
+            intent.putExtra("companyId", companyId)
+            intent.putExtra("businessId", businessId)
+            intent.putExtra("userRole", currentUserRole)
+            startActivity(intent)
         }
 
         btnAiConfig.setOnClickListener {

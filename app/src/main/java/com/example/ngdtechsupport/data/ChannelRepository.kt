@@ -26,6 +26,14 @@ class ChannelRepository {
         return value.isNotBlank() && !value.contains('/')
     }
 
+    private fun ChannelModel.normalize(): ChannelModel {
+        return this.copy(
+            members = this.members ?: emptyMap(),
+            mutedUsers = this.mutedUsers ?: emptyMap(),
+            unreadCount = this.unreadCount ?: emptyMap()
+        )
+    }
+
     fun listenChannels(
         companyId: String,
         onResult: (List<ChannelModel>) -> Unit
@@ -42,7 +50,7 @@ class ChannelRepository {
 
                 if (snapshot != null) {
                     val list = snapshot.documents.mapNotNull {
-                        it.toObject(ChannelModel::class.java)
+                        it.toObject(ChannelModel::class.java)?.normalize()
                     }
                     onResult(list)
                 }
@@ -71,7 +79,7 @@ class ChannelRepository {
 
             val snapshot = query.get().await()
             val channels = snapshot.documents.mapNotNull { doc ->
-                doc.toObject(ChannelModel::class.java)?.let { model ->
+                doc.toObject(ChannelModel::class.java)?.normalize()?.let { model ->
                     if (model.id.isBlank()) model.copy(id = doc.id) else model
                 }
             }
@@ -91,9 +99,11 @@ class ChannelRepository {
         companyId: String,
         channelId: String,
         adminUid: String,
-        memberUid: String
+        memberUid: String,
+        name: String = "Canal Privado",
+        description: String = ""
     ): Boolean {
-        Log.d("ChannelRepository", "createPrivateChannel called with companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid")
+        Log.d("ChannelRepository", "createPrivateChannel called with companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid, name=$name, description=$description")
         if (companyId.isEmpty() || channelId.isEmpty() || adminUid.isEmpty() || memberUid.isEmpty()) {
             Log.e("ChannelRepository", "Invalid parameters: companyId=$companyId, channelId=$channelId, adminUid=$adminUid, memberUid=$memberUid")
             return false
@@ -120,7 +130,8 @@ class ChannelRepository {
             
             val channelData = ChannelModel(
                 id = channelId,
-                name = "Canal Privado",
+                name = name,
+                description = description,
                 createdAt = Timestamp.now(),
                 isArchived = false,
                 pinned = false,

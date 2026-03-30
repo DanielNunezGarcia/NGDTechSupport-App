@@ -36,6 +36,8 @@ class UpdatesActivity : AppCompatActivity() {
         AnalyticsHelper.screenView("UpdatesActivity")
         skeletonUpdatesView = findViewById(R.id.skeletonUpdates)
 
+        setupToolbar()
+
         companyId = resolveCompanyId(intent.getStringExtra("companyId"))
         businessId = resolveBusinessId(intent.getStringExtra("businessId"))
         val userRole = intent.getStringExtra("userRole").orEmpty().ifEmpty { "CLIENT" }.uppercase()
@@ -45,7 +47,13 @@ class UpdatesActivity : AppCompatActivity() {
         showLoadingSkeleton()
 
         adapter = UpdatesAdapter { update ->
-            Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
+            // Navigate to update detail screen
+            val intent = Intent(this, UpdateDetailActivity::class.java)
+            intent.putExtra("companyId", companyId)
+            intent.putExtra("businessId", businessId)
+            intent.putExtra("updateId", update.id)
+            startActivity(intent)
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
             AnalyticsHelper.updateViewed(update.id)
         }
 
@@ -175,6 +183,12 @@ class UpdatesActivity : AppCompatActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+    }
+
+    private fun setupToolbar() {
+        binding.toolbar.setNavigationOnClickListener {
+            onBackPressed()
+        }
     }
 
     override fun onStart() {
