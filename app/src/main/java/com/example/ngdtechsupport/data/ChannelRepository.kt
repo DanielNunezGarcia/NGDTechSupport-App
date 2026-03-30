@@ -5,6 +5,7 @@ import com.example.ngdtechsupport.data.model.ChannelModel
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.Timestamp
@@ -28,8 +29,8 @@ class ChannelRepository {
     fun listenChannels(
         companyId: String,
         onResult: (List<ChannelModel>) -> Unit
-    ) {
-        firestore.collection("companies")
+    ): ListenerRegistration {
+        return firestore.collection("companies")
             .document(companyId)
             .collection("channels")
             .addSnapshotListener { snapshot, error ->

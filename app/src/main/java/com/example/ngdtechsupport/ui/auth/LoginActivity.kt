@@ -49,6 +49,7 @@ class LoginActivity : AppCompatActivity() {
                         loginBtn.isEnabled = true
 
                         startActivity(Intent(this, DashboardActivity::class.java))
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                         finish()
                     }
                     is LoginUiState.Error -> {
@@ -74,5 +75,10 @@ class LoginActivity : AppCompatActivity() {
                 android.util.Log.e("LoginActivity", "Error in login button click", e)
             }
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }

@@ -18,6 +18,7 @@ import com.example.ngdtechsupport.ui.channel.ChannelViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
+import com.example.ngdtechsupport.utils.AnalyticsHelper
 
 class DashboardActivity : AppCompatActivity() {
 
@@ -35,10 +36,12 @@ class DashboardActivity : AppCompatActivity() {
     private var currentCompanyId: String = ""
     private var currentBusinessId: String = ""
     private var currentUserRole: String = "CLIENT"
+    private var loginTracked = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
+        AnalyticsHelper.screenView("DashboardActivity")
 
         val tvApps = findViewById<TextView>(R.id.tvApps)
         val tvRole = findViewById<TextView>(R.id.tvRole)
@@ -115,6 +118,10 @@ class DashboardActivity : AppCompatActivity() {
 
             tvRole.text = "Rol: ${state.userRole.ifEmpty { "CLIENT" }}"
             currentUserRole = state.userRole.ifEmpty { "CLIENT" }
+            if (!loginTracked) {
+                AnalyticsHelper.loginSuccess(currentUserRole)
+                loginTracked = true
+            }
             tvUserInfo.text = if (state.companyName.isNotEmpty()) {
                 "${state.userName} - ${state.companyName}"
             } else {
@@ -137,12 +144,14 @@ class DashboardActivity : AppCompatActivity() {
                 val safeCompanyId = resolveCompanyId(currentCompanyId)
                 val safeBusinessId = resolveBusinessId(currentBusinessId)
                 Log.d(TAG, "Opening private chat with channelId=${result.channelId} companyId=$safeCompanyId businessId=$safeBusinessId")
+                AnalyticsHelper.privateChannelCreated(result.channelId)
                 val intent = Intent(this, com.example.ngdtechsupport.ui.chat.ChatActivity::class.java)
                 intent.putExtra("companyId", safeCompanyId)
                 intent.putExtra("businessId", safeBusinessId)
                 intent.putExtra("userRole", currentUserRole)
                 intent.putExtra("channelId", result.channelId)
                 startActivity(intent)
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
             } else {
                 Toast.makeText(
                     this,
@@ -165,6 +174,7 @@ class DashboardActivity : AppCompatActivity() {
             intent.putExtra("userRole", currentUserRole)
             intent.putExtra("channelId", "${safeBusinessId}_support")
             startActivity(intent)
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         btnUpdates.setOnClickListener {
@@ -178,6 +188,7 @@ class DashboardActivity : AppCompatActivity() {
                 intent.putExtra("businessId", safeBusinessId)
                 intent.putExtra("userRole", currentUserRole)
                 startActivity(intent)
+                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
             }.onFailure {
                 Log.e(TAG, "Failed to open Updates", it)
                 Toast.makeText(this, "No se pudo abrir Updates", Toast.LENGTH_SHORT).show()
@@ -194,6 +205,7 @@ class DashboardActivity : AppCompatActivity() {
             intent.putExtra("businessId", safeBusinessId)
             intent.putExtra("userRole", currentUserRole)
             startActivity(intent)
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
         btnCreatePrivateChannel.setOnClickListener {

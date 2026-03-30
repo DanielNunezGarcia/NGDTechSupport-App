@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.example.ngdtechsupport.utils.AnalyticsHelper
 
 // ViewModel para manejar la lógica de login
 class LoginViewModel(
@@ -23,6 +24,7 @@ class LoginViewModel(
 
         auth.signInWithEmailAndPassword(email, password)
             .addOnSuccessListener {
+                AnalyticsHelper.loginSuccess("authenticated")
                 _uiState.value = LoginUiState.Success
             }
             .addOnFailureListener { exception ->

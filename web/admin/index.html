@@ -68,6 +68,9 @@
                         <span>Conversaciones</span>
                         <button class="btn btn-secondary" onclick="loadConversations()">↻</button>
                     </div>
+                    <div class="search-container">
+                        <input type="text" id="search-conversations" placeholder="Buscar conversaciones..." class="search-input">
+                    </div>
                     <div id="conversations-list" class="conversations-list">
                         <p class="loading">Cargando conversaciones...</p>
                     </div>
@@ -136,6 +139,9 @@
             </div>
         </div>
     </section>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
 
     <!-- Scripts -->
     <script src="firebase-config.js"></script>

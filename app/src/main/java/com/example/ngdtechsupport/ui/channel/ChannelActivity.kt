@@ -3,6 +3,7 @@ package com.example.ngdtechsupport.ui.channel
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -141,6 +142,7 @@ class ChannelActivity : AppCompatActivity() {
                             putExtra("channelId", it.id)
                         }
                         startActivity(intent)
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                         viewModel.clearChannelClickEvent()
                     }
                 } catch (e: Exception) {
@@ -167,6 +169,25 @@ class ChannelActivity : AppCompatActivity() {
             adapter.itemCount == 0
         ) {
             viewModel.loadChannels(companyId)
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (::viewModel.isInitialized && ::companyId.isInitialized && companyId.isNotBlank()) {
+            viewModel.resumeListeners(companyId)
+        }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (::viewModel.isInitialized) {
+            viewModel.pauseListeners()
         }
     }
 

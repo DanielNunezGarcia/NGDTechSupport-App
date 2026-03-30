@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.databinding.ActivityAiConfigBinding
 
 class AiConfigActivity : AppCompatActivity() {
@@ -138,5 +139,10 @@ class AiConfigActivity : AppCompatActivity() {
                 android.util.Log.e("AiConfigActivity", "Error in fallbackMessage observer", e)
             }
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }

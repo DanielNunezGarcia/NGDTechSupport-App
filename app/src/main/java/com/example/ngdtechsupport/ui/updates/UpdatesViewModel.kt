@@ -55,6 +55,17 @@ class UpdatesViewModel : ViewModel() {
         listenerRegistration?.remove()
     }
 
+    fun pauseListeners() {
+        listenerRegistration?.remove()
+        listenerRegistration = null
+    }
+
+    fun resumeListeners(companyId: String, businessId: String) {
+        if (listenerRegistration == null) {
+            listenUpdates(companyId, businessId)
+        }
+    }
+
     fun createUpdate(
         companyId: String,
         businessId: String,

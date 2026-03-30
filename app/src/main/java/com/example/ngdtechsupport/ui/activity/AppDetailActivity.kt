@@ -96,6 +96,7 @@ class AppDetailActivity : AppCompatActivity() {
                                 intent.putExtra("businessId", businessId)
                                 intent.putExtra("channelId", channelId)
                                 startActivity(intent)
+                                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                             } else {
                                 Toast.makeText(this, "Error al abrir chat", Toast.LENGTH_SHORT).show()
                             }
@@ -116,6 +117,7 @@ class AppDetailActivity : AppCompatActivity() {
                     intent.putExtra("companyId", companyId)
                     intent.putExtra("businessId", businessId)
                     startActivity(intent)
+                    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                 } catch (e: Exception) {
                     Log.e("AppDetailActivity", "Error opening updates", e)
                     Toast.makeText(this, "Error al abrir novedades", Toast.LENGTH_SHORT).show()
@@ -126,6 +128,11 @@ class AppDetailActivity : AppCompatActivity() {
             Toast.makeText(this, "Error al cargar detalles", Toast.LENGTH_SHORT).show()
             finish()
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
     private fun ensureChannelExists(companyId: String, channelId: String, onComplete: (Boolean) -> Unit) {

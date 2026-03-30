@@ -3,10 +3,12 @@ package com.example.ngdtechsupport.data.repository
 import android.util.Log
 import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.model.ChatMessageModel
+import com.example.ngdtechsupport.utils.RetryUtil
 import com.example.ngdtechsupport.utils.SecurityValidator
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
@@ -82,6 +84,19 @@ class ChatRepository {
     }
 
     suspend fun sendMessage(
+        companyId: String,
+        channelId: String,
+        text: String,
+        senderId: String,
+        replyToId: String?,
+        replyToText: String?
+    ) {
+        RetryUtil.withRetry {
+            sendMessageInternal(companyId, channelId, text, senderId, replyToId, replyToText)
+        }
+    }
+
+    private suspend fun sendMessageInternal(
         companyId: String,
         channelId: String,
         text: String,
@@ -170,9 +185,8 @@ class ChatRepository {
         companyId: String,
         channelId: String,
         onMessagesChange: (List<ChatMessageModel>) -> Unit
-    ) {
-
-        firestore
+    ): ListenerRegistration {
+        return firestore
             .collection("companies")
             .document(companyId)
             .collection("channels")
@@ -350,8 +364,8 @@ class ChatRepository {
         channelId: String,
         currentUserId: String,
         onTypingChange: (Map<String, Any>) -> Unit
-    ) {
-        firestore
+    ): ListenerRegistration {
+        return firestore
             .collection("companies")
             .document(companyId)
             .collection("channels")

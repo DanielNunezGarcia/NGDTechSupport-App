@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.databinding.ActivityUpdatesBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.example.ngdtechsupport.utils.AnalyticsHelper
 
 class UpdatesActivity : AppCompatActivity() {
 
@@ -32,6 +33,7 @@ class UpdatesActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityUpdatesBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        AnalyticsHelper.screenView("UpdatesActivity")
         skeletonUpdatesView = findViewById(R.id.skeletonUpdates)
 
         companyId = resolveCompanyId(intent.getStringExtra("companyId"))
@@ -44,6 +46,7 @@ class UpdatesActivity : AppCompatActivity() {
 
         adapter = UpdatesAdapter { update ->
             Toast.makeText(this, update.title, Toast.LENGTH_SHORT).show()
+            AnalyticsHelper.updateViewed(update.id)
         }
 
         binding.recyclerUpdates.layoutManager = LinearLayoutManager(this)
@@ -107,6 +110,7 @@ class UpdatesActivity : AppCompatActivity() {
             intent.putExtra("companyId", companyId)
             intent.putExtra("businessId", businessId)
             startActivity(intent)
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
     }
 
@@ -166,5 +170,20 @@ class UpdatesActivity : AppCompatActivity() {
             .replace("#", "_")
             .replace("?", "_")
             .ifBlank { DEFAULT_BUSINESS_ID }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.resumeListeners(companyId, businessId)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.pauseListeners()
     }
 }

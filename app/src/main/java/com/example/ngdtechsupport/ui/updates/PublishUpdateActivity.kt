@@ -5,6 +5,7 @@ import android.widget.Toast
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.data.UpdatesRepository
 import com.example.ngdtechsupport.databinding.ActivityPublishUpdateBinding
 import com.example.ngdtechsupport.model.UpdateModel
@@ -58,6 +59,7 @@ class PublishUpdateActivity : AppCompatActivity() {
                             ).show()
 
                             finish()
+                            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
                         } catch (e: Exception) {
                             android.util.Log.e("PublishUpdateActivity", "Error publishing update", e)
                             Toast.makeText(this@PublishUpdateActivity, "Error al publicar update", Toast.LENGTH_SHORT).show()
@@ -72,5 +74,10 @@ class PublishUpdateActivity : AppCompatActivity() {
             android.util.Log.e("PublishUpdateActivity", "Error in onCreate", e)
             finish()
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }

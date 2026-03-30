@@ -13,10 +13,12 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.data.model.ChatMessageModel
 import com.example.ngdtechsupport.databinding.ActivityChatBinding
 import com.example.ngdtechsupport.ui.auth.LoginActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.example.ngdtechsupport.utils.AnalyticsHelper
 
 class ChatActivity : AppCompatActivity() {
 
@@ -42,11 +44,13 @@ class ChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        AnalyticsHelper.screenView("ChatActivity")
 
         currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
         if (currentUserId.isEmpty()) {
             Toast.makeText(this, "Sesion expirada. Inicia sesion otra vez.", Toast.LENGTH_SHORT).show()
             startActivity(android.content.Intent(this, LoginActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
             finish()
             return
         }
@@ -77,6 +81,7 @@ class ChatActivity : AppCompatActivity() {
 
         if (savedInstanceState == null && userRole == "CLIENT") {
             chatViewModel.sendWelcomeMessageOnOpen(companyId, channelId)
+            AnalyticsHelper.chatWelcomeDisplayed(channelId)
         }
 
         chatViewModel.messages.observe(this) { messages ->
@@ -214,6 +219,7 @@ class ChatActivity : AppCompatActivity() {
             replyToId = replyMessage?.id,
             replyToText = replyMessage?.message
         )
+        AnalyticsHelper.chatMessageSent(channelId)
 
         binding.editTextMessage.text?.clear()
         replyMessage = null
@@ -332,6 +338,21 @@ class ChatActivity : AppCompatActivity() {
                 binding.recyclerViewChat.smoothScrollToPosition(adapter.itemCount - 1)
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        chatViewModel.resumeListeners(companyId, channelId)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        chatViewModel.pauseListeners()
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 
     override fun onDestroy() {

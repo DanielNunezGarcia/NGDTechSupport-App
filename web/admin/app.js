@@ -12,6 +12,122 @@ let currentUserEmail = '';
 let conversationsUnsubscribe = null;
 let messagesUnsubscribe = null;
 
+// Variables para debounce
+let searchTimeout = null;
+const DEBOUNCE_DELAY = 300;
+
+// Variables para estado de conexión
+let isOnline = navigator.onLine;
+let connectionStatusEl = null;
+
+// Función para mostrar toast notifications
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// Función para crear skeleton de conversación
+function createConversationSkeleton() {
+    const div = document.createElement('div');
+    div.className = 'skeleton-item';
+    div.innerHTML = `
+        <div class="skeleton-header">
+            <div class="skeleton skeleton-name"></div>
+            <div class="skeleton skeleton-timestamp"></div>
+        </div>
+        <div class="skeleton skeleton-message"></div>
+        <div class="skeleton skeleton-id"></div>
+    `;
+    return div;
+}
+
+// Función para mostrar skeletons de conversaciones
+function showConversationSkeletons(count = 5) {
+    const conversationsList = document.getElementById('conversations-list');
+    if (!conversationsList) return;
+
+    conversationsList.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        conversationsList.appendChild(createConversationSkeleton());
+    }
+}
+
+// Función para mostrar skeletons de mensajes
+function showMessageSkeletons(count = 8) {
+    const messagesContainer = document.getElementById('messages-container');
+    if (!messagesContainer) return;
+
+    messagesContainer.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        div.className = 'skeleton-item';
+        div.innerHTML = `
+            <div class="skeleton" style="width: ${Math.random() * 40 + 30}%; height: 16px; margin-bottom: 8px;"></div>
+            <div class="skeleton" style="width: ${Math.random() * 60 + 40}%; height: 14px;"></div>
+        `;
+        messagesContainer.appendChild(div);
+    }
+}
+
+// Función para actualizar estado de conexión
+function updateConnectionStatus() {
+    if (!connectionStatusEl) {
+        connectionStatusEl = document.createElement('div');
+        connectionStatusEl.id = 'connection-status';
+        connectionStatusEl.className = 'connection-status';
+        document.body.appendChild(connectionStatusEl);
+    }
+
+    if (isOnline) {
+        connectionStatusEl.textContent = 'En línea';
+        connectionStatusEl.className = 'connection-status online';
+    } else {
+        connectionStatusEl.textContent = 'Sin conexión - Algunas funciones pueden no estar disponibles';
+        connectionStatusEl.className = 'connection-status offline';
+    }
+}
+
+// Detectar cambios de conexión
+function setupConnectionDetection() {
+    window.addEventListener('online', () => {
+        isOnline = true;
+        updateConnectionStatus();
+        showToast('Conexión restaurada', 'success');
+    });
+
+    window.addEventListener('offline', () => {
+        isOnline = false;
+        updateConnectionStatus();
+        showToast('Conexión perdida', 'warning');
+    });
+
+    // Initial status
+    updateConnectionStatus();
+}
+
+// Configurar FCM topic messaging (simulado - requiere service worker)
+function setupFCMTopics() {
+    // En producción, esto se conectaría con FCM
+    // Por ahora, solo registramos el soporte
+    if ('Notification' in window) {
+        console.log('FCM Topic Messaging soportado');
+        // En implementación real, suscribirse a tópicos aquí
+    }
+}
+
 // Funciones de autenticación
 function login(email, password) {
     return auth.signInWithEmailAndPassword(email, password)
@@ -71,11 +187,11 @@ function onAuthStateChange(callback) {
 }
 
 // Cargar conversaciones desde Firestore
-function loadConversations() {
+function loadConversations(searchTerm = '') {
     const conversationsList = document.getElementById('conversations-list');
     if (!conversationsList) return;
 
-    conversationsList.innerHTML = '<p class="loading">Cargando conversaciones...</p>';
+    showConversationSkeletons();
 
     // Limpiar listener anterior
     if (conversationsUnsubscribe) {
@@ -97,8 +213,25 @@ function loadConversations() {
             snapshot.forEach((doc) => {
                 const conversation = doc.data();
                 const conversationEl = createConversationElement(doc.id, conversation);
+                
+                // Filter by search term if provided
+                if (searchTerm) {
+                    const userName = (conversation.userName || conversation.userEmail || '').toLowerCase();
+                    const lastMessage = (conversation.lastMessage || '').toLowerCase();
+                    const searchLower = searchTerm.toLowerCase();
+                    
+                    if (!userName.includes(searchLower) && !lastMessage.includes(searchLower)) {
+                        return;
+                    }
+                }
+                
                 conversationsList.appendChild(conversationEl);
             });
+            
+            // Show empty state if no results after filtering
+            if (conversationsList.children.length === 0) {
+                conversationsList.innerHTML = '<p class="empty">No se encontraron conversaciones</p>';
+            }
         }, (error) => {
             console.error('Error al cargar conversaciones:', error);
             conversationsList.innerHTML = '<p class="error">Error al cargar conversaciones</p>';
@@ -155,7 +288,7 @@ function loadMessages(conversationId) {
     const messagesContainer = document.getElementById('messages-container');
     if (!messagesContainer) return;
 
-    messagesContainer.innerHTML = '<p class="loading">Cargando mensajes...</p>';
+    showMessageSkeletons();
 
     // Limpiar listener anterior
     if (messagesUnsubscribe) {
@@ -287,11 +420,11 @@ function saveAISettings() {
     return db.collection('settings').doc('ai_config')
         .set(settings, { merge: true })
         .then(() => {
-            alert('Configuración guardada correctamente');
+            showToast('Configuración guardada correctamente', 'success');
         })
         .catch((error) => {
             console.error('Error al guardar configuración:', error);
-            alert('Error al guardar configuración');
+            showToast('Error al guardar configuración', 'error');
         });
 }
 
@@ -387,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await sendMessage(content);
                 messageInput.value = '';
             } catch (error) {
-                alert('Error al enviar mensaje: ' + error.message);
+                showToast('Error al enviar mensaje: ' + error.message, 'error');
             }
         });
     }
@@ -416,4 +549,38 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(`${tabId}-tab`).classList.add('active');
         });
     });
+
+    // Configurar búsqueda de conversaciones con debounce
+    const searchInput = document.getElementById('search-conversations');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadConversations(e.target.value);
+            }, DEBOUNCE_DELAY);
+        });
+    }
+
+    // Configurar navegación por teclado
+    document.addEventListener('keydown', (e) => {
+        // Enter para enviar mensaje si el input está enfocado
+        if (e.key === 'Enter' && document.activeElement.id === 'message-input') {
+            e.preventDefault();
+            const form = document.getElementById('message-form');
+            if (form) {
+                form.dispatchEvent(new Event('submit'));
+            }
+        }
+        
+        // Escape para cerrar chat
+        if (e.key === 'Escape') {
+            closeChat();
+        }
+    });
+
+    // Configurar detección de conexión
+    setupConnectionDetection();
+    
+    // Configurar FCM topics
+    setupFCMTopics();
 });

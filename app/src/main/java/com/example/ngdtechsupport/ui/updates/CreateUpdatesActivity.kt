@@ -3,6 +3,7 @@ package com.example.ngdtechsupport.ui.updates
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.databinding.ActivityCreateUpdatesBinding
 import com.google.firebase.auth.FirebaseAuth
 class CreateUpdatesActivity : AppCompatActivity() {
@@ -40,6 +41,7 @@ class CreateUpdatesActivity : AppCompatActivity() {
                     )
 
                     finish()
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
                 } catch (e: Exception) {
                     android.util.Log.e("CreateUpdatesActivity", "Error in publish button click", e)
                 }
@@ -48,5 +50,10 @@ class CreateUpdatesActivity : AppCompatActivity() {
             android.util.Log.e("CreateUpdatesActivity", "Error in onCreate", e)
             finish()
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
     }
 }

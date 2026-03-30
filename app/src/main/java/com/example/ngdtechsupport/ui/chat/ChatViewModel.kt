@@ -12,6 +12,7 @@ import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.repository.ChatRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.example.ngdtechsupport.ai.AiResponseHelper
 import com.example.ngdtechsupport.utils.SecurityValidator
 import com.google.firebase.Timestamp
@@ -48,17 +49,20 @@ class ChatViewModel : ViewModel() {
     val error: LiveData<String?> = _error
 
     private var typingListenerCleanup: (() -> Unit)? = null
+    private var messagesListenerRegistration: ListenerRegistration? = null
+    private var typingListenerRegistration: ListenerRegistration? = null
 
     fun listenMessages(companyId: String, channelId: String) {
-        chatRepository.listenMessages(companyId, channelId) { messages ->
+        messagesListenerRegistration?.remove()
+        messagesListenerRegistration = chatRepository.listenMessages(companyId, channelId) { messages ->
             _messages.postValue(messages)
         }
     }
 
     fun listenTyping(companyId: String, channelId: String) {
         val uid = currentUserId ?: return
-        
-        chatRepository.listenTyping(companyId, channelId, uid) { typing ->
+        typingListenerRegistration?.remove()
+        typingListenerRegistration = chatRepository.listenTyping(companyId, channelId, uid) { typing ->
             _typingUsers.postValue(typing)
         }
     }
@@ -304,5 +308,23 @@ class ChatViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         typingListenerCleanup?.invoke()
+        messagesListenerRegistration?.remove()
+        typingListenerRegistration?.remove()
+    }
+
+    fun pauseListeners() {
+        messagesListenerRegistration?.remove()
+        messagesListenerRegistration = null
+        typingListenerRegistration?.remove()
+        typingListenerRegistration = null
+    }
+
+    fun resumeListeners(companyId: String, channelId: String) {
+        if (messagesListenerRegistration == null) {
+            listenMessages(companyId, channelId)
+        }
+        if (typingListenerRegistration == null) {
+            listenTyping(companyId, channelId)
+        }
     }
 }

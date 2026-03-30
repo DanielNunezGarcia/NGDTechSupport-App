@@ -10,6 +10,7 @@ import com.example.ngdtechsupport.data.model.ChannelModel
 import com.example.ngdtechsupport.data.repository.ChannelRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
 
 class ChannelViewModel : ViewModel() {
@@ -55,6 +56,8 @@ class ChannelViewModel : ViewModel() {
     private val currentUserId: String
         get() = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
 
+    private var listenerRegistration: ListenerRegistration? = null
+
     fun clearPrivateChannelState() {
         _privateChannelCreated.value = null
     }
@@ -73,6 +76,11 @@ class ChannelViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        listenerRegistration?.remove()
     }
 
     fun loadChannels(companyId: String) {
@@ -102,6 +110,24 @@ class ChannelViewModel : ViewModel() {
 
     fun clearError() {
         _error.value = null
+    }
+
+    fun listenChannels(companyId: String) {
+        listenerRegistration?.remove()
+        listenerRegistration = repository.listenChannels(companyId) { channels ->
+            _channels.postValue(channels)
+        }
+    }
+
+    fun pauseListeners() {
+        listenerRegistration?.remove()
+        listenerRegistration = null
+    }
+
+    fun resumeListeners(companyId: String) {
+        if (listenerRegistration == null) {
+            listenChannels(companyId)
+        }
     }
 
     private fun loadChannelsPage(reset: Boolean) {
