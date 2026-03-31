@@ -235,10 +235,10 @@ class ChatActivity : AppCompatActivity() {
             sendQuickMessage("Quiero consultar el estado de mi proyecto") 
         }
         binding.btnQuick2.setOnClickListener { 
-            sendQuickMessage("• Tengo un problema en mi aplicación\n• Descripción del error:\n• Pasos para reproducir:") 
+            sendQuickMessage("• Tengo un problema en mi aplicación\n• Descripción del error:\n• Pasos para reproducir:\n• Comportamiento esperado:") 
         }
         binding.btnQuick3.setOnClickListener { 
-            sendQuickMessage("• Quiero solicitar un presupuesto\n• Tipo de proyecto:\n• Presupuesto aproximado:") 
+            sendQuickMessage("• Quiero solicitar un presupuesto\n• Tipo de proyecto:\n• Presupuesto aproximado:\n• Fecha límite:") 
         }
         binding.btnQuick4.setOnClickListener { 
             sendQuickMessage("Quiero hablar con un agente") 

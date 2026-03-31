@@ -70,7 +70,10 @@ class UpdatesRepository {
         description: String,
         type: String,
         version: String,
-        adminId: String
+        adminId: String,
+        priority: Int = 1,
+        color: String = "#2196F3",
+        publishDate: Long = 0
     ) {
 
         val ref = firestore
@@ -88,7 +91,10 @@ class UpdatesRepository {
             "type" to type,
             "version" to version,
             "createdAt" to Timestamp.now(),
-            "createdBy" to adminId
+            "createdBy" to adminId,
+            "priority" to priority,
+            "color" to color,
+            "publishDate" to publishDate
         )
 
         ref.set(update).await()
@@ -194,7 +200,9 @@ class UpdatesRepository {
             status = getString("status") ?: "",
             isActive = getBoolean("isActive") ?: true,
             priority = getLong("priority")?.toInt() ?: 1,
-            pinned = getBoolean("pinned") ?: false
+            pinned = getBoolean("pinned") ?: false,
+            color = getString("color") ?: "#2196F3",
+            publishDate = getLong("publishDate") ?: 0L
         )
     }
 
@@ -246,9 +254,9 @@ class UpdatesRepository {
         firestore
             .collection("users")
             .document(userId)
-            .update(
-                "lastUpdateRead",
-                System.currentTimeMillis()
+            .set(
+                mapOf("lastUpdateRead" to System.currentTimeMillis()),
+                com.google.firebase.firestore.SetOptions.merge()
             )
             .await()
     }

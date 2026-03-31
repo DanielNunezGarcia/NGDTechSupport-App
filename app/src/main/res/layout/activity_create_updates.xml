@@ -46,6 +46,73 @@
             android:hint="Versión"
             android:layout_marginTop="10dp"/>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Prioridad"
+            android:layout_marginTop="16dp"/>
+
+        <RadioGroup
+            android:id="@+id/rgPriority"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
+
+            <RadioButton
+                android:id="@+id/rbPriority1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1: Baja"
+                android:checked="true"/>
+
+            <RadioButton
+                android:id="@+id/rbPriority2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2: Media"
+                android:layout_marginStart="16dp"/>
+
+            <RadioButton
+                android:id="@+id/rbPriority3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3: Alta"
+                android:layout_marginStart="16dp"/>
+
+            <RadioButton
+                android:id="@+id/rbPriority4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="4: Crítica"
+                android:layout_marginStart="16dp"/>
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Color"
+            android:layout_marginTop="16dp"/>
+
+        <Spinner
+            android:id="@+id/spinnerColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Fecha de publicación"
+            android:layout_marginTop="16dp"/>
+
+        <DatePicker
+            android:id="@+id/datePicker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:datePickerMode="calendar"/>
+
         <Button
             android:id="@+id/btnPublish"
             android:layout_width="match_parent"

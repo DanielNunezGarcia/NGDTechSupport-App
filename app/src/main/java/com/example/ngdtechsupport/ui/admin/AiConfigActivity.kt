@@ -44,11 +44,12 @@ class AiConfigActivity : AppCompatActivity() {
         // Welcome messages are configured in Firestore directly
         // The app will use default messages if none are configured
         try {
-            // Find and hide the welcome messages section
-            // This is a workaround since we can't easily hide sections in the layout
-            // We'll set a default message and disable editing
+            // Hide the entire welcome section
+            binding.tvWelcomeTitle.visibility = android.view.View.GONE
+            binding.tvWelcomeInstructions.visibility = android.view.View.GONE
+            binding.layoutWelcomeMessages.visibility = android.view.View.GONE
+            // Also disable editing in case it's shown somehow
             binding.etWelcomeMessages.isEnabled = false
-            binding.etWelcomeMessages.alpha = 0.5f
         } catch (e: Exception) {
             // Ignore if the view doesn't exist
         }

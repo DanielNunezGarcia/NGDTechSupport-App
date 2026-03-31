@@ -73,7 +73,10 @@ class UpdatesViewModel : ViewModel() {
         description: String,
         version: String,
         type: String,
-        adminId: String
+        adminId: String,
+        priority: Int = 1,
+        color: String = "#2196F3",
+        publishDate: Long = 0
     ) {
         viewModelScope.launch {
             try {
@@ -84,7 +87,10 @@ class UpdatesViewModel : ViewModel() {
                     description = description,
                     type = type,
                     version = version,
-                    adminId = adminId
+                    adminId = adminId,
+                    priority = priority,
+                    color = color,
+                    publishDate = publishDate
                 )
                 _error.postValue(null)
             } catch (e: Exception) {

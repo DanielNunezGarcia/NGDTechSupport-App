@@ -27,6 +27,7 @@
             android:padding="20dp">
 
             <TextView
+                android:id="@+id/tvWelcomeTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Mensajes de Bienvenida"
@@ -35,6 +36,7 @@
                 android:layout_marginBottom="8dp" />
 
             <TextView
+                android:id="@+id/tvWelcomeInstructions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Validación en tiempo real: guarda la configuración, abre el chat y verifica que aparezca un mensaje de bienvenida distinto al entrar. Luego envía un mensaje y confirma que la respuesta de IA llega y se muestra legible."
@@ -43,6 +45,7 @@
                 android:layout_marginBottom="10dp" />
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutWelcomeMessages"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox">

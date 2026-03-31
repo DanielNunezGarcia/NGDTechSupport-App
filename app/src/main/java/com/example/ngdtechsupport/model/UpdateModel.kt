@@ -13,6 +13,8 @@ data class UpdateModel(
     val status: String = "",
     val isActive: Boolean = true,
     val priority: Int = 1,
-    val pinned: Boolean = false
+    val pinned: Boolean = false,
+    val color: String = "#2196F3",
+    val publishDate: Long = 0
 
 )
