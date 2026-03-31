@@ -15,6 +15,7 @@ import android.widget.TextView
 import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.ui.chat.ChatActivity
 import com.google.firebase.auth.FirebaseAuth
+import com.google.android.material.appbar.MaterialToolbar
 
 class ChannelActivity : AppCompatActivity() {
 
@@ -30,6 +31,7 @@ class ChannelActivity : AppCompatActivity() {
     private lateinit var loadingMore: ProgressBar
     private lateinit var btnLoadMore: Button
     private lateinit var emptyView: TextView
+    private lateinit var toolbar: MaterialToolbar
 
     private lateinit var companyId: String
     private lateinit var businessId: String
@@ -42,6 +44,8 @@ class ChannelActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         try {
             setContentView(R.layout.activity_channel)
+            toolbar = findViewById(R.id.toolbar)
+            setupToolbar()
             Log.d("ChannelActivity", "onCreate started")
 
             companyId = intent.getStringExtra("companyId").orEmpty().ifEmpty { DEFAULT_COMPANY_ID }
@@ -188,6 +192,12 @@ class ChannelActivity : AppCompatActivity() {
         super.onStop()
         if (::viewModel.isInitialized) {
             viewModel.pauseListeners()
+        }
+    }
+
+    private fun setupToolbar() {
+        toolbar.setNavigationOnClickListener {
+            onBackPressed()
         }
     }
 

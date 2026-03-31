@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.ngdtechsupport.R
 import com.example.ngdtechsupport.databinding.ActivityCreateUpdatesBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.android.material.appbar.MaterialToolbar
 class CreateUpdatesActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCreateUpdatesBinding
@@ -20,6 +21,11 @@ class CreateUpdatesActivity : AppCompatActivity() {
         try {
             binding = ActivityCreateUpdatesBinding.inflate(layoutInflater)
             setContentView(binding.root)
+
+            // Setup toolbar
+            binding.toolbar.setNavigationOnClickListener {
+                onBackPressed()
+            }
 
             companyId = intent.getStringExtra("companyId") ?: ""
             businessId = intent.getStringExtra("businessId") ?: ""

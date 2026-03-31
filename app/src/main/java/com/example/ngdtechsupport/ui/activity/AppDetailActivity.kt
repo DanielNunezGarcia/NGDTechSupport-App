@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import android.util.Log
+import com.google.android.material.appbar.MaterialToolbar
 
 class AppDetailActivity : AppCompatActivity() {
 
@@ -30,6 +31,10 @@ class AppDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_app_detail)
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        toolbar.setNavigationOnClickListener {
+            onBackPressed()
+        }
 
         try {
             val tvBusinessName = findViewById<TextView>(R.id.tvBusinessName)

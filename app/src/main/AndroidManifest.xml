@@ -26,6 +26,9 @@
             android:name=".ui.channel.ChannelActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.channel.CreatePrivateChannelActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.updates.PublishUpdateActivity"
             android:exported="false" />
         <activity
@@ -48,6 +51,9 @@
             android:exported="false" />
         <activity
             android:name=".ui.updates.CreateUpdatesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.updates.UpdateDetailActivity"
             android:exported="false" />
         <activity
             android:name=".ai.AiChatActivity"
